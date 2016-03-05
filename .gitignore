@@ -1,0 +1,9 @@
+
+tags
+*.pro
+*.o
+*.png
+*.log
+moc_*
+GameMonitor
+
