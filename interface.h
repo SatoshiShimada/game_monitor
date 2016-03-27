@@ -24,6 +24,7 @@ struct robot {
 	QLabel *name;
 	QLabel *voltage;
 	QLabel *fps;
+	//QLabel *string;
 	QLabel *string;
 	Pos2D pos;
 };
@@ -38,13 +39,14 @@ private:
 	UdpThread *th3;
 	UdpThread *th4;
 	UdpThread *th5;
+	UdpThread *th6;
 	QCheckBox *receive, *reverse;
 	QPushButton *logStart, *logTerm;
 	QLabel *id, *name, *voltage, *fps, *string;
-	QLabel *idLabel1, *idLabel2, *idLabel3, *idLabel4, *idLabel5;
+	QLabel *idLabel1, *idLabel2, *idLabel3, *idLabel4, *idLabel5, *idLabel6;
 	QString filenameDrag;
 	QWidget *window;
-	struct robot robot1, robot2, robot3, robot4, robot5;
+	struct robot robot1, robot2, robot3, robot4, robot5, robot6;
 	QLabel *titleLabel;
 	QLabel *image;
 	QPixmap map;
@@ -54,6 +56,11 @@ private:
 	QHBoxLayout *checkLayout;
 	QHBoxLayout *winLayout;
 	QGridLayout *labelLayout;
+	QPalette pal_red;
+	QPalette pal_green;
+	QPalette pal_blue;
+	QPalette pal_black;
+	QPalette pal_orange;
 	void connection(void);
 	bool fLogging;
 	bool fReceive;
@@ -78,5 +85,6 @@ private slots:
 	void decodeData3(struct comm_info_T);
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
+	void decodeData6(struct comm_info_T);
 };
 
