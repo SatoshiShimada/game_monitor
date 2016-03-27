@@ -220,35 +220,35 @@ void Interface::connection(void)
 
 void Interface::decodeData1(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot1);
+	decodeUdp(comm_info, &robot1, 1);
 }
 
 void Interface::decodeData2(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot2);
+	decodeUdp(comm_info, &robot2, 2);
 }
 
 void Interface::decodeData3(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot3);
+	decodeUdp(comm_info, &robot3, 3);
 }
 
 void Interface::decodeData4(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot4);
+	decodeUdp(comm_info, &robot4, 4);
 }
 
 void Interface::decodeData5(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot5);
+	decodeUdp(comm_info, &robot5, 5);
 }
 
 void Interface::decodeData6(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot6);
+	decodeUdp(comm_info, &robot6, 6);
 }
 
-void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data)
+void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data, int num)
 {
 	char buf[2048];
 	int color, id;
@@ -292,7 +292,12 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	// 20: scale(if teen league: 1.5times)
 	robot_data->pos.x = (int)( robot_data->pos.x / 20) + (370 / 2);
 	robot_data->pos.y = (int)(-robot_data->pos.y / 20) + (270 / 2);
-	paint.drawPoint(robot_data->pos.x, robot_data->pos.y);
+	positions[num] = robot_data->pos;
+
+	/* draw */
+	for(int i = 0; i < 6; i++) {
+		paint.drawPoint(positions[i].x, positions[i].y);
+	}
 	image->setPixmap(map);
 }
 
