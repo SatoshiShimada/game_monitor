@@ -149,7 +149,7 @@ void Interface::createWindow(void)
 	labelLayout->addWidget(robot3.string, 4, 5);
 	labelLayout->addWidget(robot4.string, 5, 5);
 	labelLayout->addWidget(robot5.string, 6, 5);
-	labelLayout->addWidget(robot6.string, 6, 5);
+	labelLayout->addWidget(robot6.string, 7, 5);
 
 	buttonLayout->addWidget(logStart);
 	buttonLayout->addWidget(logTerm);
