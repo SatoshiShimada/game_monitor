@@ -1,6 +1,8 @@
 
 #include "hpl_types.h"
 
+#include <boost/asio.hpp>
+
 #include <QtGui>
 #include <QtCore>
 #include <QApplication>
@@ -51,8 +53,11 @@ public:
 	~UdpThread();
 protected:
 	struct comm_info_T comm_info;
-	int sock;
 	void run();
+	boost::asio::io_service io_srv;
+	boost::system::error_code error;
+	boost::asio::ip::udp::endpoint remote_endpoint;
+	boost::asio::ip::udp::socket *socket;
 signals:
 	void receiveData(struct comm_info_T);
 };

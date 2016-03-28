@@ -1,64 +1,49 @@
 
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 
 #include <iostream>
+#include <thread>
+#include <exception>
+#include <boost/asio.hpp>
 #include <boost/math/constants/constants.hpp>
 
 #include "udp_thread.h"
 
 UdpThread::UdpThread(int port_num)
 {
-	struct addrinfo hints, *res;
-	int err;
-	char port[20];
+	try {
+		socket = new boost::asio::ip::udp::socket(io_srv, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port_num));
 
-	sprintf(port, "%d", port_num);
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_flags = AI_PASSIVE;
-	err = getaddrinfo(NULL, port, &hints, &res);
-	if(err != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(err));
-		//return 1;
+	} catch(std::exception &e) {
+		std::cerr << e.what() << std::endl;
 	}
-	sock = socket(res->ai_family, res->ai_socktype, 0);
-	if(sock < 0) {
-		perror("socket");
-		//return 1;
-	}
-	if(bind(sock, res->ai_addr, res->ai_addrlen) != 0) {
-		perror("bind");
-		//return 1;
-	}
-	freeaddrinfo(res);
 }
 
 void UdpThread::run(void)
 {
 	unsigned char buf[2048];
-	size_t n;
+	size_t len;
 
 	while(1) {
-		// receive
+		len = 0;
 		memset(buf, 0, sizeof(buf));
-		/* n is sizeof received data */
-		n = (size_t)recv(sock, buf, sizeof(buf), 0);
+		// receive data
+		try {
+			len = socket->receive_from(boost::asio::buffer(buf, sizeof(buf)), remote_endpoint, 0, error);
+		} catch(std::exception &e) {
+			std::cerr << e.what() << std::endl;
+		}
 
-		// decode
+		// receivied data copy to structure
 		char *p = (char *)&comm_info;
-		for(size_t i = 0; (i < n) && (i < sizeof(struct comm_info_T)); i++) {
+		for(size_t i = 0; (i < len) && (i < sizeof(struct comm_info_T)); i++) {
 			*p++ = buf[i];
 		}
 		/* [ DEBUG ]
 		unsigned int color;
 		unsigned int id;
+		puts("--- InfoShare ---");
 		color = (buf[0] & 0x80) >> 7;
 		id    = buf[0] & 0x7F;
 		if(color == MAGENTA)
@@ -74,13 +59,11 @@ void UdpThread::run(void)
 
 		emit receiveData(comm_info);
 	}
-
 	return;
 }
 
 UdpThread::~UdpThread()
 {
-	close(sock);
 }
 
 bool getCommInfoObject(unsigned char *data, Pos2D *pos)

@@ -15,6 +15,7 @@ Interface::Interface()
 	fReceive = true;
 	fReverse = false;
 
+	port = 7110;
 	createWindow();
 	connection();
 
@@ -38,12 +39,12 @@ void Interface::createWindow(void)
 {
 	window         = new QWidget;
 	titleLabel     = new QLabel("Humanoid League Game Monitor");
-	th1            = new UdpThread(7110);
-	th2            = new UdpThread(7111);
-	th3            = new UdpThread(7112);
-	th4            = new UdpThread(7113);
-	th5            = new UdpThread(7114);
-	th6            = new UdpThread(7115);
+	th1            = new UdpThread(port + 0);
+	th2            = new UdpThread(port + 1);
+	th3            = new UdpThread(port + 2);
+	th4            = new UdpThread(port + 3);
+	th5            = new UdpThread(port + 4);
+	th6            = new UdpThread(port + 5);
 	receive        = new QCheckBox("Receive data");
 	reverse        = new QCheckBox("Reverse field");
 	logStart       = new QPushButton("Log start");

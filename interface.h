@@ -69,6 +69,7 @@ private:
 	bool fLogging;
 	bool fReceive;
 	bool fReverse;
+	int port;
 
 protected:
 	void paintEvent(QPaintEvent *);
