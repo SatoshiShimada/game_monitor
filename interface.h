@@ -26,7 +26,6 @@ struct robot {
 	QLabel *name;
 	QLabel *voltage;
 	QLabel *fps;
-	//QLabel *string;
 	QLabel *string;
 	Pos2D pos;
 };

@@ -91,7 +91,7 @@ void Interface::createWindow(void)
 	winLayout      = new QHBoxLayout;
 	labelLayout    = new QGridLayout;
 
-	/* set color for label */
+	/* set color palette for label */
 	pal_red = robot1.string->palette();
 	pal_green = robot1.string->palette();
 	pal_blue = robot1.string->palette();
@@ -174,7 +174,7 @@ void Interface::loadImage(QString image_filename)
 {
 	QImage image_buf(image_filename);
 	if(image_buf.isNull()) {
-		std::cerr << "Error: can\'t open image file" << std::endl;
+		std::cerr << "Error: couldn\'t open image file" << std::endl;
 		return;
 	}
 	origin_map = QPixmap::fromImage(image_buf);
@@ -187,7 +187,7 @@ void Interface::loadImage(const char *image_filename)
 {
 	QImage image_buf(image_filename);
 	if(image_buf.isNull()) {
-		std::cerr << "Error: can\'t open image file" << std::endl;
+		std::cerr << "Error: couldn\'t open image file" << std::endl;
 		return;
 	}
 	origin_map = QPixmap::fromImage(image_buf);
@@ -198,8 +198,7 @@ void Interface::loadImage(const char *image_filename)
 
 void Interface::dragEnterEvent(QDragEnterEvent *e)
 {
-	if(e->mimeData()->hasFormat("text/uri-list"))
-	{
+	if(e->mimeData()->hasFormat("text/uri-list")) {
 		e->acceptProposedAction();
 	}
 }
@@ -268,20 +267,20 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	robot_data->fps->setText(buf);
 	log.write(buf);
 	if(strstr((const char *)comm_info.command, "Attacker")) {
-		robot_data->string->setPalette(pal_red);
 		/* Red */
+		robot_data->string->setPalette(pal_red);
 	} else if(strstr((const char *)comm_info.command, "Neutral")) {
-		robot_data->string->setPalette(pal_green);
 		/* Green */
+		robot_data->string->setPalette(pal_green);
 	} else if(strstr((const char *)comm_info.command, "Defecder")) {
-		robot_data->string->setPalette(pal_blue);
 		/* Blue */
+		robot_data->string->setPalette(pal_blue);
 	} else if(strstr((const char *)comm_info.command, "Keeper")) {
-		robot_data->string->setPalette(pal_orange);
 		/* Orange */
+		robot_data->string->setPalette(pal_orange);
 	} else {
-		robot_data->string->setPalette(pal_black);
 		/* Black */
+		robot_data->string->setPalette(pal_black);
 	}
 	robot_data->string->setText((char *)comm_info.command);
 	log.write((char *)comm_info.command);
@@ -295,13 +294,14 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 
 	getCommInfoObject(comm_info.object[0], &(robot_data->pos));
 	// 20: scale(if teen league: 1.5times)
+	// 370x270: image size
 	robot_data->pos.x = (int)( robot_data->pos.x / 20) + (370 / 2);
 	robot_data->pos.y = (int)(-robot_data->pos.y / 20) + (270 / 2);
 	positions[num] = robot_data->pos;
 	sprintf(buf, "x: %f, y: %f", robot_data->pos.x, robot_data->pos.y);
 	log.write(buf);
 
-	/* draw */
+	/* draw position marker on image */
 	for(int i = 0; i < 6; i++) {
 		paint.drawPoint(positions[i].x, positions[i].y);
 	}

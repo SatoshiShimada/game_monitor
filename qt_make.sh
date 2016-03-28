@@ -15,3 +15,4 @@ echo 'QMAKE_CXXFLAGS += --std=c++11' >> $PROJECT
 echo 'unix:LIBS += -lboost_system' >> $PROJECT
 qmake-qt4
 make all -j4
+

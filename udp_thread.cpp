@@ -14,7 +14,6 @@ UdpThread::UdpThread(int port_num)
 {
 	try {
 		socket = new boost::asio::ip::udp::socket(io_srv, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port_num));
-
 	} catch(std::exception &e) {
 		std::cerr << e.what() << std::endl;
 	}
@@ -35,27 +34,11 @@ void UdpThread::run(void)
 			std::cerr << e.what() << std::endl;
 		}
 
-		// receivied data copy to structure
+		// copy receivied data to structure
 		char *p = (char *)&comm_info;
 		for(size_t i = 0; (i < len) && (i < sizeof(struct comm_info_T)); i++) {
 			*p++ = buf[i];
 		}
-		/* [ DEBUG ]
-		unsigned int color;
-		unsigned int id;
-		puts("--- InfoShare ---");
-		color = (buf[0] & 0x80) >> 7;
-		id    = buf[0] & 0x7F;
-		if(color == MAGENTA)
-			fprintf(stderr, "[MAGENTA] [ID: %d]\n", id);
-		else if(color == CYAN)
-			fprintf(stderr, "[CYAN] [ID: %d]\n", id);
-		fprintf(stderr, "comm_info.status: %d\n", comm_info.status);
-		fprintf(stderr, "comm_info.fps: %d\n", comm_info.fps);
-		fprintf(stderr, "comm_info.voltage: %f[V]\n", (comm_info.voltage << 3) / 100.0);
-		fprintf(stderr, "comm_info.command: %s\n", comm_info.command);
-		fprintf(stderr, "-----------------\n");
-		*/
 
 		emit receiveData(comm_info);
 	}
