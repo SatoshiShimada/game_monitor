@@ -19,6 +19,7 @@
 #include <QPainter>
 
 #include "udp_thread.h"
+#include "log.h"
 #include "hpl_types.h"
 
 struct robot {
@@ -35,6 +36,7 @@ class Interface : public QMainWindow
 	Q_OBJECT
 
 private:
+	Log log;
 	UdpThread *th1;
 	UdpThread *th2;
 	UdpThread *th3;

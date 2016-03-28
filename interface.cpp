@@ -259,10 +259,13 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 
 	sprintf(buf, "%s %d", ((color == MAGENTA) ? "MAGENTA" : "CYAN"), id);
 	robot_data->name->setText(buf);
+	log.write(buf);
 	sprintf(buf, "%lf", (comm_info.voltage << 3) / 100.0);
 	robot_data->voltage->setText(buf);
+	log.write(buf);
 	sprintf(buf, "%d", comm_info.fps);
 	robot_data->fps->setText(buf);
+	log.write(buf);
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		robot_data->string->setPalette(pal_red);
 		/* Red */
@@ -280,6 +283,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		/* Black */
 	}
 	robot_data->string->setText((char *)comm_info.command);
+	log.write((char *)comm_info.command);
 	/* erase previous position marker */
 	map = origin_map;
 	QPainter paint(&map);
@@ -293,12 +297,15 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	robot_data->pos.x = (int)( robot_data->pos.x / 20) + (370 / 2);
 	robot_data->pos.y = (int)(-robot_data->pos.y / 20) + (270 / 2);
 	positions[num] = robot_data->pos;
+	sprintf(buf, "x: %f, y: %f", robot_data->pos.x, robot_data->pos.y);
+	log.write(buf);
 
 	/* draw */
 	for(int i = 0; i < 6; i++) {
 		paint.drawPoint(positions[i].x, positions[i].y);
 	}
 	image->setPixmap(map);
+	log.separate();
 }
 
 void Interface::paintEvent(QPaintEvent *e)
