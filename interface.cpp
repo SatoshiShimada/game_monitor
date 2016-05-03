@@ -295,8 +295,8 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	getCommInfoObject(comm_info.object[0], &(robot_data->pos));
 	// 20: scale(if teen league: 1.5times)
 	// 370x270: image size
-	robot_data->pos.x = (int)( robot_data->pos.x / 20) + (370 / 2);
-	robot_data->pos.y = (int)(-robot_data->pos.y / 20) + (270 / 2);
+	robot_data->pos.x = (int)(5000 + robot_data->pos.x) / (370.f / 10000.f);
+	robot_data->pos.y = (int)(3500 - robot_data->pos.y) / (270.f / 7000.f);
 	positions[num] = robot_data->pos;
 	sprintf(buf, "x: %f, y: %f", robot_data->pos.x, robot_data->pos.y);
 	log.write(buf);
