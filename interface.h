@@ -22,6 +22,13 @@
 #include "log.h"
 #include "hpl_types.h"
 
+struct PositionMaker {
+	PositionMaker() : enable(false), lastReceive(0) {}
+	bool enable;
+	int lastReceive;
+	Pos2D pos;
+};
+
 struct robot {
 	QLabel *name;
 	QLabel *voltage;
@@ -48,7 +55,7 @@ private:
 	QLabel *idLabel1, *idLabel2, *idLabel3, *idLabel4, *idLabel5, *idLabel6;
 	QString filenameDrag;
 	QWidget *window;
-	Pos2D positions[6];
+	PositionMaker positions[6];
 	struct robot robot1, robot2, robot3, robot4, robot5, robot6;
 	QLabel *titleLabel;
 	QLabel *image;

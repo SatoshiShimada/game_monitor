@@ -295,15 +295,26 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	getCommInfoObject(comm_info.object[0], &(robot_data->pos));
 	// 20: scale(if teen league: 1.5times)
 	// 370x270: image size
-	robot_data->pos.x = (int)(5000 + robot_data->pos.x) / (370.f / 10000.f);
-	robot_data->pos.y = (int)(3500 - robot_data->pos.y) / (270.f / 7000.f);
-	positions[num] = robot_data->pos;
+	robot_data->pos.x = (int)((5000 + robot_data->pos.x) / 10000.f * 370);
+	robot_data->pos.y = (int)((3500 - robot_data->pos.y) / 7000.f * 270);
+	positions[num].enable = true;
+	positions[num].lastReceive = 0;
+	positions[num].pos = robot_data->pos;
 	sprintf(buf, "x: %f, y: %f", robot_data->pos.x, robot_data->pos.y);
 	log.write(buf);
 
 	/* draw position marker on image */
 	for(int i = 0; i < 6; i++) {
-		paint.drawPoint(positions[i].x, positions[i].y);
+		int x = positions[i].pos.x;
+		int y = positions[i].pos.y;
+		if(positions[i].pos.x == 0 && positions[i].pos.y == 0)
+			positions[i].enable = false;
+		if(positions[i].lastReceive >= 10)
+			positions[i].enable = false;
+		if(positions[i].enable == true)
+			paint.drawPoint(x, y);
+			paint.drawText(QPoint(x, y), "robot");
+		positions[i].lastReceive++;
 	}
 	image->setPixmap(map);
 	log.separate();
