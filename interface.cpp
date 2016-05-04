@@ -261,7 +261,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	sprintf(buf, "%s %d", ((color == MAGENTA) ? "MAGENTA" : "CYAN"), id);
 	robot_data->name->setText(buf);
 	log.write(buf);
-	sprintf(buf, "%lf", (comm_info.voltage << 3) / 100.0);
+	sprintf(buf, "%.2lf", (comm_info.voltage << 3) / 100.0);
 	robot_data->voltage->setText(buf);
 	log.write(buf);
 	sprintf(buf, "%d", comm_info.fps);
