@@ -5,10 +5,13 @@ class Log {
 public:
 	Log();
 	~Log();
-	int write(const char *);
+	int write(int, char *, int, double, int, int, float, int, int, char *);
 	int separate(void);
+	void setEnable(void);
+	void setDisable(void);
 private:
 	FILE *fp;
 	bool failed;
+	bool enable;
 };
 

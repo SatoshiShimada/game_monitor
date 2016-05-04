@@ -252,21 +252,21 @@ void Interface::decodeData6(struct comm_info_T comm_info)
 void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data, int num)
 {
 	char buf[2048];
+	char color_str[100];
 	int color, id;
+	double voltage;
 
 	/* MAGENTA, CYAN */
 	color = (int)(comm_info.id & 0x80) >> 7;
 	id    = (int)(comm_info.id & 0x7F);
 
-	sprintf(buf, "%s %d", ((color == MAGENTA) ? "MAGENTA" : "CYAN"), id);
-	robot_data->name->setText(buf);
-	log.write(buf);
-	sprintf(buf, "%.2lf", (comm_info.voltage << 3) / 100.0);
+	sprintf(color_str, "%s %d", ((color == MAGENTA) ? "MAGENTA" : "CYAN"), id);
+	robot_data->name->setText(color_str);
+	voltage = (comm_info.voltage << 3) / 100.0;
+	sprintf(buf, "%.2lf", voltage);
 	robot_data->voltage->setText(buf);
-	log.write(buf);
 	sprintf(buf, "%d", comm_info.fps);
 	robot_data->fps->setText(buf);
-	log.write(buf);
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		/* Red */
 		robot_data->string->setPalette(pal_red);
@@ -289,7 +289,6 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		strcpy(positions[num].color, "black");
 	}
 	robot_data->string->setText((char *)comm_info.command);
-	log.write((char *)comm_info.command);
 	/* erase previous position marker */
 	map = origin_map;
 	QPainter paint(&map);
@@ -302,8 +301,6 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	positions[num].enable = true;
 	positions[num].lastReceive = 0;
 	positions[num].pos = robot_data->pos;
-	sprintf(buf, "[robotpos] x: %f, y: %f", robot_data->pos.x, robot_data->pos.y);
-	log.write(buf);
 	/* Decode ball position */
 	getCommInfoObject(comm_info.object[1], &(positions[num].ball));
 	positions[num].ball.x = (int)((5000 + positions[num].ball.x) / 10000.f * 370);
@@ -348,7 +345,10 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[i].lastReceive++;
 	}
 	image->setPixmap(map);
-	log.separate();
+	log.write(num+1, color_str, (int)comm_info.fps, (double)voltage,
+		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
+		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
+	//log.separate();
 }
 
 void Interface::paintEvent(QPaintEvent *e)
