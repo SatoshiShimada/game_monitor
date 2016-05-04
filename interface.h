@@ -23,10 +23,12 @@
 #include "hpl_types.h"
 
 struct PositionMaker {
-	PositionMaker() : enable(false), lastReceive(0) {}
+	PositionMaker() : enable(false), lastReceive(0) { color[0] = '\0'; }
 	bool enable;
 	int lastReceive;
-	Pos2D pos;
+	char color[20];
+	Pos2D pos; /* self position */
+	Pos2D ball; /* ball position */
 };
 
 struct robot {

@@ -10,6 +10,7 @@ Interface::Interface()
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
+	log.setEnable();
 	/* Initialize flags */
 	fLogging = true;
 	fReceive = true;
@@ -269,51 +270,81 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		/* Red */
 		robot_data->string->setPalette(pal_red);
+		strcpy(positions[num].color, "red");
 	} else if(strstr((const char *)comm_info.command, "Neutral")) {
 		/* Green */
 		robot_data->string->setPalette(pal_green);
+		strcpy(positions[num].color, "green");
 	} else if(strstr((const char *)comm_info.command, "Defecder")) {
 		/* Blue */
 		robot_data->string->setPalette(pal_blue);
+		strcpy(positions[num].color, "blue");
 	} else if(strstr((const char *)comm_info.command, "Keeper")) {
 		/* Orange */
 		robot_data->string->setPalette(pal_orange);
+		strcpy(positions[num].color, "orange");
 	} else {
 		/* Black */
 		robot_data->string->setPalette(pal_black);
+		strcpy(positions[num].color, "black");
 	}
 	robot_data->string->setText((char *)comm_info.command);
 	log.write((char *)comm_info.command);
 	/* erase previous position marker */
 	map = origin_map;
 	QPainter paint(&map);
-	QPen ppen(Qt::blue);
-	ppen.setWidth(10);
-	paint.setPen(ppen);
-	paint.setBrush(Qt::blue);
 
+	/* 370x270 pixel: field image size */
+	/* Decode robot position */
 	getCommInfoObject(comm_info.object[0], &(robot_data->pos));
-	// 20: scale(if teen league: 1.5times)
-	// 370x270: image size
 	robot_data->pos.x = (int)((5000 + robot_data->pos.x) / 10000.f * 370);
 	robot_data->pos.y = (int)((3500 - robot_data->pos.y) / 7000.f * 270);
 	positions[num].enable = true;
 	positions[num].lastReceive = 0;
 	positions[num].pos = robot_data->pos;
-	sprintf(buf, "x: %f, y: %f", robot_data->pos.x, robot_data->pos.y);
+	sprintf(buf, "[robotpos] x: %f, y: %f", robot_data->pos.x, robot_data->pos.y);
 	log.write(buf);
+	/* Decode ball position */
+	getCommInfoObject(comm_info.object[1], &(positions[num].ball));
+	positions[num].ball.x = (int)((5000 + positions[num].ball.x) / 10000.f * 370);
+	positions[num].ball.y = (int)((3500 - positions[num].ball.y) / 7000.f * 270);
 
 	/* draw position marker on image */
 	for(int i = 0; i < 6; i++) {
 		int x = positions[i].pos.x;
 		int y = positions[i].pos.y;
+		int ball_x = positions[i].ball.x;
+		int ball_y = positions[i].ball.y;
+		/* if position(x, y) equal zero, it is invalid */
 		if(positions[i].pos.x == 0 && positions[i].pos.y == 0)
 			positions[i].enable = false;
 		if(positions[i].lastReceive >= 10)
 			positions[i].enable = false;
-		if(positions[i].enable == true)
+		if(positions[i].enable == true) {
+			paint.setBrush(Qt::red);
+			if(!strcmp(positions[i].color, "red")) {
+				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 5));
+			} else if(!strcmp(positions[i].color, "blue")) {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0xFF), 5));
+			} else if(!strcmp(positions[i].color, "green")) {
+				paint.setPen(QPen(QColor(0x00, 0xFF, 0x00), 5));
+			} else if(!strcmp(positions[i].color, "black")) {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), 5));
+			} else if(!strcmp(positions[i].color, "orange")) {
+				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 5));
+			} else {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), 5));
+			}
+			/* draw robot position */
 			paint.drawPoint(x, y);
-			paint.drawText(QPoint(x, y), "robot");
+			sprintf(buf, "%d", i);
+			paint.drawText(QPoint(x, y), buf);
+			/* draw ball position */
+			paint.setPen(QPen(QColor(0xFF, 0xFF, 0xFF), 3));
+			paint.drawPoint(ball_x, ball_y);
+			sprintf(buf, "%d", i);
+			paint.drawText(QPoint(ball_x, ball_y), buf);
+		}
 		positions[i].lastReceive++;
 	}
 	image->setPixmap(map);
