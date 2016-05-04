@@ -1,4 +1,7 @@
 
+#ifndef _UDP_THREAD_H_
+#define _UDP_THREAD_H_
+
 #include "hpl_types.h"
 
 #include <boost/asio.hpp>
@@ -63,4 +66,6 @@ signals:
 };
 
 bool getCommInfoObject(unsigned char *data, Pos2D *);
+
+#endif // _UDP_THREAD_H_
 

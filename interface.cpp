@@ -93,16 +93,17 @@ void Interface::createWindow(void)
 	labelLayout    = new QGridLayout;
 
 	/* set color palette for label */
-	pal_red = robot1.string->palette();
-	pal_green = robot1.string->palette();
-	pal_blue = robot1.string->palette();
-	pal_black = robot1.string->palette();
+	pal_red    = robot1.string->palette();
+	pal_green  = robot1.string->palette();
+	pal_blue   = robot1.string->palette();
+	pal_black  = robot1.string->palette();
 	pal_orange = robot1.string->palette();
-	pal_red.setColor(QPalette::Foreground, QColor("#FF0000"));
-	pal_green.setColor(QPalette::Foreground, QColor("#00FF00"));
-	pal_blue.setColor(QPalette::Foreground, QColor("#0000FF"));
-	pal_black.setColor(QPalette::Foreground, QColor("#000000"));
+	pal_red.   setColor(QPalette::Foreground, QColor("#FF0000"));
+	pal_green. setColor(QPalette::Foreground, QColor("#00FF00"));
+	pal_blue.  setColor(QPalette::Foreground, QColor("#0000FF"));
+	pal_black. setColor(QPalette::Foreground, QColor("#000000"));
 	pal_orange.setColor(QPalette::Foreground, QColor("#FFA500"));
+	/* all robot default color is black */
 	robot1.string->setPalette(pal_black);
 	robot2.string->setPalette(pal_black);
 	robot3.string->setPalette(pal_black);
