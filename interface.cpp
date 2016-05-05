@@ -297,14 +297,14 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 
 	/* 370x270 pixel: field image size */
 	/* Decode robot position */
-	getCommInfoObject(comm_info.object[0], &(robot_data->pos));
+	getCommInfoObject(comm_info.object[1], &(robot_data->pos));
 	robot_data->pos.x = (int)((5000 + robot_data->pos.x) / 10000.f * 370);
 	robot_data->pos.y = (int)((3500 - robot_data->pos.y) / 7000.f * 270);
 	positions[num].enable = true;
 	positions[num].lastReceive = 0;
 	positions[num].pos = robot_data->pos;
 	/* Decode ball position */
-	getCommInfoObject(comm_info.object[1], &(positions[num].ball));
+	getCommInfoObject(comm_info.object[0], &(positions[num].ball));
 	positions[num].ball.x = (int)((5000 + positions[num].ball.x) / 10000.f * 370);
 	positions[num].ball.y = (int)((3500 - positions[num].ball.y) / 7000.f * 270);
 

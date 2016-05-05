@@ -36,7 +36,7 @@ int Log::write(int id, char *color, int fps, double voltage,
 		fprintf(fp, "%d,", id);
 		fprintf(fp, "%s,", color);
 		fprintf(fp, "%d,", fps);
-		fprintf(fp, "%.2lf", voltage);
+		fprintf(fp, "%.2lf,", voltage);
 		fprintf(fp, "%d,%d,%f,", posx, posy, posth);
 		fprintf(fp, "%d,%d,", ballx, bally);
 		fprintf(fp, "%s", str);
