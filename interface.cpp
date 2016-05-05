@@ -218,6 +218,7 @@ void Interface::connection(void)
 	connect(th4, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData4(struct comm_info_T)));
 	connect(th5, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
 	connect(th6, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
+	connect(receive, SIGNAL(toggled(bool checked)), this, SLOT(receiveStateChange(bool checked)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -354,5 +355,26 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 
 void Interface::paintEvent(QPaintEvent *e)
 {
+}
+
+void Interface::receiveStateChange(bool checked)
+{
+	if(receive->isTristate()) {
+		/* start*/
+		th1->start();
+		th2->start();
+		th3->start();
+		th4->start();
+		th5->start();
+		th6->start();
+	} else {
+		/* stop */
+		th1->quit();
+		th2->quit();
+		th3->quit();
+		th4->quit();
+		th5->quit();
+		th6->quit();
+	}
 }
 

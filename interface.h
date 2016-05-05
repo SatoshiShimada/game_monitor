@@ -99,5 +99,6 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
+	void receiveStateChange(bool checked);
 };
 
