@@ -106,6 +106,15 @@ void Interface::createWindow(void)
 	winLayout      = new QHBoxLayout;
 	labelLayout    = new QGridLayout;
 
+	/* set width */
+	id     ->setFixedWidth(30);
+	name   ->setFixedWidth(100);
+	voltage->setFixedWidth(60);
+	fps    ->setFixedWidth(30);
+//	string ->setFixedWidth(100);
+	cf_own ->setFixedWidth(120);
+	cf_ball->setFixedWidth(120);
+
 	/* set color palette for label */
 	pal_red    = robot1.string->palette();
 	pal_green  = robot1.string->palette();
