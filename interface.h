@@ -24,8 +24,9 @@
 #include "hpl_types.h"
 
 struct PositionMaker {
-	PositionMaker() : enable(false), lastReceive(0) { color[0] = '\0'; }
-	bool enable;
+	PositionMaker() : enable_pos(false), enable_ball(false), lastReceive(0) { color[0] = '\0'; }
+	bool enable_pos;
+	bool enable_ball;
 	int lastReceive;
 	char color[20];
 	Pos2D pos; /* self position */

@@ -352,20 +352,27 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	map = origin_map;
 	QPainter paint(&map);
 
-	/* Decode robot position */
-	getCommInfoObject(comm_info.object[1], &(positions[num].pos));
-	positions[num].pos.x =
-		(int)(positions[num].pos.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
-	positions[num].pos.y =
-		(int)(positions[num].pos.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
-	/* Decode ball position */
-	getCommInfoObject(comm_info.object[0], &(positions[num].ball));
-	positions[num].ball.x =
-		(int)(positions[num].ball.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
-	positions[num].ball.y =
-		(int)(positions[num].ball.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
-	positions[num].enable = true;
+	positions[num].enable_pos  = true;
+	positions[num].enable_ball = true;
 	positions[num].lastReceive = 0;
+	/* Decode robot position */
+	if(getCommInfoObject(comm_info.object[1], &(positions[num].pos)) == false) {
+		positions[num].enable_pos = false;
+	} else {
+		positions[num].pos.x =
+			(int)(positions[num].pos.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
+		positions[num].pos.y =
+			(int)(positions[num].pos.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
+	}
+	/* Decode ball position */
+	if(getCommInfoObject(comm_info.object[0], &(positions[num].ball)) == false) {
+		positions[num].enable_ball = false;
+	} else {
+		positions[num].ball.x =
+			(int)(positions[num].ball.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
+		positions[num].ball.y =
+			(int)(positions[num].ball.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
+	}
 
 	/* draw position marker on image */
 	for(int i = 0; i < 6; i++) {
@@ -373,9 +380,11 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		int y = positions[i].pos.y;
 		int ball_x = positions[i].ball.x;
 		int ball_y = positions[i].ball.y;
-		if(positions[i].lastReceive >= 10)
-			positions[i].enable = false;
-		if(positions[i].enable == true) {
+		if(positions[i].lastReceive >= 10) {
+			positions[i].enable_pos  = false;
+			positions[i].enable_ball = false;
+		}
+		if(positions[i].enable_pos == true) {
 			paint.setBrush(Qt::red);
 			/*
 			 * self-position maker color:
@@ -391,11 +400,13 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			paint.drawPoint(x, y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(x, y), buf);
-			/* draw ball position as orange */
-			paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), config.ball_marker_size));
-			paint.drawPoint(ball_x, ball_y);
-			sprintf(buf, "%d", i);
-			paint.drawText(QPoint(ball_x, ball_y), buf);
+			if(positions[i].enable_ball == true) {
+				/* draw ball position as orange */
+				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), config.ball_marker_size));
+				paint.drawPoint(ball_x, ball_y);
+				sprintf(buf, "%d", i);
+				paint.drawText(QPoint(ball_x, ball_y), buf);
+			}
 		}
 		positions[i].lastReceive++;
 	}
