@@ -20,6 +20,7 @@
 
 #include "udp_thread.h"
 #include "log.h"
+#include "config.h"
 #include "hpl_types.h"
 
 struct PositionMaker {
@@ -38,7 +39,6 @@ struct robot {
 	QLabel *string;
 	QLabel *cf_own;
 	QLabel *cf_ball;
-	Pos2D pos;
 };
 
 class Interface : public QMainWindow
@@ -47,6 +47,7 @@ class Interface : public QMainWindow
 
 private:
 	Log log;
+	Config config;
 	UdpThread *th1;
 	UdpThread *th2;
 	UdpThread *th3;

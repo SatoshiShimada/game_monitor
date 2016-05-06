@@ -11,6 +11,16 @@ Interface::Interface()
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
 	log.setEnable();
+
+	/* 370x270 pixel: field image size */
+	config.field_image_width  = 370;
+	config.field_image_height = 270;
+	/* field size 10000x7000 milli meter? (map size in robot) */
+	config.field_size_x       = 10000;
+	config.field_size_y       = 7000;
+	config.robot_marker_size  = 5;
+	config.ball_marker_size   = 3;
+
 	/* Initialize flags */
 	fLogging = true;
 	fReceive = true;
@@ -342,18 +352,20 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	map = origin_map;
 	QPainter paint(&map);
 
-	/* 370x270 pixel: field image size */
 	/* Decode robot position */
-	getCommInfoObject(comm_info.object[1], &(robot_data->pos));
-	robot_data->pos.x = (int)((5000 + robot_data->pos.x) / 10000.f * 370);
-	robot_data->pos.y = (int)((3500 - robot_data->pos.y) / 7000.f * 270);
-	positions[num].enable = true;
-	positions[num].lastReceive = 0;
-	positions[num].pos = robot_data->pos;
+	getCommInfoObject(comm_info.object[1], &(positions[num].pos));
+	positions[num].pos.x =
+		(int)(positions[num].pos.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
+	positions[num].pos.y =
+		(int)(positions[num].pos.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
 	/* Decode ball position */
 	getCommInfoObject(comm_info.object[0], &(positions[num].ball));
-	positions[num].ball.x = (int)((5000 + positions[num].ball.x) / 10000.f * 370);
-	positions[num].ball.y = (int)((3500 - positions[num].ball.y) / 7000.f * 270);
+	positions[num].ball.x =
+		(int)(positions[num].ball.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
+	positions[num].ball.y =
+		(int)(positions[num].ball.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
+	positions[num].enable = true;
+	positions[num].lastReceive = 0;
 
 	/* draw position marker on image */
 	for(int i = 0; i < 6; i++) {
@@ -371,16 +383,16 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			 *  other   : Black
 			 */
 			if(!strcmp(positions[i].color, "red")) {
-				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 5));
+				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), config.robot_marker_size));
 			} else {
-				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), 5));
+				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), config.robot_marker_size));
 			}
 			/* draw robot position */
 			paint.drawPoint(x, y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(x, y), buf);
 			/* draw ball position as orange */
-			paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 3));
+			paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), config.ball_marker_size));
 			paint.drawPoint(ball_x, ball_y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(ball_x, ball_y), buf);
