@@ -265,7 +265,8 @@ void Interface::connection(void)
 	connect(th4, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData4(struct comm_info_T)));
 	connect(th5, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
 	connect(th6, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
-	connect(receive, SIGNAL(toggled(bool checked)), this, SLOT(receiveStateChange(bool checked)));
+	connect(receive, SIGNAL(toggled(bool)), this, SLOT(receiveStateChange(bool)));
+	connect(reverse, SIGNAL(toggled(bool)), this, SLOT(reverseField(bool)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -363,6 +364,10 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			(int)(positions[num].pos.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
 		positions[num].pos.y =
 			(int)(positions[num].pos.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
+		if(fReverse) {
+			positions[num].pos.x = config.field_image_width  - positions[num].pos.x;
+			positions[num].pos.y = config.field_image_height - positions[num].pos.y;
+		}
 	}
 	/* Decode ball position */
 	if(getCommInfoObject(comm_info.object[0], &(positions[num].ball)) == false) {
@@ -372,6 +377,10 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			(int)(positions[num].ball.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
 		positions[num].ball.y =
 			(int)(positions[num].ball.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
+		if(fReverse) {
+			positions[num].ball.x = config.field_image_width  - positions[num].ball.x;
+			positions[num].ball.y = config.field_image_height - positions[num].ball.y;
+		}
 	}
 
 	/* draw position marker on image */
@@ -439,5 +448,13 @@ void Interface::receiveStateChange(bool checked)
 		th5->quit();
 		th6->quit();
 	}
+}
+
+void Interface::reverseField(bool cheched)
+{
+	if(fReverse)
+		fReverse = false;
+	else
+		fReverse = true;
 }
 
