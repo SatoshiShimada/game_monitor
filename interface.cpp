@@ -56,6 +56,8 @@ void Interface::createWindow(void)
 	voltage        = new QLabel("Voltage");
 	fps            = new QLabel("FPS");
 	string         = new QLabel("Common String");
+	cf_own         = new QLabel("confidence own");
+	cf_ball        = new QLabel("confidence ball");
 	idLabel1       = new QLabel("1");
 	idLabel2       = new QLabel("2");
 	idLabel3       = new QLabel("3");
@@ -86,6 +88,18 @@ void Interface::createWindow(void)
 	robot4.string  = new QLabel("");
 	robot5.string  = new QLabel("");
 	robot6.string  = new QLabel("");
+	robot1.cf_own  = new QLabel("");
+	robot2.cf_own  = new QLabel("");
+	robot3.cf_own  = new QLabel("");
+	robot4.cf_own  = new QLabel("");
+	robot5.cf_own  = new QLabel("");
+	robot6.cf_own  = new QLabel("");
+	robot1.cf_ball = new QLabel("");
+	robot2.cf_ball = new QLabel("");
+	robot3.cf_ball = new QLabel("");
+	robot4.cf_ball = new QLabel("");
+	robot5.cf_ball = new QLabel("");
+	robot6.cf_ball = new QLabel("");
 	mainLayout     = new QVBoxLayout;
 	buttonLayout   = new QVBoxLayout;
 	checkLayout    = new QHBoxLayout;
@@ -122,6 +136,8 @@ void Interface::createWindow(void)
 	labelLayout->addWidget(voltage, 1, 3);
 	labelLayout->addWidget(fps,     1, 4);
 	labelLayout->addWidget(string,  1, 5);
+	labelLayout->addWidget(cf_own,  1, 6);
+	labelLayout->addWidget(cf_ball, 1, 7);
 
 	labelLayout->addWidget(idLabel1, 2, 1);
 	labelLayout->addWidget(idLabel2, 3, 1);
@@ -153,6 +169,18 @@ void Interface::createWindow(void)
 	labelLayout->addWidget(robot4.string, 5, 5);
 	labelLayout->addWidget(robot5.string, 6, 5);
 	labelLayout->addWidget(robot6.string, 7, 5);
+	labelLayout->addWidget(robot1.cf_own, 2, 6);
+	labelLayout->addWidget(robot2.cf_own, 3, 6);
+	labelLayout->addWidget(robot3.cf_own, 4, 6);
+	labelLayout->addWidget(robot4.cf_own, 5, 6);
+	labelLayout->addWidget(robot5.cf_own, 6, 6);
+	labelLayout->addWidget(robot6.cf_own, 7, 6);
+	labelLayout->addWidget(robot1.cf_own, 2, 7);
+	labelLayout->addWidget(robot2.cf_own, 3, 7);
+	labelLayout->addWidget(robot3.cf_own, 4, 7);
+	labelLayout->addWidget(robot4.cf_own, 5, 7);
+	labelLayout->addWidget(robot5.cf_own, 6, 7);
+	labelLayout->addWidget(robot6.cf_own, 7, 7);
 
 	buttonLayout->addWidget(logStart);
 	buttonLayout->addWidget(logTerm);
@@ -269,6 +297,10 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	robot_data->voltage->setText(buf);
 	sprintf(buf, "%d", comm_info.fps);
 	robot_data->fps->setText(buf);
+	sprintf(buf, "%d", comm_info.cf_own);
+	robot_data->cf_own->setText(buf);
+	sprintf(buf, "%d", comm_info.cf_ball);
+	robot_data->cf_ball->setText(buf);
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		/* Red */
 		robot_data->string->setPalette(pal_red);

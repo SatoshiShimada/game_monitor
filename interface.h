@@ -36,6 +36,8 @@ struct robot {
 	QLabel *voltage;
 	QLabel *fps;
 	QLabel *string;
+	QLabel *cf_own;
+	QLabel *cf_ball;
 	Pos2D pos;
 };
 
@@ -53,7 +55,7 @@ private:
 	UdpThread *th6;
 	QCheckBox *receive, *reverse;
 	QPushButton *logStart, *logTerm;
-	QLabel *id, *name, *voltage, *fps, *string;
+	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
 	QLabel *idLabel1, *idLabel2, *idLabel3, *idLabel4, *idLabel5, *idLabel6;
 	QString filenameDrag;
 	QWidget *window;
