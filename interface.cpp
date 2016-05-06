@@ -299,17 +299,23 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	color = (int)(comm_info.id & 0x80) >> 7;
 	id    = (int)(comm_info.id & 0x7F);
 
+	/* ID and Color */
 	sprintf(color_str, "%s %d", ((color == MAGENTA) ? "MAGENTA" : "CYAN"), id);
 	robot_data->name->setText(color_str);
+	/* Voltage */
 	voltage = (comm_info.voltage << 3) / 100.0;
 	sprintf(buf, "%.2lf", voltage);
 	robot_data->voltage->setText(buf);
+	/* FPS */
 	sprintf(buf, "%d", comm_info.fps);
 	robot_data->fps->setText(buf);
+	/* Self-position confidence */
 	sprintf(buf, "%d", comm_info.cf_own);
 	robot_data->cf_own->setText(buf);
+	/* Ball position confidence */
 	sprintf(buf, "%d", comm_info.cf_ball);
 	robot_data->cf_ball->setText(buf);
+	/* Role and message */
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		/* Red */
 		robot_data->string->setPalette(pal_red);
@@ -318,7 +324,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		/* Green */
 		robot_data->string->setPalette(pal_green);
 		strcpy(positions[num].color, "green");
-	} else if(strstr((const char *)comm_info.command, "Defecder")) {
+	} else if(strstr((const char *)comm_info.command, "Defender")) {
 		/* Blue */
 		robot_data->string->setPalette(pal_blue);
 		strcpy(positions[num].color, "blue");
@@ -332,7 +338,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		strcpy(positions[num].color, "black");
 	}
 	robot_data->string->setText((char *)comm_info.command);
-	/* erase previous position marker */
+	/* Create new image for erase previous position marker */
 	map = origin_map;
 	QPainter paint(&map);
 
@@ -355,23 +361,17 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		int y = positions[i].pos.y;
 		int ball_x = positions[i].ball.x;
 		int ball_y = positions[i].ball.y;
-		/* if position(x, y) equal zero, it is invalid */
-		if(positions[i].pos.x == 0 && positions[i].pos.y == 0)
-			positions[i].enable = false;
 		if(positions[i].lastReceive >= 10)
 			positions[i].enable = false;
 		if(positions[i].enable == true) {
 			paint.setBrush(Qt::red);
+			/*
+			 * self-position maker color:
+			 *  Attacker: Red
+			 *  other   : Black
+			 */
 			if(!strcmp(positions[i].color, "red")) {
 				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 5));
-			} else if(!strcmp(positions[i].color, "blue")) {
-				paint.setPen(QPen(QColor(0x00, 0x00, 0xFF), 5));
-			} else if(!strcmp(positions[i].color, "green")) {
-				paint.setPen(QPen(QColor(0x00, 0xFF, 0x00), 5));
-			} else if(!strcmp(positions[i].color, "black")) {
-				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), 5));
-			} else if(!strcmp(positions[i].color, "orange")) {
-				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 5));
 			} else {
 				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), 5));
 			}
@@ -379,8 +379,8 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			paint.drawPoint(x, y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(x, y), buf);
-			/* draw ball position */
-			paint.setPen(QPen(QColor(0xFF, 0xFF, 0xFF), 3));
+			/* draw ball position as orange */
+			paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 3));
 			paint.drawPoint(ball_x, ball_y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(ball_x, ball_y), buf);
@@ -391,7 +391,6 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	log.write(num+1, color_str, (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
-	//log.separate();
 }
 
 void Interface::paintEvent(QPaintEvent *e)
