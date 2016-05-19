@@ -385,20 +385,20 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 
 	/* draw position marker on image */
 	for(int i = 0; i < 6; i++) {
-		int x = positions[i].pos.x;
-		int y = positions[i].pos.y;
+		int self_x = positions[i].pos.x;
+		int self_y = positions[i].pos.y;
 		int ball_x = positions[i].ball.x;
 		int ball_y = positions[i].ball.y;
 		if(positions[i].lastReceive >= 10) {
-			positions[i].enable_pos  = false;
-			positions[i].enable_ball = false;
+			//positions[i].enable_pos  = false;
+			//positions[i].enable_ball = false;
 		}
 		if(positions[i].enable_pos == true) {
 			paint.setBrush(Qt::red);
 			/*
 			 * self-position maker color:
 			 *  Attacker: Red
-			 *  other   : Black
+			 *  Other   : Black
 			 */
 			if(!strcmp(positions[i].color, "red")) {
 				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), config.robot_marker_size));
@@ -406,9 +406,9 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), config.robot_marker_size));
 			}
 			/* draw robot position */
-			paint.drawPoint(x, y);
+			paint.drawPoint(self_x, self_y);
 			sprintf(buf, "%d", i);
-			paint.drawText(QPoint(x, y), buf);
+			paint.drawText(QPoint(self_x, self_y), buf);
 			if(positions[i].enable_ball == true) {
 				/* draw ball position as orange */
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), config.ball_marker_size));
@@ -420,7 +420,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[i].lastReceive++;
 	}
 	image->setPixmap(map);
-	log.write(num+1, color_str, (int)comm_info.fps, (double)voltage,
+	log.write(num, color_str, (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
 }

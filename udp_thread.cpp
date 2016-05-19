@@ -63,7 +63,7 @@ bool getCommInfoObject(unsigned char *data, Pos2D *pos)
 		if((x & 0x0200) != 0) x = -(0x0400 - x);
 		x *= 10;
 		y = ((data[1] & 0x03) << 8) + data[2];
-		if((y & 0x200) != 0) y = -(0x0400 - y);
+		if((y & 0x0200) != 0) y = -(0x0400 - y);
 		y *= 10;
 		theta = (data[3] * 2) - 180;
 		th = (float)(theta * boost::math::constants::pi<float>() / 180.0f);
