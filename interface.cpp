@@ -15,7 +15,7 @@ Interface::Interface()
 	/* 370x270 pixel: field image size */
 	config.field_image_width  = 370;
 	config.field_image_height = 270;
-	/* field size 10000x7000 milli meter? (map size in robot) */
+	/* field size 10000x7000 milli meter? (map size in robot used) */
 	config.field_size_x       = 10000;
 	config.field_size_y       = 7000;
 	config.robot_marker_size  = 5;
@@ -26,6 +26,7 @@ Interface::Interface()
 	fReceive = true;
 	fReverse = false;
 
+	/* using UDP communication port offset */
 	port = 7110;
 	createWindow();
 	connection();
@@ -264,7 +265,7 @@ void Interface::connection(void)
 	connect(th3, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData3(struct comm_info_T)));
 	connect(th4, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData4(struct comm_info_T)));
 	connect(th5, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
-	connect(th6, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
+	connect(th6, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
 	connect(receive, SIGNAL(toggled(bool)), this, SLOT(receiveStateChange(bool)));
 	connect(reverse, SIGNAL(toggled(bool)), this, SLOT(reverseField(bool)));
 }
