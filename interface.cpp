@@ -67,8 +67,8 @@ void Interface::createWindow(void)
 	voltage        = new QLabel("Voltage");
 	fps            = new QLabel("FPS");
 	string         = new QLabel("Common String");
-	cf_own         = new QLabel("confidence own");
-	cf_ball        = new QLabel("confidence ball");
+	cf_own         = new QLabel("Reliability of self pos");
+	cf_ball        = new QLabel("Reliability of ball pos");
 	idLabel1       = new QLabel("1");
 	idLabel2       = new QLabel("2");
 	idLabel3       = new QLabel("3");
@@ -202,8 +202,8 @@ void Interface::createWindow(void)
 	labelLayout->addWidget(robot5.cf_own, 6, 7);
 	labelLayout->addWidget(robot6.cf_own, 7, 7);
 
-	buttonLayout->addWidget(logStart);
-	buttonLayout->addWidget(logTerm);
+	//buttonLayout->addWidget(logStart);
+	//buttonLayout->addWidget(logTerm);
 
 	checkLayout->addWidget(receive);
 	checkLayout->addWidget(reverse);
@@ -362,9 +362,9 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[num].enable_pos = false;
 	} else {
 		positions[num].pos.x =
-			(int)(positions[num].pos.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
+			(int)((double)positions[num].pos.x * ((double)config.field_image_width / (double)config.field_size_x) + ((double)config.field_image_width / 2));
 		positions[num].pos.y =
-			(int)(positions[num].pos.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
+			(int)((double)positions[num].pos.y * ((double)config.field_image_height / (double)config.field_size_y) + ((double)config.field_image_height / 2));
 		if(fReverse) {
 			positions[num].pos.x = config.field_image_width  - positions[num].pos.x;
 			positions[num].pos.y = config.field_image_height - positions[num].pos.y;
@@ -375,9 +375,9 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[num].enable_ball = false;
 	} else {
 		positions[num].ball.x =
-			(int)(positions[num].ball.x * (config.field_image_width / config.field_size_x) + (config.field_image_width / 2));
+			(int)((double)positions[num].ball.x * ((double)config.field_image_width / (double)config.field_size_x) + ((double)config.field_image_width / 2));
 		positions[num].ball.y =
-			(int)(positions[num].ball.y * (config.field_image_height / config.field_size_y) + (config.field_image_height / 2));
+			(int)((double)positions[num].ball.y * ((double)config.field_image_height / (double)config.field_size_y) + ((double)config.field_image_height / 2));
 		if(fReverse) {
 			positions[num].ball.x = config.field_image_width  - positions[num].ball.x;
 			positions[num].ball.y = config.field_image_height - positions[num].ball.y;
@@ -391,8 +391,8 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		int ball_x = positions[i].ball.x;
 		int ball_y = positions[i].ball.y;
 		if(positions[i].lastReceive >= 10) {
-			//positions[i].enable_pos  = false;
-			//positions[i].enable_ball = false;
+			positions[i].enable_pos  = false;
+			positions[i].enable_ball = false;
 		}
 		if(positions[i].enable_pos == true) {
 			paint.setBrush(Qt::red);
