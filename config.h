@@ -10,6 +10,7 @@ public:
 	int field_size_y;
 	int robot_marker_size;
 	int ball_marker_size;
+	int theta_length;
 
 	Config();
 private:

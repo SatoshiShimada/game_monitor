@@ -1,10 +1,12 @@
 
 #include "hpl_types.h"
 
-#include <QtGui>
 #include "interface.h"
+
+#include <QtGui>
 #include <iostream>
 #include <string.h>
+#include <math.h>
 
 Interface::Interface()
 {
@@ -20,6 +22,7 @@ Interface::Interface()
 	config.field_size_y       = 7000;
 	config.robot_marker_size  = 5;
 	config.ball_marker_size   = 3;
+	config.theta_length       = 8;
 
 	/* Initialize flags */
 	fLogging = true;
@@ -408,6 +411,11 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			}
 			/* draw robot position */
 			paint.drawPoint(self_x, self_y);
+			/* calclate robot theta */
+			double x, y;
+			x = self_x + config.theta_length * cos(positions[i].pos.th + M_PI);
+			y = self_y + config.theta_length * sin(positions[i].pos.th + M_PI);
+			paint.drawLine(self_x, self_y, x, y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(self_x, self_y), buf);
 			if(positions[i].enable_ball == true) {
