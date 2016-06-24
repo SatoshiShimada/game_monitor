@@ -17,10 +17,10 @@
 #include <QString>
 #include <QMetaType>
 #include <QPainter>
+#include <QSettings>
 
 #include "udp_thread.h"
 #include "log.h"
-#include "config.h"
 #include "hpl_types.h"
 
 struct PositionMaker {
@@ -48,7 +48,6 @@ class Interface : public QMainWindow
 
 private:
 	Log log;
-	Config config;
 	UdpThread *th1;
 	UdpThread *th2;
 	UdpThread *th3;
@@ -56,6 +55,7 @@ private:
 	UdpThread *th5;
 	UdpThread *th6;
 	QCheckBox *receive, *reverse;
+	QSettings *settings;
 	QPushButton *logStart, *logTerm;
 	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
 	QLabel *idLabel1, *idLabel2, *idLabel3, *idLabel4, *idLabel5, *idLabel6;

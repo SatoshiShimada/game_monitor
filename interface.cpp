@@ -14,15 +14,17 @@ Interface::Interface()
 	setAcceptDrops(true);
 	log.setEnable();
 
+	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	/* 370x270 pixel: field image size */
-	config.field_image_width  = 370;
-	config.field_image_height = 270;
+	settings->setValue("field_image_width" ,   320);
+	settings->setValue("field_image_height",   270);
 	/* field size 10000x7000 milli meter? (map size in robot used) */
-	config.field_size_x       = 10000;
-	config.field_size_y       = 7000;
-	config.robot_marker_size  = 5;
-	config.ball_marker_size   = 3;
-	config.theta_length       = 8;
+	settings->setValue("field_size_x",       10000);
+	settings->setValue("field_size_y",        7000);
+	/* marker */
+	settings->setValue("robot_marker_size",      5);
+	settings->setValue("ball_marker_size",       3);
+	settings->setValue("theta_length",           8);
 
 	/* Initialize flags */
 	fLogging = true;
@@ -365,12 +367,12 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[num].enable_pos = false;
 	} else {
 		positions[num].pos.x =
-			(int)((double)positions[num].pos.x * ((double)config.field_image_width / (double)config.field_size_x) + ((double)config.field_image_width / 2));
+			(int)((double)positions[num].pos.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
 		positions[num].pos.y =
-			(int)((double)positions[num].pos.y * ((double)config.field_image_height / (double)config.field_size_y) + ((double)config.field_image_height / 2));
+			(int)((double)positions[num].pos.y * ((double)settings->value("field_image_height").toInt() / (double)settings->value("field_size_y").toInt()) + ((double)settings->value("field_image_height").toInt() / 2));
 		if(fReverse) {
-			positions[num].pos.x = config.field_image_width  - positions[num].pos.x;
-			positions[num].pos.y = config.field_image_height - positions[num].pos.y;
+			positions[num].pos.x = settings->value("field_image_width").toInt()  - positions[num].pos.x;
+			positions[num].pos.y = settings->value("field_image_height").toInt() - positions[num].pos.y;
 		}
 	}
 	/* Decode ball position */
@@ -378,12 +380,12 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[num].enable_ball = false;
 	} else {
 		positions[num].ball.x =
-			(int)((double)positions[num].ball.x * ((double)config.field_image_width / (double)config.field_size_x) + ((double)config.field_image_width / 2));
+			(int)((double)positions[num].ball.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
 		positions[num].ball.y =
-			(int)((double)positions[num].ball.y * ((double)config.field_image_height / (double)config.field_size_y) + ((double)config.field_image_height / 2));
+			(int)((double)positions[num].ball.y * ((double)settings->value("field_image_height").toInt() / (double)settings->value("field_size_y").toInt()) + ((double)settings->value("field_image_height").toInt() / 2));
 		if(fReverse) {
-			positions[num].ball.x = config.field_image_width  - positions[num].ball.x;
-			positions[num].ball.y = config.field_image_height - positions[num].ball.y;
+			positions[num].ball.x = settings->value("field_image_width").toInt()  - positions[num].ball.x;
+			positions[num].ball.y = settings->value("field_image_height").toInt() - positions[num].ball.y;
 		}
 	}
 
@@ -405,22 +407,22 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			 *  Other   : Black
 			 */
 			if(!strcmp(positions[i].color, "red")) {
-				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), config.robot_marker_size));
+				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), settings->value("robot_marker_size").toInt()));
 			} else {
-				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), config.robot_marker_size));
+				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), settings->value("robot_marker_size").toInt()));
 			}
 			/* draw robot position */
 			paint.drawPoint(self_x, self_y);
 			/* calclate robot theta */
 			double x, y;
-			x = self_x + config.theta_length * cos(positions[i].pos.th + M_PI);
-			y = self_y + config.theta_length * sin(positions[i].pos.th + M_PI);
+			x = self_x + settings->value("theta_length").toInt() * cos(positions[i].pos.th + M_PI);
+			y = self_y + settings->value("theta_length").toInt() * sin(positions[i].pos.th + M_PI);
 			paint.drawLine(self_x, self_y, x, y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(self_x, self_y), buf);
 			if(positions[i].enable_ball == true) {
 				/* draw ball position as orange */
-				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), config.ball_marker_size));
+				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), settings->value("ball_marker_size").toInt()));
 				paint.drawPoint(ball_x, ball_y);
 				sprintf(buf, "%d", i);
 				paint.drawText(QPoint(ball_x, ball_y), buf);
