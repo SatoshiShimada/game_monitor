@@ -362,17 +362,20 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	positions[num].enable_pos  = true;
 	positions[num].enable_ball = true;
 	positions[num].lastReceive = 0;
+
 	/* Decode robot position */
 	if(getCommInfoObject(comm_info.object[1], &(positions[num].pos)) == false) {
 		positions[num].enable_pos = false;
 	} else {
 		positions[num].pos.x =
-			(int)((double)positions[num].pos.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
+			settings->value("field_image_width").toInt() - (int)((double)positions[num].pos.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
 		positions[num].pos.y =
 			(int)((double)positions[num].pos.y * ((double)settings->value("field_image_height").toInt() / (double)settings->value("field_size_y").toInt()) + ((double)settings->value("field_image_height").toInt() / 2));
+		positions[num].pos.th = positions[num].pos.th * -1 + M_PI;
 		if(fReverse) {
 			positions[num].pos.x = settings->value("field_image_width").toInt()  - positions[num].pos.x;
 			positions[num].pos.y = settings->value("field_image_height").toInt() - positions[num].pos.y;
+			positions[num].pos.th = positions[num].pos.th + M_PI;
 		}
 	}
 	/* Decode ball position */
@@ -380,7 +383,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[num].enable_ball = false;
 	} else {
 		positions[num].ball.x =
-			(int)((double)positions[num].ball.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
+			settings->value("field_image_width").toInt() - (int)((double)positions[num].ball.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
 		positions[num].ball.y =
 			(int)((double)positions[num].ball.y * ((double)settings->value("field_image_height").toInt() / (double)settings->value("field_size_y").toInt()) + ((double)settings->value("field_image_height").toInt() / 2));
 		if(fReverse) {
@@ -414,10 +417,9 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			/* draw robot position */
 			paint.drawPoint(self_x, self_y);
 			/* calclate robot theta */
-			double x, y;
-			x = self_x + settings->value("theta_length").toInt() * cos(positions[i].pos.th + M_PI);
-			y = self_y + settings->value("theta_length").toInt() * sin(positions[i].pos.th + M_PI);
-			paint.drawLine(self_x, self_y, x, y);
+			double direction_x = self_x + settings->value("theta_length").toInt() * cos(positions[i].pos.th);
+			double direction_y = self_y + settings->value("theta_length").toInt() * sin(positions[i].pos.th);
+			paint.drawLine(self_x, self_y, direction_x, direction_y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(self_x, self_y), buf);
 			if(positions[i].enable_ball == true) {
