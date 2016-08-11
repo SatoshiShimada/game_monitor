@@ -16,15 +16,15 @@ Interface::Interface()
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	/* 370x270 pixel: field image size */
-	settings->setValue("field_image_width" ,   320);
-	settings->setValue("field_image_height",   270);
+	settings->setValue("field_image_width" ,   740);
+	settings->setValue("field_image_height",   540);
 	/* field size 10000x7000 milli meter? (map size in robot used) */
 	settings->setValue("field_size_x",       10000);
 	settings->setValue("field_size_y",        7000);
 	/* marker */
-	settings->setValue("robot_marker_size",      5);
-	settings->setValue("ball_marker_size",       3);
-	settings->setValue("theta_length",           8);
+	settings->setValue("robot_marker_size",      5*2);
+	settings->setValue("ball_marker_size",       3*2);
+	settings->setValue("theta_length",           8*2);
 
 	/* Initialize flags */
 	fLogging = true;
