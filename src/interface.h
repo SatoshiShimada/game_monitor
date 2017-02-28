@@ -1,5 +1,9 @@
 
+#ifndef _INTERFACE_H_
+#define _INTERFACE_H_
+
 #include <iostream>
+#include <vector>
 
 #include <QtGui>
 #include <QtCore>
@@ -48,36 +52,36 @@ class Interface : public QMainWindow
 
 private:
 	Log log;
-	UdpThread *th1;
-	UdpThread *th2;
-	UdpThread *th3;
-	UdpThread *th4;
-	UdpThread *th5;
-	UdpThread *th6;
+	std::vector<UdpThread *> th;
 	QCheckBox *receive, *reverse;
 	QSettings *settings;
 	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
-	QLabel *idLabel1, *idLabel2, *idLabel3, *idLabel4, *idLabel5, *idLabel6;
 	QString filenameDrag;
 	QWidget *window;
-	PositionMaker positions[6];
-	struct robot robot1, robot2, robot3, robot4, robot5, robot6;
+	std::vector<PositionMaker> positions;
+	std::vector<struct robot> robot;
+	std::vector<QLabel *> idLabel;
+	std::vector<QWidget *>robotState;
+	std::vector<QGridLayout *>idLayout;
 	QLabel *image;
 	QPixmap map;
 	QPixmap origin_map;
-	QVBoxLayout *mainLayout;
+	QGridLayout *mainLayout;
 	QHBoxLayout *checkLayout;
 	QGridLayout *labelLayout;
+	QPalette pal_state_bgcolor;
 	QPalette pal_red;
 	QPalette pal_green;
 	QPalette pal_blue;
 	QPalette pal_black;
 	QPalette pal_orange;
+	void initializeConfig(void);
+	void createWindow(void);
 	void connection(void);
 	bool fLogging;
 	bool fReceive;
 	bool fReverse;
-	int port;
+	const int robot_num;
 
 protected:
 	void paintEvent(QPaintEvent *);
@@ -85,7 +89,6 @@ protected:
 public:
 	Interface();
 	~Interface();
-	void createWindow(void);
 	void loadImage(const char *);
 	void loadImage(QString);
 	void dragEnterEvent(QDragEnterEvent *);
@@ -99,7 +102,9 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
-	void receiveStateChange(bool checked);
-	void reverseField(bool checked);
+	void receiveStateChange(int state);
+	void reverseField(int state);
 };
+
+#endif // _INTERFACE_H_
 

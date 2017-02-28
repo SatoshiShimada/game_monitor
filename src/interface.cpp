@@ -7,201 +7,117 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface()
+Interface::Interface(): fLogging(true), fReceive(true), fReverse(false), robot_num(6)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
 	log.setEnable();
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
-	/* 370x270 pixel: field image size */
-	settings->setValue("field_image_width" , 740);
-	settings->setValue("field_image_height", 540);
-	/* field size 10000x7000 milli meter? (map size in robot used) */
-	settings->setValue("field_size_x", 10000);
-	settings->setValue("field_size_y", 7000);
-	/* marker */
-	settings->setValue("robot_marker_size", 5*2);
-	settings->setValue("ball_marker_size", 3*2);
-	settings->setValue("theta_length", 8*2);
+	initializeConfig();
 
-	/* Initialize flags */
-	fLogging = true;
-	fReceive = true;
-	fReverse = false;
-
-	/* using UDP communication port offset */
-	port = 7110;
 	createWindow();
 	connection();
 
-	/* Run thread */
-	th1->start();
-	th2->start();
-	th3->start();
-	th4->start();
-	th5->start();
-	th6->start();
+	loadImage("hlfield.png");
+
+	/* Run receive thread */
+	for(int i = 0; i < robot_num; i++)
+		th[i]->start();
 
 	this->setWindowTitle("Humanoid League Game Monitor");
-	this->resize(840, 320);
 }
 
 Interface::~Interface()
 {
 }
 
+void Interface::initializeConfig(void)
+{
+	/* 740x540 pixel: field image size */
+	settings->setValue("field_image_width" , 740);
+	settings->setValue("field_image_height", 540);
+	/* field size 10000x7000 milli meter? (map size in robot used) */
+	settings->setValue("field_size_x", 10000);
+	settings->setValue("field_size_y", 7000);
+	/* marker */
+	settings->setValue("robot_marker_size", 5 * 2);
+	settings->setValue("ball_marker_size", 3 * 2);
+	settings->setValue("theta_length", 8 * 2);
+	/* using UDP communication port offset */
+	settings->setValue("port", 7110);
+}
+
 void Interface::createWindow(void)
 {
-	window         = new QWidget;
-	th1            = new UdpThread(port + 0);
-	th2            = new UdpThread(port + 1);
-	th3            = new UdpThread(port + 2);
-	th4            = new UdpThread(port + 3);
-	th5            = new UdpThread(port + 4);
-	th6            = new UdpThread(port + 5);
-	receive        = new QCheckBox("Receive data");
-	reverse        = new QCheckBox("Reverse field");
-	image          = new QLabel;
-	id             = new QLabel("ID");
-	name           = new QLabel("Name");
-	voltage        = new QLabel("Voltage");
-	fps            = new QLabel("FPS");
-	string         = new QLabel("Common String");
-	cf_own         = new QLabel("Reliability of self pos");
-	cf_ball        = new QLabel("Reliability of ball pos");
-	idLabel1       = new QLabel("1");
-	idLabel2       = new QLabel("2");
-	idLabel3       = new QLabel("3");
-	idLabel4       = new QLabel("4");
-	idLabel5       = new QLabel("5");
-	idLabel6       = new QLabel("6");
-	robot1.name    = new QLabel("");
-	robot2.name    = new QLabel("");
-	robot3.name    = new QLabel("");
-	robot4.name    = new QLabel("");
-	robot5.name    = new QLabel("");
-	robot6.name    = new QLabel("");
-	robot1.voltage = new QLabel("");
-	robot2.voltage = new QLabel("");
-	robot3.voltage = new QLabel("");
-	robot4.voltage = new QLabel("");
-	robot5.voltage = new QLabel("");
-	robot6.voltage = new QLabel("");
-	robot1.fps     = new QLabel("");
-	robot2.fps     = new QLabel("");
-	robot3.fps     = new QLabel("");
-	robot4.fps     = new QLabel("");
-	robot5.fps     = new QLabel("");
-	robot6.fps     = new QLabel("");
-	robot1.string  = new QLabel("");
-	robot2.string  = new QLabel("");
-	robot3.string  = new QLabel("");
-	robot4.string  = new QLabel("");
-	robot5.string  = new QLabel("");
-	robot6.string  = new QLabel("");
-	robot1.cf_own  = new QLabel("");
-	robot2.cf_own  = new QLabel("");
-	robot3.cf_own  = new QLabel("");
-	robot4.cf_own  = new QLabel("");
-	robot5.cf_own  = new QLabel("");
-	robot6.cf_own  = new QLabel("");
-	robot1.cf_ball = new QLabel("");
-	robot2.cf_ball = new QLabel("");
-	robot3.cf_ball = new QLabel("");
-	robot4.cf_ball = new QLabel("");
-	robot5.cf_ball = new QLabel("");
-	robot6.cf_ball = new QLabel("");
-	mainLayout     = new QVBoxLayout;
-	checkLayout    = new QHBoxLayout;
-	labelLayout    = new QGridLayout;
+	window     = new QWidget;
+	for(int i = 0; i < robot_num; i++)
+		th.push_back(new UdpThread(settings->value("port").toInt() + i));
+	receive    = new QCheckBox("Receive data");
+	reverse    = new QCheckBox("Reverse field");
+	image      = new QLabel;
+	id         = new QLabel("ID");
+	name       = new QLabel("Name");
+	voltage    = new QLabel("Voltage");
+	fps        = new QLabel("FPS");
+	string     = new QLabel("Common String");
+	cf_own     = new QLabel("Reliability of self pos");
+	cf_ball    = new QLabel("Reliability of ball pos");
+	mainLayout = new QGridLayout;
+	checkLayout = new QHBoxLayout;
+	labelLayout = new QGridLayout;
+	for(int i = 0; i < robot_num; i++)
+		idLayout.push_back(new QGridLayout);
 
-	/* set width */
-	id     ->setFixedWidth(30);
-	name   ->setFixedWidth(100);
-	voltage->setFixedWidth(60);
-	fps    ->setFixedWidth(30);
-	cf_own ->setFixedWidth(120);
-	cf_ball->setFixedWidth(120);
-
-	/* set color palette for label */
-	pal_red    = robot1.string->palette();
-	pal_green  = robot1.string->palette();
-	pal_blue   = robot1.string->palette();
-	pal_black  = robot1.string->palette();
-	pal_orange = robot1.string->palette();
-	pal_red.   setColor(QPalette::Foreground, QColor("#FF0000"));
-	pal_green. setColor(QPalette::Foreground, QColor("#00FF00"));
-	pal_blue.  setColor(QPalette::Foreground, QColor("#0000FF"));
-	pal_black. setColor(QPalette::Foreground, QColor("#000000"));
-	pal_orange.setColor(QPalette::Foreground, QColor("#FFA500"));
-	/* all robot default color is black */
-	robot1.string->setPalette(pal_black);
-	robot2.string->setPalette(pal_black);
-	robot3.string->setPalette(pal_black);
-	robot4.string->setPalette(pal_black);
-	robot5.string->setPalette(pal_black);
-	robot6.string->setPalette(pal_black);
-
-	loadImage("hlfield.png");
-
-	labelLayout->addWidget(id,      1, 1);
-	labelLayout->addWidget(name,    1, 2);
-	labelLayout->addWidget(voltage, 1, 3);
-	labelLayout->addWidget(fps,     1, 4);
-	labelLayout->addWidget(string,  1, 5);
-	labelLayout->addWidget(cf_own,  1, 6);
-	labelLayout->addWidget(cf_ball, 1, 7);
-
-	labelLayout->addWidget(idLabel1, 2, 1);
-	labelLayout->addWidget(idLabel2, 3, 1);
-	labelLayout->addWidget(idLabel3, 4, 1);
-	labelLayout->addWidget(idLabel4, 5, 1);
-	labelLayout->addWidget(idLabel5, 6, 1);
-	labelLayout->addWidget(idLabel6, 7, 1);
-	labelLayout->addWidget(robot1.name, 2, 2);
-	labelLayout->addWidget(robot2.name, 3, 2);
-	labelLayout->addWidget(robot3.name, 4, 2);
-	labelLayout->addWidget(robot4.name, 5, 2);
-	labelLayout->addWidget(robot5.name, 6, 2);
-	labelLayout->addWidget(robot6.name, 7, 2);
-	labelLayout->addWidget(robot1.voltage, 2, 3);
-	labelLayout->addWidget(robot2.voltage, 3, 3);
-	labelLayout->addWidget(robot3.voltage, 4, 3);
-	labelLayout->addWidget(robot4.voltage, 5, 3);
-	labelLayout->addWidget(robot5.voltage, 6, 3);
-	labelLayout->addWidget(robot6.voltage, 7, 3);
-	labelLayout->addWidget(robot1.fps, 2, 4);
-	labelLayout->addWidget(robot2.fps, 3, 4);
-	labelLayout->addWidget(robot3.fps, 4, 4);
-	labelLayout->addWidget(robot4.fps, 5, 4);
-	labelLayout->addWidget(robot5.fps, 6, 4);
-	labelLayout->addWidget(robot6.fps, 7, 4);
-	labelLayout->addWidget(robot1.string, 2, 5);
-	labelLayout->addWidget(robot2.string, 3, 5);
-	labelLayout->addWidget(robot3.string, 4, 5);
-	labelLayout->addWidget(robot4.string, 5, 5);
-	labelLayout->addWidget(robot5.string, 6, 5);
-	labelLayout->addWidget(robot6.string, 7, 5);
-	labelLayout->addWidget(robot1.cf_own, 2, 6);
-	labelLayout->addWidget(robot2.cf_own, 3, 6);
-	labelLayout->addWidget(robot3.cf_own, 4, 6);
-	labelLayout->addWidget(robot4.cf_own, 5, 6);
-	labelLayout->addWidget(robot5.cf_own, 6, 6);
-	labelLayout->addWidget(robot6.cf_own, 7, 6);
-	labelLayout->addWidget(robot1.cf_own, 2, 7);
-	labelLayout->addWidget(robot2.cf_own, 3, 7);
-	labelLayout->addWidget(robot3.cf_own, 4, 7);
-	labelLayout->addWidget(robot4.cf_own, 5, 7);
-	labelLayout->addWidget(robot5.cf_own, 6, 7);
-	labelLayout->addWidget(robot6.cf_own, 7, 7);
-
+	receive->setCheckState(Qt::Checked);
 	checkLayout->addWidget(receive);
 	checkLayout->addWidget(reverse);
 
-	mainLayout->addLayout(checkLayout);
-	mainLayout->addWidget(image);
-	mainLayout->addLayout(labelLayout);
+	pal_state_bgcolor.setColor(QPalette::Window, QColor("#D0D0D0"));
+	pal_red.   setColor(QPalette::WindowText, QColor("#FF0000"));
+	pal_green. setColor(QPalette::WindowText, QColor("#00FF00"));
+	pal_blue.  setColor(QPalette::WindowText, QColor("#0000FF"));
+	pal_black. setColor(QPalette::WindowText, QColor("#000000"));
+	pal_orange.setColor(QPalette::WindowText, QColor("#FFA500"));
+
+	window->setPalette(pal_state_bgcolor);
+	for(int i = 0; i < robot_num; i++) {
+		robotState.push_back(new QWidget());
+		robotState[i]->setAutoFillBackground(true);
+		robotState[i]->setPalette(pal_state_bgcolor);
+		robotState[i]->setFixedWidth(200);
+		idLabel.push_back(new QLabel());
+		idLabel[i]->setNum(i + 1);
+		struct robot robo;
+		robo.name = new QLabel();
+		robo.voltage = new QLabel();
+		robo.fps = new QLabel();
+		robo.string = new QLabel();
+		robo.cf_own = new QLabel();
+		robo.cf_ball = new QLabel();
+		robo.string->setPalette(pal_black);
+		robot.push_back(robo);
+	}
+
+	for(int i = 0; i < robot_num; i++) {
+		idLayout[i]->addWidget(idLabel[i], 1, 1);
+		idLayout[i]->addWidget(robot[i].name, 2, 1);
+		idLayout[i]->addWidget(robot[i].voltage, 3, 1);
+		idLayout[i]->addWidget(robot[i].fps, 4, 1);
+		idLayout[i]->addWidget(robot[i].string, 5, 1);
+		idLayout[i]->addWidget(robot[i].cf_own, 6, 1);
+		idLayout[i]->addWidget(robot[i].cf_ball, 7, 1);
+		robotState[i]->setLayout(idLayout[i]);
+	}
+
+	for(int i = 0, j = 0, k = 0; i < robot_num; i++) {
+		labelLayout->addWidget(robotState[i], k + 1, j + 1);
+		if(++j == 2) { k++; j = 0; }
+	}
+
+	mainLayout->addLayout(checkLayout, 1, 1, 1, 2);
+	mainLayout->addWidget(image, 2, 1);
+	mainLayout->addLayout(labelLayout, 2, 2);
 
 	window->setLayout(mainLayout);
 	setCentralWidget(window);
@@ -245,44 +161,44 @@ void Interface::dropEvent(QDropEvent *e)
 
 void Interface::connection(void)
 {
-	connect(th1, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData1(struct comm_info_T)));
-	connect(th2, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData2(struct comm_info_T)));
-	connect(th3, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData3(struct comm_info_T)));
-	connect(th4, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData4(struct comm_info_T)));
-	connect(th5, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
-	connect(th6, SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
-	connect(receive, SIGNAL(toggled(bool)), this, SLOT(receiveStateChange(bool)));
-	connect(reverse, SIGNAL(toggled(bool)), this, SLOT(reverseField(bool)));
+	connect(th[0], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData1(struct comm_info_T)));
+	connect(th[1], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData2(struct comm_info_T)));
+	connect(th[2], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData3(struct comm_info_T)));
+	connect(th[3], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData4(struct comm_info_T)));
+	connect(th[4], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
+	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
+	connect(receive, SIGNAL(stateChanged(int)), this, SLOT(receiveStateChange(int)));
+	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot1, 1);
+	decodeUdp(comm_info, &robot[0], 1);
 }
 
 void Interface::decodeData2(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot2, 2);
+	decodeUdp(comm_info, &robot[1], 2);
 }
 
 void Interface::decodeData3(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot3, 3);
+	decodeUdp(comm_info, &robot[2], 3);
 }
 
 void Interface::decodeData4(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot4, 4);
+	decodeUdp(comm_info, &robot[3], 4);
 }
 
 void Interface::decodeData5(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot5, 5);
+	decodeUdp(comm_info, &robot[4], 5);
 }
 
 void Interface::decodeData6(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot6, 6);
+	decodeUdp(comm_info, &robot[5], 6);
 }
 
 void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data, int num)
@@ -422,32 +338,24 @@ void Interface::paintEvent(QPaintEvent *e)
 {
 }
 
-void Interface::receiveStateChange(bool checked)
+void Interface::receiveStateChange(int state)
 {
-	if(receive->isTristate()) {
+	if(state == Qt::Checked) {
 		/* start*/
-		th1->start();
-		th2->start();
-		th3->start();
-		th4->start();
-		th5->start();
-		th6->start();
+		for(int i = 0; i < robot_num; i++)
+			th[i]->start();
 	} else {
 		/* stop */
-		th1->quit();
-		th2->quit();
-		th3->quit();
-		th4->quit();
-		th5->quit();
-		th6->quit();
+		for(int i = 0; i < robot_num; i++)
+			th[i]->quit();
 	}
 }
 
-void Interface::reverseField(bool cheched)
+void Interface::reverseField(int state)
 {
-	if(fReverse)
-		fReverse = false;
-	else
+	if(state == Qt::Checked)
 		fReverse = true;
+	else
+		fReverse = false;
 }
 
