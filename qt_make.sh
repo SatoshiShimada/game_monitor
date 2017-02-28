@@ -46,5 +46,9 @@ $QMAKE -project -o $PROJECT
 echo 'QMAKE_CXXFLAGS += --std=c++11' >> $PROJECT
 echo 'unix:LIBS += -lboost_system' >> $PROJECT
 $QMAKE
-make all -j4
+make all -j8
+
+if [ ! -d log ]; then
+	mkdir log
+fi
 
