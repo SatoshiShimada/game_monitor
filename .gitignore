@@ -3,6 +3,7 @@ tags
 *.pro
 *.o
 *.png
+*.ini
 *.log
 moc_*
 GameMonitor
