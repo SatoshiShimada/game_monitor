@@ -1,12 +1,11 @@
 
-#include "pos_types.h"
-
-#include "interface.h"
-
 #include <QtGui>
 #include <iostream>
-#include <string.h>
-#include <math.h>
+#include <cstring>
+#include <cmath>
+
+#include "pos_types.h"
+#include "interface.h"
 
 Interface::Interface()
 {
@@ -16,15 +15,15 @@ Interface::Interface()
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	/* 370x270 pixel: field image size */
-	settings->setValue("field_image_width" ,   740);
-	settings->setValue("field_image_height",   540);
+	settings->setValue("field_image_width" , 740);
+	settings->setValue("field_image_height", 540);
 	/* field size 10000x7000 milli meter? (map size in robot used) */
-	settings->setValue("field_size_x",       10000);
-	settings->setValue("field_size_y",        7000);
+	settings->setValue("field_size_x", 10000);
+	settings->setValue("field_size_y", 7000);
 	/* marker */
-	settings->setValue("robot_marker_size",      5*2);
-	settings->setValue("ball_marker_size",       3*2);
-	settings->setValue("theta_length",           8*2);
+	settings->setValue("robot_marker_size", 5*2);
+	settings->setValue("ball_marker_size", 3*2);
+	settings->setValue("theta_length", 8*2);
 
 	/* Initialize flags */
 	fLogging = true;
@@ -64,8 +63,6 @@ void Interface::createWindow(void)
 	th6            = new UdpThread(port + 5);
 	receive        = new QCheckBox("Receive data");
 	reverse        = new QCheckBox("Reverse field");
-	logStart       = new QPushButton("Log start");
-	logTerm        = new QPushButton("Log terminate");
 	image          = new QLabel;
 	id             = new QLabel("ID");
 	name           = new QLabel("Name");
@@ -127,7 +124,6 @@ void Interface::createWindow(void)
 	name   ->setFixedWidth(100);
 	voltage->setFixedWidth(60);
 	fps    ->setFixedWidth(30);
-//	string ->setFixedWidth(100);
 	cf_own ->setFixedWidth(120);
 	cf_ball->setFixedWidth(120);
 
@@ -150,10 +146,6 @@ void Interface::createWindow(void)
 	robot5.string->setPalette(pal_black);
 	robot6.string->setPalette(pal_black);
 
-	logStart->setEnabled(false);
-
-	//image->setMinimumSize(280, 280);
-	//image->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
 	loadImage("hlfield.png");
 
 	labelLayout->addWidget(id,      1, 1);
@@ -207,9 +199,6 @@ void Interface::createWindow(void)
 	labelLayout->addWidget(robot5.cf_own, 6, 7);
 	labelLayout->addWidget(robot6.cf_own, 7, 7);
 
-	//buttonLayout->addWidget(logStart);
-	//buttonLayout->addWidget(logTerm);
-
 	checkLayout->addWidget(receive);
 	checkLayout->addWidget(reverse);
 
@@ -234,7 +223,6 @@ void Interface::loadImage(QString image_filename)
 	}
 	origin_map = QPixmap::fromImage(image_buf);
 	map = origin_map;
-	//map = map.scaled(280, 280);
 	image->setPixmap(map);
 }
 
@@ -247,7 +235,6 @@ void Interface::loadImage(const char *image_filename)
 	}
 	origin_map = QPixmap::fromImage(image_buf);
 	map = origin_map;
-	//map = map.scaled(280, 280);
 	image->setPixmap(QPixmap::fromImage(image_buf));
 }
 

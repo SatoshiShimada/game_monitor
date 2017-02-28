@@ -2,8 +2,6 @@
 #ifndef _POS_TYPES_H_
 #define _POS_TYPES_H_
 
-#include <cmath>
-
 struct Pos
 {
 	Pos() : x(0), y(0), th(0) {}

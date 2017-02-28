@@ -7,8 +7,8 @@
 #include <QPushButton>
 #include <QCheckBox>
 #include <QLabel>
-#include <QTextEdit> /* multi line */
-#include <QLineEdit> /* single line */
+#include <QTextEdit>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QDropEvent>
 #include <QDrag>
@@ -56,7 +56,6 @@ private:
 	UdpThread *th6;
 	QCheckBox *receive, *reverse;
 	QSettings *settings;
-	QPushButton *logStart, *logTerm;
 	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
 	QLabel *idLabel1, *idLabel2, *idLabel3, *idLabel4, *idLabel5, *idLabel6;
 	QString filenameDrag;

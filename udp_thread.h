@@ -2,8 +2,6 @@
 #ifndef _UDP_THREAD_H_
 #define _UDP_THREAD_H_
 
-#include "pos_types.h"
-
 #include <boost/asio.hpp>
 
 #include <QtGui>
@@ -11,6 +9,8 @@
 #include <QApplication>
 #include <QThread>
 #include <QString>
+
+#include "pos_types.h"
 
 static const int NUM_PLAYERS = 6;
 static const int COMM_INFO_PORT = 7110;
