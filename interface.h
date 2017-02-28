@@ -21,7 +21,7 @@
 
 #include "udp_thread.h"
 #include "log.h"
-#include "hpl_types.h"
+#include "pos_types.h"
 
 struct PositionMaker {
 	PositionMaker() : enable_pos(false), enable_ball(false), lastReceive(0) { color[0] = '\0'; }
@@ -29,8 +29,8 @@ struct PositionMaker {
 	bool enable_ball;
 	int lastReceive;
 	char color[20];
-	Pos2D pos; /* self position */
-	Pos2D ball; /* ball position */
+	Pos pos; /* self position */
+	Pos ball; /* ball position */
 };
 
 struct robot {

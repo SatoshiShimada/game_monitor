@@ -2,7 +2,7 @@
 #ifndef _UDP_THREAD_H_
 #define _UDP_THREAD_H_
 
-#include "hpl_types.h"
+#include "pos_types.h"
 
 #include <boost/asio.hpp>
 
@@ -12,7 +12,6 @@
 #include <QThread>
 #include <QString>
 
-/* Constant of infoshare ----------------------- */
 static const int NUM_PLAYERS = 6;
 static const int COMM_INFO_PORT = 7110;
 static const int MAX_COMM_INFO_OBJ = 7;
@@ -29,10 +28,8 @@ static const int MAX_BLUE_POLES = 1;
 static const int MAX_MAGENTA_OBJECTS = 3;
 static const int MAX_CYAN_OBJECTS = 3;
 
-/* Team color */
 static const int MAGENTA = 0;
 static const int CYAN    = 1;
-/* Constant end --------------------------------- */
 
 struct comm_info_T {
 	unsigned char id;
@@ -65,7 +62,7 @@ signals:
 	void receiveData(struct comm_info_T);
 };
 
-bool getCommInfoObject(unsigned char *data, Pos2D *);
+bool getCommInfoObject(unsigned char *data, Pos *);
 
 #endif // _UDP_THREAD_H_
 

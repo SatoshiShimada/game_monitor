@@ -1,5 +1,5 @@
 
-#include "hpl_types.h"
+#include "pos_types.h"
 
 #include "interface.h"
 

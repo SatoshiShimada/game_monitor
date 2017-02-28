@@ -49,7 +49,7 @@ UdpThread::~UdpThread()
 {
 }
 
-bool getCommInfoObject(unsigned char *data, Pos2D *pos)
+bool getCommInfoObject(unsigned char *data, Pos*pos)
 {
 	int x, y, theta;
 	bool res;
