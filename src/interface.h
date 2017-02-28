@@ -62,14 +62,11 @@ private:
 	QWidget *window;
 	PositionMaker positions[6];
 	struct robot robot1, robot2, robot3, robot4, robot5, robot6;
-	QLabel *titleLabel;
 	QLabel *image;
 	QPixmap map;
 	QPixmap origin_map;
 	QVBoxLayout *mainLayout;
-	QVBoxLayout *buttonLayout;
 	QHBoxLayout *checkLayout;
-	QHBoxLayout *winLayout;
 	QGridLayout *labelLayout;
 	QPalette pal_red;
 	QPalette pal_green;

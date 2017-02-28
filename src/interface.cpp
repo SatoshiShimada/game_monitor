@@ -54,7 +54,6 @@ Interface::~Interface()
 void Interface::createWindow(void)
 {
 	window         = new QWidget;
-	titleLabel     = new QLabel("Humanoid League Game Monitor");
 	th1            = new UdpThread(port + 0);
 	th2            = new UdpThread(port + 1);
 	th3            = new UdpThread(port + 2);
@@ -114,9 +113,7 @@ void Interface::createWindow(void)
 	robot5.cf_ball = new QLabel("");
 	robot6.cf_ball = new QLabel("");
 	mainLayout     = new QVBoxLayout;
-	buttonLayout   = new QVBoxLayout;
 	checkLayout    = new QHBoxLayout;
-	winLayout      = new QHBoxLayout;
 	labelLayout    = new QGridLayout;
 
 	/* set width */
@@ -202,12 +199,8 @@ void Interface::createWindow(void)
 	checkLayout->addWidget(receive);
 	checkLayout->addWidget(reverse);
 
-	winLayout->addWidget(image);
-	winLayout->addLayout(buttonLayout);
-
-	mainLayout->addWidget(titleLabel);
 	mainLayout->addLayout(checkLayout);
-	mainLayout->addLayout(winLayout);
+	mainLayout->addWidget(image);
 	mainLayout->addLayout(labelLayout);
 
 	window->setLayout(mainLayout);
