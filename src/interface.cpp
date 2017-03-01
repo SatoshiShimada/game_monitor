@@ -95,7 +95,11 @@ void Interface::createWindow(void)
 		robo.string = new QLabel();
 		robo.cf_own = new QLabel();
 		robo.cf_ball = new QLabel();
+		robo.cf_own_bar = new QProgressBar();
+		robo.cf_ball_bar = new QProgressBar();
 		robo.string->setPalette(pal_black);
+		robo.cf_own_bar->setRange(0, 100);
+		robo.cf_ball_bar->setRange(0, 100);
 		robot.push_back(robo);
 	}
 
@@ -105,8 +109,10 @@ void Interface::createWindow(void)
 		idLayout[i]->addWidget(robot[i].voltage, 3, 1);
 		idLayout[i]->addWidget(robot[i].fps, 4, 1);
 		idLayout[i]->addWidget(robot[i].string, 5, 1);
-		idLayout[i]->addWidget(robot[i].cf_own, 6, 1);
-		idLayout[i]->addWidget(robot[i].cf_ball, 7, 1);
+		idLayout[i]->addWidget(robot[i].cf_own_bar, 6, 1);
+		idLayout[i]->addWidget(robot[i].cf_ball_bar, 7, 1);
+		idLayout[i]->addWidget(robot[i].cf_own, 6, 2);
+		idLayout[i]->addWidget(robot[i].cf_ball, 7, 2);
 		robotState[i]->setLayout(idLayout[i]);
 	}
 
@@ -220,14 +226,13 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	sprintf(buf, "%.2lf", voltage);
 	robot_data->voltage->setText(buf);
 	/* FPS */
-	sprintf(buf, "%d", comm_info.fps);
-	robot_data->fps->setText(buf);
+	robot_data->fps->setNum(comm_info.fps);
 	/* Self-position confidence */
-	sprintf(buf, "%d", comm_info.cf_own);
-	robot_data->cf_own->setText(buf);
+	robot_data->cf_own->setNum(comm_info.cf_own);
+	robot_data->cf_own_bar->setValue(comm_info.cf_own);
 	/* Ball position confidence */
-	sprintf(buf, "%d", comm_info.cf_ball);
-	robot_data->cf_ball->setText(buf);
+	robot_data->cf_ball->setNum(comm_info.cf_ball);
+	robot_data->cf_ball_bar->setValue(comm_info.cf_ball);
 	/* Role and message */
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		/* Red */

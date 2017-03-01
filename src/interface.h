@@ -44,6 +44,8 @@ struct robot {
 	QLabel *string;
 	QLabel *cf_own;
 	QLabel *cf_ball;
+	QProgressBar *cf_own_bar;
+	QProgressBar *cf_ball_bar;
 };
 
 class Interface : public QMainWindow
