@@ -44,7 +44,9 @@ void Interface::initializeConfig(void)
 	/* marker */
 	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 5 * 2));
 	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 3 * 2));
-	settings->setValue("marker/length", settings->value("marker/length", 8 * 2));
+	settings->setValue("marker/length", settings->value("marker/length", 10 * 2));
+	settings->setValue("marker/rear_length", settings->value("marker/rear_length", 4 * 2));
+	settings->setValue("marker/font_offset", settings->value("marker/font_offset", 10));
 	/* using UDP communication port offset */
 	settings->setValue("network/port", settings->value("network/port", 7110));
 }
@@ -317,17 +319,29 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			/* draw robot position */
 			paint.drawPoint(self_x, self_y);
 			/* calclate robot theta */
-			double direction_x = self_x + settings->value("marker/length").toInt() * cos(positions[i].pos.th);
-			double direction_y = self_y + settings->value("marker/length").toInt() * sin(positions[i].pos.th);
-			paint.drawLine(self_x, self_y, direction_x, direction_y);
+			int half_length = settings->value("marker/length").toInt() / 2;
+			int half_rear_length = settings->value("marker/rear_length").toInt() / 2;
+			double theta = positions[i].pos.th;
+			int front_x = (int)(self_x + half_length * cos(theta));
+			int front_y = (int)(self_y + half_length * sin(theta));
+			int rear_x = (int)(self_x + half_length * cos(theta + M_PI));
+			int rear_y = (int)(self_y + half_length * sin(theta + M_PI));
+			int rear_left_x = (int)(rear_x + half_rear_length * cos(theta + M_PI / 2));
+			int rear_left_y = (int)(rear_y + half_rear_length * sin(theta + M_PI / 2));
+			int rear_right_x = (int)(rear_x + half_rear_length * cos(theta - M_PI / 2));
+			int rear_right_y = (int)(rear_y + half_rear_length * sin(theta - M_PI / 2));
+			paint.drawLine(front_x, front_y, rear_left_x, rear_left_y);
+			paint.drawLine(front_x, front_y, rear_right_x, rear_right_y);
+			paint.drawLine(rear_left_x, rear_left_y, rear_right_x, rear_right_y);
 			sprintf(buf, "%d", i);
-			paint.drawText(QPoint(self_x, self_y), buf);
+			int font_offset = settings->value("marker/font_offset").toInt();
+			paint.drawText(QPoint(self_x - font_offset, self_y - font_offset), buf);
 			if(positions[i].enable_ball == true) {
 				/* draw ball position as orange */
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), settings->value("marker/ball_size").toInt()));
 				paint.drawPoint(ball_x, ball_y);
 				sprintf(buf, "%d", i);
-				paint.drawText(QPoint(ball_x, ball_y), buf);
+				paint.drawText(QPoint(ball_x - font_offset, ball_y - font_offset), buf);
 			}
 		}
 		positions[i].lastReceive++;
