@@ -42,10 +42,10 @@ void Interface::initializeConfig(void)
 	settings->setValue("field_size_x", settings->value("field_size_x", 10000));
 	settings->setValue("field_size_y", settings->value("field_size_y", 7000));
 	/* marker */
-	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 5 * 2));
-	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 3 * 2));
-	settings->setValue("marker/length", settings->value("marker/length", 10 * 2));
-	settings->setValue("marker/rear_length", settings->value("marker/rear_length", 4 * 2));
+	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 3));
+	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 6));
+	settings->setValue("marker/length", settings->value("marker/length", 24));
+	settings->setValue("marker/rear_length", settings->value("marker/rear_length", 10));
 	settings->setValue("marker/font_offset", settings->value("marker/font_offset", 10));
 	/* using UDP communication port offset */
 	settings->setValue("network/port", settings->value("network/port", 7110));
