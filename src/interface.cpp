@@ -12,6 +12,7 @@ Interface::Interface(): fLogging(true), fReceive(true), fReverse(false), robot_n
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
 	log.setEnable();
+	positions = std::vector<PositionMarker>(robot_num);
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
@@ -177,32 +178,32 @@ void Interface::connection(void)
 
 void Interface::decodeData1(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[0], 1);
+	decodeUdp(comm_info, &robot[0], 0);
 }
 
 void Interface::decodeData2(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[1], 2);
+	decodeUdp(comm_info, &robot[1], 1);
 }
 
 void Interface::decodeData3(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[2], 3);
+	decodeUdp(comm_info, &robot[2], 2);
 }
 
 void Interface::decodeData4(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[3], 4);
+	decodeUdp(comm_info, &robot[3], 3);
 }
 
 void Interface::decodeData5(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[4], 5);
+	decodeUdp(comm_info, &robot[4], 4);
 }
 
 void Interface::decodeData6(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[5], 6);
+	decodeUdp(comm_info, &robot[5], 5);
 }
 
 void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data, int num)
@@ -332,7 +333,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[i].lastReceive++;
 	}
 	image->setPixmap(map);
-	log.write(num, color_str, (int)comm_info.fps, (double)voltage,
+	log.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
 }

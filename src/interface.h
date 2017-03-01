@@ -27,8 +27,8 @@
 #include "log.h"
 #include "pos_types.h"
 
-struct PositionMaker {
-	PositionMaker() : enable_pos(false), enable_ball(false), lastReceive(0) { color[0] = '\0'; }
+struct PositionMarker {
+	PositionMarker() : enable_pos(false), enable_ball(false), lastReceive(0) { color[0] = '\0'; }
 	bool enable_pos;
 	bool enable_ball;
 	int lastReceive;
@@ -60,7 +60,7 @@ private:
 	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
 	QString filenameDrag;
 	QWidget *window;
-	std::vector<PositionMaker> positions;
+	std::vector<PositionMarker> positions;
 	std::vector<struct robot> robot;
 	std::vector<QLabel *> idLabel;
 	std::vector<QWidget *>robotState;
