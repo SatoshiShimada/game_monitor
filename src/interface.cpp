@@ -35,24 +35,24 @@ Interface::~Interface()
 void Interface::initializeConfig(void)
 {
 	/* 740x540 pixel: field image size */
-	settings->setValue("field_image_width" , 740);
-	settings->setValue("field_image_height", 540);
+	settings->setValue("field_image_width" , settings->value("field_image_width", 740));
+	settings->setValue("field_image_height", settings->value("field_image_height", 540));
 	/* field size 10000x7000 milli meter? (map size in robot used) */
-	settings->setValue("field_size_x", 10000);
-	settings->setValue("field_size_y", 7000);
+	settings->setValue("field_size_x", settings->value("field_size_x", 10000));
+	settings->setValue("field_size_y", settings->value("field_size_y", 7000));
 	/* marker */
-	settings->setValue("robot_marker_size", 5 * 2);
-	settings->setValue("ball_marker_size", 3 * 2);
-	settings->setValue("theta_length", 8 * 2);
+	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 5 * 2));
+	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 3 * 2));
+	settings->setValue("marker/length", settings->value("marker/length", 8 * 2));
 	/* using UDP communication port offset */
-	settings->setValue("port", 7110);
+	settings->setValue("network/port", settings->value("network/port", 7110));
 }
 
 void Interface::createWindow(void)
 {
 	window     = new QWidget;
 	for(int i = 0; i < robot_num; i++)
-		th.push_back(new UdpThread(settings->value("port").toInt() + i));
+		th.push_back(new UdpThread(settings->value("network/port").toInt() + i));
 	receive    = new QCheckBox("Receive data");
 	reverse    = new QCheckBox("Reverse field");
 	image      = new QLabel;
@@ -306,21 +306,21 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			 *  Other   : Black
 			 */
 			if(!strcmp(positions[i].color, "red")) {
-				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), settings->value("robot_marker_size").toInt()));
+				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), settings->value("marker/robot_size").toInt()));
 			} else {
-				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), settings->value("robot_marker_size").toInt()));
+				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), settings->value("marker/robot_size").toInt()));
 			}
 			/* draw robot position */
 			paint.drawPoint(self_x, self_y);
 			/* calclate robot theta */
-			double direction_x = self_x + settings->value("theta_length").toInt() * cos(positions[i].pos.th);
-			double direction_y = self_y + settings->value("theta_length").toInt() * sin(positions[i].pos.th);
+			double direction_x = self_x + settings->value("marker/length").toInt() * cos(positions[i].pos.th);
+			double direction_y = self_y + settings->value("marker/length").toInt() * sin(positions[i].pos.th);
 			paint.drawLine(self_x, self_y, direction_x, direction_y);
 			sprintf(buf, "%d", i);
 			paint.drawText(QPoint(self_x, self_y), buf);
 			if(positions[i].enable_ball == true) {
 				/* draw ball position as orange */
-				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), settings->value("ball_marker_size").toInt()));
+				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), settings->value("marker/ball_size").toInt()));
 				paint.drawPoint(ball_x, ball_y);
 				sprintf(buf, "%d", i);
 				paint.drawText(QPoint(ball_x, ball_y), buf);
