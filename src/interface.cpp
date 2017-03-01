@@ -74,13 +74,12 @@ void Interface::createWindow(void)
 	checkLayout->addWidget(reverse);
 
 	pal_state_bgcolor.setColor(QPalette::Window, QColor("#D0D0D0"));
-	pal_red.   setColor(QPalette::WindowText, QColor("#FF0000"));
-	pal_green. setColor(QPalette::WindowText, QColor("#00FF00"));
-	pal_blue.  setColor(QPalette::WindowText, QColor("#0000FF"));
-	pal_black. setColor(QPalette::WindowText, QColor("#000000"));
-	pal_orange.setColor(QPalette::WindowText, QColor("#FFA500"));
+	pal_red.   setColor(QPalette::Window, QColor("#FF8E8E"));
+	pal_green. setColor(QPalette::Window, QColor("#8EFF8E"));
+	pal_blue.  setColor(QPalette::Window, QColor("#8E8EFF"));
+	pal_black. setColor(QPalette::Window, QColor("#000000"));
+	pal_orange.setColor(QPalette::Window, QColor("#FFA540"));
 
-	window->setPalette(pal_state_bgcolor);
 	for(int i = 0; i < robot_num; i++) {
 		robotState.push_back(new QWidget());
 		robotState[i]->setAutoFillBackground(true);
@@ -97,7 +96,6 @@ void Interface::createWindow(void)
 		robo.cf_ball = new QLabel();
 		robo.cf_own_bar = new QProgressBar();
 		robo.cf_ball_bar = new QProgressBar();
-		robo.string->setPalette(pal_black);
 		robo.cf_own_bar->setRange(0, 100);
 		robo.cf_ball_bar->setRange(0, 100);
 		robot.push_back(robo);
@@ -236,23 +234,23 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	/* Role and message */
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		/* Red */
-		robot_data->string->setPalette(pal_red);
+		robotState[num]->setPalette(pal_red);
 		strcpy(positions[num].color, "red");
 	} else if(strstr((const char *)comm_info.command, "Neutral")) {
 		/* Green */
-		robot_data->string->setPalette(pal_green);
+		robotState[num]->setPalette(pal_green);
 		strcpy(positions[num].color, "green");
 	} else if(strstr((const char *)comm_info.command, "Defender")) {
 		/* Blue */
-		robot_data->string->setPalette(pal_blue);
+		robotState[num]->setPalette(pal_blue);
 		strcpy(positions[num].color, "blue");
 	} else if(strstr((const char *)comm_info.command, "Keeper")) {
 		/* Orange */
-		robot_data->string->setPalette(pal_orange);
+		robotState[num]->setPalette(pal_orange);
 		strcpy(positions[num].color, "orange");
 	} else {
 		/* Black */
-		robot_data->string->setPalette(pal_black);
+		robotState[num]->setPalette(pal_state_bgcolor);
 		strcpy(positions[num].color, "black");
 	}
 	robot_data->string->setText((char *)comm_info.command);
