@@ -333,14 +333,14 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			paint.drawLine(front_x, front_y, rear_left_x, rear_left_y);
 			paint.drawLine(front_x, front_y, rear_right_x, rear_right_y);
 			paint.drawLine(rear_left_x, rear_left_y, rear_right_x, rear_right_y);
-			sprintf(buf, "%d", i);
+			sprintf(buf, "%d", i + 1);
 			int font_offset = settings->value("marker/font_offset").toInt();
 			paint.drawText(QPoint(self_x - font_offset, self_y - font_offset), buf);
 			if(positions[i].enable_ball == true) {
 				/* draw ball position as orange */
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), settings->value("marker/ball_size").toInt()));
 				paint.drawPoint(ball_x, ball_y);
-				sprintf(buf, "%d", i);
+				sprintf(buf, "%d", i + 1);
 				paint.drawText(QPoint(ball_x - font_offset, ball_y - font_offset), buf);
 			}
 		}
