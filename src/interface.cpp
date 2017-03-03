@@ -7,7 +7,7 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReceive(true), fReverse(false), robot_num(6)
+Interface::Interface(): fLogging(true), fReverse(false), robot_num(6)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -17,14 +17,14 @@ Interface::Interface(): fLogging(true), fReceive(true), fReverse(false), robot_n
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
 
+	/* Run receive thread */
+	for(int i = 0; i < robot_num; i++)
+		th.push_back(new UdpServer(settings->value("network/port").toInt() + i));
+
 	createWindow();
 	connection();
 
 	loadImage("hlfield.png");
-
-	/* Run receive thread */
-	for(int i = 0; i < robot_num; i++)
-		th[i]->start();
 
 	this->setWindowTitle("Humanoid League Game Monitor");
 }
@@ -54,9 +54,6 @@ void Interface::initializeConfig(void)
 void Interface::createWindow(void)
 {
 	window     = new QWidget;
-	for(int i = 0; i < robot_num; i++)
-		th.push_back(new UdpThread(settings->value("network/port").toInt() + i));
-	receive    = new QCheckBox("Receive data");
 	reverse    = new QCheckBox("Reverse field");
 	image      = new QLabel;
 	id         = new QLabel("ID");
@@ -72,8 +69,6 @@ void Interface::createWindow(void)
 	for(int i = 0; i < robot_num; i++)
 		idLayout.push_back(new QGridLayout);
 
-	receive->setCheckState(Qt::Checked);
-	checkLayout->addWidget(receive);
 	checkLayout->addWidget(reverse);
 
 	pal_state_bgcolor.setColor(QPalette::Window, QColor("#D0D0D0"));
@@ -174,7 +169,6 @@ void Interface::connection(void)
 	connect(th[3], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData4(struct comm_info_T)));
 	connect(th[4], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
 	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
-	connect(receive, SIGNAL(stateChanged(int)), this, SLOT(receiveStateChange(int)));
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
 }
 
@@ -354,19 +348,6 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 
 void Interface::paintEvent(QPaintEvent *e)
 {
-}
-
-void Interface::receiveStateChange(int state)
-{
-	if(state == Qt::Checked) {
-		/* start*/
-		for(int i = 0; i < robot_num; i++)
-			th[i]->start();
-	} else {
-		/* stop */
-		for(int i = 0; i < robot_num; i++)
-			th[i]->quit();
-	}
 }
 
 void Interface::reverseField(int state)

@@ -54,8 +54,8 @@ class Interface : public QMainWindow
 
 private:
 	Log log;
-	std::vector<UdpThread *> th;
-	QCheckBox *receive, *reverse;
+	std::vector<UdpServer *> th;
+	QCheckBox *reverse;
 	QSettings *settings;
 	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
 	QString filenameDrag;
@@ -81,7 +81,6 @@ private:
 	void createWindow(void);
 	void connection(void);
 	bool fLogging;
-	bool fReceive;
 	bool fReverse;
 	const int robot_num;
 
@@ -104,7 +103,6 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
-	void receiveStateChange(int state);
 	void reverseField(int state);
 };
 

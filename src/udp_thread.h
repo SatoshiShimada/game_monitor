@@ -2,13 +2,9 @@
 #ifndef _UDP_THREAD_H_
 #define _UDP_THREAD_H_
 
-#include <boost/asio.hpp>
-
 #include <QtGui>
+#include <QUdpSocket>
 #include <QtCore>
-#include <QApplication>
-#include <QThread>
-#include <QString>
 
 #include "pos_types.h"
 
@@ -46,18 +42,17 @@ struct comm_info_T {
 
 Q_DECLARE_METATYPE(comm_info_T);
 
-class UdpThread: public QThread {
+class UdpServer : public QObject
+{
 	Q_OBJECT
 public:
-	UdpThread(int port_num);
-	~UdpThread();
+	UdpServer(int port_num);
+	~UdpServer();
 protected:
 	struct comm_info_T comm_info;
-	void run();
-	boost::asio::io_service io_srv;
-	boost::system::error_code error;
-	boost::asio::ip::udp::endpoint remote_endpoint;
-	boost::asio::ip::udp::socket *socket;
+	QUdpSocket *udpSocket;
+private slots:
+	void readPendingDatagrams(void);
 signals:
 	void receiveData(struct comm_info_T);
 };
