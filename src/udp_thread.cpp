@@ -1,51 +1,33 @@
 
-#include <cstdio>
-#include <cstring>
-
-#include <iostream>
-#include <thread>
-#include <exception>
-#include <boost/asio.hpp>
-#include <boost/math/constants/constants.hpp>
+#include <cmath>
 
 #include "udp_thread.h"
 
-UdpThread::UdpThread(int port_num)
+UdpServer::UdpServer(int port_num)
 {
-	try {
-		socket = new boost::asio::ip::udp::socket(io_srv, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port_num));
-	} catch(std::exception &e) {
-		std::cerr << e.what() << std::endl;
-	}
+	udpSocket = new QUdpSocket(this);
+	udpSocket->bind(QHostAddress::Any, port_num);
+	connect(udpSocket, SIGNAL(readyRead()), this, SLOT(readPendingDatagrams()));
 }
 
-void UdpThread::run(void)
+void UdpServer::readPendingDatagrams(void)
 {
-	unsigned char buf[2048];
-	size_t len;
-
-	while(1) {
-		len = 0;
-		memset(buf, 0, sizeof(buf));
-		// receive data
-		try {
-			len = socket->receive_from(boost::asio::buffer(buf, sizeof(buf)), remote_endpoint, 0, error);
-		} catch(std::exception &e) {
-			std::cerr << e.what() << std::endl;
-		}
-
-		// copy receivied data to structure
+	while(udpSocket->hasPendingDatagrams()) {
+		QByteArray datagrams;
+		datagrams.resize(udpSocket->pendingDatagramSize());
+		QHostAddress sender;
+		quint16 senderPort;
+		udpSocket->readDatagram(datagrams.data(), datagrams.size(), &sender, &senderPort);
+		char *buf = datagrams.data();
 		char *p = (char *)&comm_info;
-		for(size_t i = 0; (i < len) && (i < sizeof(struct comm_info_T)); i++) {
+		for(size_t i = 0; (i < datagrams.size()) && (i < sizeof(struct comm_info_T)); i++) {
 			*p++ = buf[i];
 		}
-
 		emit receiveData(comm_info);
 	}
-	return;
 }
 
-UdpThread::~UdpThread()
+UdpServer::~UdpServer()
 {
 }
 
@@ -66,7 +48,7 @@ bool getCommInfoObject(unsigned char *data, Pos*pos)
 		if((y & 0x0200) != 0) y = -(0x0400 - y);
 		y *= 10;
 		theta = (data[3] * 2) - 180;
-		th = (float)(theta * boost::math::constants::pi<float>() / 180.0f);
+		th = (float)(theta * M_PI / 180.0);
 		is_our_side = ((data[0] & COMM_OUR_SIDE) != 0) ? true : false;
 		is_opposite_side = ((data[0] & COMM_OPPOSITE_SIDE) != 0) ? true : false;
 		pos->x = x;

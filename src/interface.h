@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <vector>
+#include <ctime>
 
 #include <QtGui>
 #include <QtCore>
@@ -28,10 +29,10 @@
 #include "pos_types.h"
 
 struct PositionMarker {
-	PositionMarker() : enable_pos(false), enable_ball(false), lastReceive(0) { color[0] = '\0'; }
+	PositionMarker() : enable_pos(false), enable_ball(false) { color[0] = '\0'; }
 	bool enable_pos;
 	bool enable_ball;
-	int lastReceive;
+	struct tm lastReceiveTime;
 	char color[20];
 	Pos pos; /* self position */
 	Pos ball; /* ball position */
@@ -54,8 +55,8 @@ class Interface : public QMainWindow
 
 private:
 	Log log;
-	std::vector<UdpThread *> th;
-	QCheckBox *receive, *reverse;
+	std::vector<UdpServer *> th;
+	QCheckBox *reverse;
 	QSettings *settings;
 	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
 	QString filenameDrag;
@@ -81,12 +82,12 @@ private:
 	void createWindow(void);
 	void connection(void);
 	bool fLogging;
-	bool fReceive;
 	bool fReverse;
+	int updateMapTimerId;
 	const int robot_num;
 
 protected:
-	void paintEvent(QPaintEvent *);
+	void timerEvent(QTimerEvent *);
 
 public:
 	Interface();
@@ -96,6 +97,7 @@ public:
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
 	void decodeUdp(struct comm_info_T, struct robot *, int num);
+	void updateMap(void);
 
 private slots:
 	void decodeData1(struct comm_info_T);
@@ -104,7 +106,6 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
-	void receiveStateChange(int state);
 	void reverseField(int state);
 };
 
