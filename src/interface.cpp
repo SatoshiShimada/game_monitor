@@ -24,6 +24,7 @@ Interface::Interface(): fLogging(true), fReverse(false), robot_num(6)
 	createWindow();
 	connection();
 
+	updateMapTimerId = startTimer(1000); /* timer by 1000msec */
 	loadImage("hlfield.png");
 
 	this->setWindowTitle("Humanoid League Game Monitor");
@@ -47,6 +48,7 @@ void Interface::initializeConfig(void)
 	settings->setValue("marker/length", settings->value("marker/length", 24));
 	settings->setValue("marker/rear_length", settings->value("marker/rear_length", 10));
 	settings->setValue("marker/font_offset", settings->value("marker/font_offset", 10));
+	settings->setValue("marker/time_up_limit", settings->value("marker/time_up_limit", 30));
 	/* using UDP communication port offset */
 	settings->setValue("network/port", settings->value("network/port", 7110));
 }
@@ -213,6 +215,13 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	color = (int)(comm_info.id & 0x80) >> 7;
 	id    = (int)(comm_info.id & 0x7F);
 
+	/* record time of receive data */
+	time_t timer;
+	struct tm *local_time;
+	timer = time(NULL);
+	local_time = localtime(&timer);
+	positions[num].lastReceiveTime = *local_time;
+
 	/* ID and Color */
 	sprintf(color_str, "%s %d", ((color == MAGENTA) ? "MAGENTA" : "CYAN"), id);
 	robot_data->name->setText(color_str);
@@ -251,13 +260,9 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		strcpy(positions[num].color, "black");
 	}
 	robot_data->string->setText((char *)comm_info.command);
-	/* Create new image for erase previous position marker */
-	map = origin_map;
-	QPainter paint(&map);
 
 	positions[num].enable_pos  = true;
 	positions[num].enable_ball = true;
-	positions[num].lastReceive = 0;
 
 	/* Decode robot position */
 	if(getCommInfoObject(comm_info.object[1], &(positions[num].pos)) == false) {
@@ -268,11 +273,6 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		positions[num].pos.y =
 			(int)((double)positions[num].pos.y * ((double)settings->value("field_image_height").toInt() / (double)settings->value("field_size_y").toInt()) + ((double)settings->value("field_image_height").toInt() / 2));
 		positions[num].pos.th = positions[num].pos.th * -1 + M_PI;
-		if(fReverse) {
-			positions[num].pos.x = settings->value("field_image_width").toInt()  - positions[num].pos.x;
-			positions[num].pos.y = settings->value("field_image_height").toInt() - positions[num].pos.y;
-			positions[num].pos.th = positions[num].pos.th + M_PI;
-		}
 	}
 	/* Decode ball position */
 	if(getCommInfoObject(comm_info.object[0], &(positions[num].ball)) == false) {
@@ -282,23 +282,57 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			settings->value("field_image_width").toInt() - (int)((double)positions[num].ball.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
 		positions[num].ball.y =
 			(int)((double)positions[num].ball.y * ((double)settings->value("field_image_height").toInt() / (double)settings->value("field_size_y").toInt()) + ((double)settings->value("field_image_height").toInt() / 2));
-		if(fReverse) {
-			positions[num].ball.x = settings->value("field_image_width").toInt()  - positions[num].ball.x;
-			positions[num].ball.y = settings->value("field_image_height").toInt() - positions[num].ball.y;
-		}
 	}
+	updateMap();
+	log.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
+		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
+		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
+}
+
+void Interface::updateMap(void)
+{
+	char buf[2048];
+	time_t timer;
+	struct tm *local_time;
+	timer = time(NULL);
+	local_time = localtime(&timer);
+	int time_limit = settings->value("marker/time_up_limit").toInt();
+
+	/* Create new image for erase previous position marker */
+	map = origin_map;
+	QPainter paint(&map);
 
 	/* draw position marker on image */
 	for(int i = 0; i < 6; i++) {
 		int self_x = positions[i].pos.x;
 		int self_y = positions[i].pos.y;
+		double theta = positions[i].pos.th;
+		if(fReverse) {
+			self_x = settings->value("field_image_width").toInt()  - self_x;
+			self_y = settings->value("field_image_height").toInt() - self_y;
+			theta = theta + M_PI;
+		}
 		int ball_x = positions[i].ball.x;
 		int ball_y = positions[i].ball.y;
-		if(positions[i].lastReceive >= 10) {
-			positions[i].enable_pos  = false;
-			positions[i].enable_ball = false;
+		if(fReverse) {
+			ball_x = settings->value("field_image_width").toInt()  - ball_x;
+			ball_y = settings->value("field_image_height").toInt() - ball_y;
 		}
 		if(positions[i].enable_pos == true) {
+			if((local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec) > time_limit) {
+				positions[i].enable_pos = false;
+				positions[i].enable_ball = false;
+				robotState[i]->setPalette(pal_state_bgcolor);
+				robot[i].name->clear();
+				robot[i].voltage->clear();
+				robot[i].fps->clear();
+				robot[i].string->clear();
+				robot[i].cf_own->clear();
+				robot[i].cf_ball->clear();
+				robot[i].cf_own_bar->setValue(0);
+				robot[i].cf_ball_bar->setValue(0);
+				continue;
+			}
 			paint.setBrush(Qt::red);
 			/*
 			 * self-position maker color:
@@ -315,7 +349,6 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 			/* calclate robot theta */
 			int half_length = settings->value("marker/length").toInt() / 2;
 			int half_rear_length = settings->value("marker/rear_length").toInt() / 2;
-			double theta = positions[i].pos.th;
 			int front_x = (int)(self_x + half_length * cos(theta));
 			int front_y = (int)(self_y + half_length * sin(theta));
 			int rear_x = (int)(self_x + half_length * cos(theta + M_PI));
@@ -338,16 +371,15 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 				paint.drawText(QPoint(ball_x - font_offset, ball_y - font_offset), buf);
 			}
 		}
-		positions[i].lastReceive++;
 	}
 	image->setPixmap(map);
-	log.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
-		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
-		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
 }
 
-void Interface::paintEvent(QPaintEvent *e)
+void Interface::timerEvent(QTimerEvent *e)
 {
+	if(e->timerId() == updateMapTimerId) {
+		updateMap();
+	}
 }
 
 void Interface::reverseField(int state)
@@ -356,5 +388,6 @@ void Interface::reverseField(int state)
 		fReverse = true;
 	else
 		fReverse = false;
+	updateMap();
 }
 

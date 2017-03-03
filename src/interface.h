@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <vector>
+#include <ctime>
 
 #include <QtGui>
 #include <QtCore>
@@ -28,10 +29,10 @@
 #include "pos_types.h"
 
 struct PositionMarker {
-	PositionMarker() : enable_pos(false), enable_ball(false), lastReceive(0) { color[0] = '\0'; }
+	PositionMarker() : enable_pos(false), enable_ball(false) { color[0] = '\0'; }
 	bool enable_pos;
 	bool enable_ball;
-	int lastReceive;
+	struct tm lastReceiveTime;
 	char color[20];
 	Pos pos; /* self position */
 	Pos ball; /* ball position */
@@ -82,10 +83,11 @@ private:
 	void connection(void);
 	bool fLogging;
 	bool fReverse;
+	int updateMapTimerId;
 	const int robot_num;
 
 protected:
-	void paintEvent(QPaintEvent *);
+	void timerEvent(QTimerEvent *);
 
 public:
 	Interface();
@@ -95,6 +97,7 @@ public:
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
 	void decodeUdp(struct comm_info_T, struct robot *, int num);
+	void updateMap(void);
 
 private slots:
 	void decodeData1(struct comm_info_T);
