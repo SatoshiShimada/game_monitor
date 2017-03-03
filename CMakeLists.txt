@@ -18,17 +18,12 @@ set(MOC_HEADERS
 	src/udp_thread.h
 )
 
-set(Boost_USE_STATIC_LIBS        ON)
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME    OFF)
-add_definitions(-DBOOST_ALL_NO_LIB)
 include(FindSDL)
 find_package(SDL REQUIRED)
 if(NOT_SDL_FOUND)
     message(FATAL ERROR "SDL not found!!!")
 endif(NOT_SDL_FOUND)
 
-find_package(Boost COMPONENTS system)
 find_package(Qt4 REQUIRED)
 
 set(QT_USE_QTMAIN true)
@@ -45,7 +40,5 @@ QT4_WRAP_CPP(MOC_SRCS ${MOC_HEADERS})
 set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(src)
-include_directories(${Boost_INCLUDE_DIRS})
 add_executable(game_monitor ${SRCS} ${MOC_SRCS} ${RES_SORUCES})
-target_link_libraries(game_monitor ${Boost_LIBRARIES})
 target_link_libraries(game_monitor ${QT_LIBRARIES})

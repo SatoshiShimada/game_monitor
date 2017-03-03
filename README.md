@@ -5,13 +5,13 @@ If you find a bug please let me know by opening an issue in this repository.
 
 ## Supported OS
 
-* Linux (Ubuntu)
-* Mac OS Sierra
+* Linux
+* Mac OS
+* Windows
 
 ## Requirements
 
 * Qt 4.8
-* Boost C++
 
 ## How to build
 
@@ -24,7 +24,7 @@ apt-get install libqt4-core libqt4-dev libqt4-gui qt4-dev-tools
 apt-get install libboost-all-dev
 ```
 
-If your system is 'Ubuntu 12.04', run follow command.
+If your system is Ubuntu 12.04, run follow command.
 
 ```
 add-apt-repository ppa:ubuntu-toolchain-r/test
@@ -56,7 +56,16 @@ Finally, compile it.
 ./qt_make.sh
 ```
 
+### Windows
+
+After install requirement: Qt 4.8 and Visual Studio
+
+Run `qt_make.bat` file in Developer Command Prompt window.
+[How to open it](https://msdn.microsoft.com/en-us/library/f35ctcxw.aspx "Jump to Microsoft document page")
+
+Or generate Visual Studio project file by CMake:
+Use `CMakeLists.txt`
+
 ## Author
 
 Satoshi SHIMADA (mylinux1204@gmail.com)
-
