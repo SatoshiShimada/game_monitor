@@ -3,6 +3,9 @@
 #include <iostream>
 #include <cstring>
 #include <cmath>
+#include <cstdlib>
+#include <fstream>
+#include <string>
 
 #include "pos_types.h"
 #include "interface.h"
@@ -65,6 +68,7 @@ void Interface::createWindow(void)
 	string     = new QLabel("Common String");
 	cf_own     = new QLabel("Reliability of self pos");
 	cf_ball    = new QLabel("Reliability of ball pos");
+	loadLogButton = new QPushButton("Load log file");
 	mainLayout = new QGridLayout;
 	checkLayout = new QHBoxLayout;
 	labelLayout = new QGridLayout;
@@ -72,6 +76,7 @@ void Interface::createWindow(void)
 		idLayout.push_back(new QGridLayout);
 
 	checkLayout->addWidget(reverse);
+	checkLayout->addWidget(loadLogButton);
 
 	pal_state_bgcolor.setColor(QPalette::Window, QColor("#D0D0D0"));
 	pal_red.   setColor(QPalette::Window, QColor("#FF8E8E"));
@@ -172,6 +177,7 @@ void Interface::connection(void)
 	connect(th[4], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
 	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
+	connect(loadLogButton, SIGNAL(clicked()), this, SLOT(loadLogFile()));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -289,6 +295,121 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
 }
 
+void Interface::setParamFromFile(std::vector<std::string> lines)
+{
+	for(auto line : lines) {
+		struct log_data_t buf;
+		QString qstr = QString(line.c_str());
+		QStringList list = qstr.split(QChar(','));
+
+		int size = list.size();
+		if(size < 1) continue;
+		strcpy(buf.time_str, list.at(0).toStdString().c_str());
+		if(size < 2) continue;
+		buf.id = list.at(1).toInt();
+		if(size < 3) continue;
+		strcpy(buf.color_str, list.at(2).toStdString().c_str());
+		if(size < 4) continue;
+		buf.fps = list.at(3).toInt();
+		if(size < 5) continue;
+		buf.voltage = list.at(4).toDouble();
+		if(size < 6) continue;
+		buf.x = list.at(5).toInt();
+		if(size < 7) continue;
+		buf.y = list.at(6).toInt();
+		if(size < 8) continue;
+		buf.theta = list.at(7).toDouble();
+		if(size < 9) continue;
+		buf.ball_x = list.at(8).toInt();
+		if(size < 10) continue;
+		buf.ball_y = list.at(9).toInt();
+		if(size < 11) continue;
+		strcpy(buf.msg, list.at(10).toStdString().c_str());
+		log_data.push_back(buf);
+	}
+
+	log_count = 0;
+	setData(log_data[log_count]);
+	QString before = QString(log_data[log_count++].time_str);
+	QString after = QString(log_data[log_count].time_str);
+	int interval = getInterval(before, after);
+	QTimer::singleShot(interval, this, SLOT(updateLog()));
+}
+
+int Interface::getInterval(QString before, QString after)
+{
+	QStringList list_before = before.split(QChar(':'));
+	QStringList list_after = after.split(QChar(':'));
+	int h = list_after.at(0).toInt() - list_before.at(0).toInt();
+	int m = list_after.at(1).toInt() - list_before.at(1).toInt();
+	int s = list_after.at(2).toInt() - list_before.at(2).toInt();
+	return ((h * 60 + m) * 60 + s) * 1000;
+}
+
+void Interface::updateLog(void)
+{
+	setData(log_data[log_count]);
+	if(log_count + 1 >= log_data.size()) return;
+	QString before = QString(log_data[log_count++].time_str);
+	QString after = QString(log_data[log_count].time_str);
+	int interval = getInterval(before, after);
+	QTimer::singleShot(interval, this, SLOT(updateLog()));
+}
+
+void Interface::setData(struct log_data_t data)
+{
+	int num = data.id - 1;
+	struct robot *robot_data = &robot[num];
+
+	/* ID and Color */
+	robot_data->name->setText(data.color_str);
+	/* Voltage */
+	robot_data->voltage->setNum(data.voltage);
+	/* FPS */
+	robot_data->fps->setNum(data.fps);
+	/* Self-position confidence */
+	robot_data->cf_own->setNum(0);
+	robot_data->cf_own_bar->setValue(0);
+	/* Ball position confidence */
+	robot_data->cf_ball->setNum(0);
+	robot_data->cf_ball_bar->setValue(0);
+	/* Role and message */
+	char *msg = data.msg;
+	if(strstr((const char *)msg, "Attacker")) {
+		/* Red */
+		robotState[num]->setPalette(pal_red);
+		strcpy(positions[num].color, "red");
+	} else if(strstr((const char *)msg, "Neutral")) {
+		/* Green */
+		robotState[num]->setPalette(pal_green);
+		strcpy(positions[num].color, "green");
+	} else if(strstr((const char *)msg, "Defender")) {
+		/* Blue */
+		robotState[num]->setPalette(pal_blue);
+		strcpy(positions[num].color, "blue");
+	} else if(strstr((const char *)msg, "Keeper")) {
+		/* Orange */
+		robotState[num]->setPalette(pal_orange);
+		strcpy(positions[num].color, "orange");
+	} else {
+		/* Black */
+		robotState[num]->setPalette(pal_state_bgcolor);
+		strcpy(positions[num].color, "black");
+	}
+	robot_data->string->setText((char *)msg);
+
+	positions[num].enable_pos  = true;
+	positions[num].enable_ball = true;
+
+	positions[num].pos.x = data.x;
+	positions[num].pos.y = data.y;
+	positions[num].pos.th = data.theta;
+	positions[num].ball.x = data.ball_x;
+	positions[num].ball.y = data.ball_y;
+
+	updateMap();
+}
+
 void Interface::updateMap(void)
 {
 	char buf[2048];
@@ -389,5 +510,21 @@ void Interface::reverseField(int state)
 	else
 		fReverse = false;
 	updateMap();
+}
+
+void Interface::loadLogFile(void)
+{
+	QString fileName = QFileDialog::getOpenFileName(this, "log file", "./log", "*.log");
+	std::ifstream ifs(fileName.toStdString());
+	if(ifs.fail()) {
+		std::cerr << "file open error" << std::endl;
+		return;
+	}
+	std::string line;
+	std::vector<std::string> lines;
+	while(getline(ifs, line)) {
+		lines.push_back(line);
+	}
+	setParamFromFile(lines);
 }
 

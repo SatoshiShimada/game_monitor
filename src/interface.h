@@ -2,9 +2,8 @@
 #ifndef _INTERFACE_H_
 #define _INTERFACE_H_
 
-#include <iostream>
 #include <vector>
-#include <ctime>
+#include <string>
 
 #include <QtGui>
 #include <QtCore>
@@ -49,6 +48,20 @@ struct robot {
 	QProgressBar *cf_ball_bar;
 };
 
+struct log_data_t {
+	char time_str[100];
+	int id;
+	char color_str[100];
+	int fps;
+	double voltage;
+	int x;
+	int y;
+	double theta;
+	int ball_x;
+	int ball_y;
+	char msg[100];
+};
+
 class Interface : public QMainWindow
 {
 	Q_OBJECT
@@ -57,6 +70,7 @@ private:
 	Log log;
 	std::vector<UdpServer *> th;
 	QCheckBox *reverse;
+	QPushButton *loadLogButton;
 	QSettings *settings;
 	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
 	QString filenameDrag;
@@ -81,13 +95,18 @@ private:
 	void initializeConfig(void);
 	void createWindow(void);
 	void connection(void);
+	int getInterval(QString, QString);
+	std::vector<struct log_data_t> log_data;
 	bool fLogging;
 	bool fReverse;
 	int updateMapTimerId;
+	int log_count;
 	const int robot_num;
 
 protected:
 	void timerEvent(QTimerEvent *);
+	void setParamFromFile(std::vector<std::string>);
+	void setData(struct log_data_t);
 
 public:
 	Interface();
@@ -107,6 +126,8 @@ private slots:
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
 	void reverseField(int state);
+	void loadLogFile(void);
+	void updateLog(void);
 };
 
 #endif // _INTERFACE_H_
