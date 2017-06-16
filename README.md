@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/SatoshiShimada/game_monitor.svg?branch=master)](https://travis-ci.org/SatoshiShimada/game_monitor)
+
 # Game Monitor
 
 The robot state viewer from robot communication. It's for the robot "Accelite" of team CITBrains at RoboCup Soccer Humanoid League.
@@ -11,7 +13,7 @@ If you find a bug please let me know by opening an issue in this repository.
 
 ## Requirements
 
-* Qt 4.8
+* Qt 4
 
 ## How to build
 
@@ -34,7 +36,7 @@ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 20
 update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
 ```
 
-Finally, compile it.
+Finally, compile sources.
 
 ```
 ./qt_make.sh
@@ -46,11 +48,11 @@ Install libraries.
 
 ```
 brew update -all
-brew install qt4
+brew install cartr/qt4/qt
 brew install boost
 ```
 
-Finally, compile it.
+Finally, compile sources.
 
 ```
 ./qt_make.sh

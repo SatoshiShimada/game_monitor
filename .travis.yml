@@ -1,4 +1,10 @@
 language: cpp
+os:
+  - linux
+  - osx
+compiler:
+  - gcc
+  - clang
 dist: trusty
 sudo: required
 branches:
@@ -6,9 +12,10 @@ branches:
     - master
     - support_ci
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libqt4-core libqt4-dev libqt4-gui qt4-dev-tools
-  - sudo apt-get install libboost-all-dev
-before_script:
-  - cmake
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -qq libqt4-core libqt4-dev libqt4-gui qt4-dev-tools; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libboost-all-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cartr/qt4/qt; fi
+  #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost; fi # already installed
 script: ./qt_make.sh
