@@ -10,7 +10,6 @@ sudo: required
 branches:
   only:
     - master
-    - support_ci
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -qq libqt4-core libqt4-dev libqt4-gui qt4-dev-tools; fi
