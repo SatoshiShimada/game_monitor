@@ -10,25 +10,27 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), robot_num(6)
+Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
 	log.setEnable();
-	positions = std::vector<PositionMarker>(robot_num);
+	positions = std::vector<PositionMarker>(max_robot_num);
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
 
 	/* Run receive thread */
-	for(int i = 0; i < robot_num; i++)
-		th.push_back(new UdpServer(settings->value("network/port").toInt() + i));
+	const int base_udp_port = settings->value("network/port").toInt();
+	for(int i = 0; i < max_robot_num; i++)
+		th.push_back(new UdpServer(base_udp_port + i));
 
 	createWindow();
 	connection();
 
 	updateMapTimerId = startTimer(1000); /* timer by 1000msec */
-	loadImage("hlfield.png");
+	const QString field_image_name = settings->value("field_image_name").toString();
+	loadImage(field_image_name);
 
 	this->setWindowTitle("Humanoid League Game Monitor");
 }
@@ -39,6 +41,8 @@ Interface::~Interface()
 
 void Interface::initializeConfig(void)
 {
+	/* Field image file */
+	settings->setValue("field_image_name", settings->value("field_image_name", "hlfield.png"));
 	/* 740x540 pixel: field image size */
 	settings->setValue("field_image_width" , settings->value("field_image_width", 740));
 	settings->setValue("field_image_height", settings->value("field_image_height", 540));
@@ -72,7 +76,7 @@ void Interface::createWindow(void)
 	mainLayout = new QGridLayout;
 	checkLayout = new QHBoxLayout;
 	labelLayout = new QGridLayout;
-	for(int i = 0; i < robot_num; i++)
+	for(int i = 0; i < max_robot_num; i++)
 		idLayout.push_back(new QGridLayout);
 
 	checkLayout->addWidget(reverse);
@@ -85,7 +89,7 @@ void Interface::createWindow(void)
 	pal_black. setColor(QPalette::Window, QColor("#000000"));
 	pal_orange.setColor(QPalette::Window, QColor("#FFA540"));
 
-	for(int i = 0; i < robot_num; i++) {
+	for(int i = 0; i < max_robot_num; i++) {
 		robotState.push_back(new QWidget());
 		robotState[i]->setAutoFillBackground(true);
 		robotState[i]->setPalette(pal_state_bgcolor);
@@ -106,7 +110,7 @@ void Interface::createWindow(void)
 		robot.push_back(robo);
 	}
 
-	for(int i = 0; i < robot_num; i++) {
+	for(int i = 0; i < max_robot_num; i++) {
 		idLayout[i]->addWidget(idLabel[i], 1, 1);
 		idLayout[i]->addWidget(robot[i].name, 2, 1);
 		idLayout[i]->addWidget(robot[i].voltage, 3, 1);
@@ -119,7 +123,7 @@ void Interface::createWindow(void)
 		robotState[i]->setLayout(idLayout[i]);
 	}
 
-	for(int i = 0, j = 0, k = 0; i < robot_num; i++) {
+	for(int i = 0, j = 0, k = 0; i < max_robot_num; i++) {
 		labelLayout->addWidget(robotState[i], k + 1, j + 1);
 		if(++j == 2) { k++; j = 0; }
 	}
@@ -267,32 +271,39 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	}
 	robot_data->string->setText((char *)comm_info.command);
 
-	positions[num].enable_pos  = true;
-	positions[num].enable_ball = true;
-
 	/* Decode robot position */
-	if(getCommInfoObject(comm_info.object[1], &(positions[num].pos)) == false) {
-		positions[num].enable_pos = false;
+	if(getCommInfoObject(comm_info.object[1], &(positions[num].pos))) {
+		positions[num].pos = globalPosToImagePos(positions[num].pos);
+		positions[num].enable_pos  = true;
 	} else {
-		positions[num].pos.x =
-			settings->value("field_image_width").toInt() - (int)((double)positions[num].pos.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
-		positions[num].pos.y =
-			(int)((double)positions[num].pos.y * ((double)settings->value("field_image_height").toInt() / (double)settings->value("field_size_y").toInt()) + ((double)settings->value("field_image_height").toInt() / 2));
-		positions[num].pos.th = positions[num].pos.th * -1 + M_PI;
+		positions[num].enable_pos = false;
 	}
 	/* Decode ball position */
-	if(getCommInfoObject(comm_info.object[0], &(positions[num].ball)) == false) {
-		positions[num].enable_ball = false;
+	if(getCommInfoObject(comm_info.object[0], &(positions[num].ball))) {
+		positions[num].ball = globalPosToImagePos(positions[num].ball);
+		positions[num].enable_ball = true;
 	} else {
-		positions[num].ball.x =
-			settings->value("field_image_width").toInt() - (int)((double)positions[num].ball.x * ((double)settings->value("field_image_width").toInt() / (double)settings->value("field_size_x").toInt()) + ((double)settings->value("field_image_width").toInt() / 2));
-		positions[num].ball.y =
-			(int)((double)positions[num].ball.y * ((double)settings->value("field_image_height").toInt() / (double)settings->value("field_size_y").toInt()) + ((double)settings->value("field_image_height").toInt() / 2));
+		positions[num].enable_ball = false;
 	}
 	updateMap();
 	log.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
+}
+
+Pos Interface::globalPosToImagePos(Pos gpos)
+{
+	Pos ret_pos;
+	const int field_image_width = settings->value("field_image_width").toInt();
+	const int field_image_height = settings->value("field_image_height").toInt();
+	const int field_size_x = settings->value("field_size_x").toInt();
+	const int field_size_y = settings->value("field_size_y").toInt();
+	ret_pos.x =
+		field_image_width - (int)((double)gpos.x * ((double)field_image_width / (double)field_size_x) + ((double)field_image_width / 2));
+	ret_pos.y =
+		                    (int)((double)gpos.y * ((double)field_image_height / (double)field_size_y) + ((double)field_image_height / 2));
+	ret_pos.th = -gpos.th + M_PI;
+	return ret_pos;
 }
 
 void Interface::setParamFromFile(std::vector<std::string> lines)
@@ -460,33 +471,35 @@ void Interface::updateMap(void)
 			 *  Attacker: Red
 			 *  Other   : Black
 			 */
+			const int robot_marker_size = settings->value("marker/robot_size").toInt();
 			if(!strcmp(positions[i].color, "red")) {
-				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), settings->value("marker/robot_size").toInt()));
+				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), robot_marker_size));
 			} else {
-				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), settings->value("marker/robot_size").toInt()));
+				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), robot_marker_size));
 			}
 			/* draw robot position */
 			paint.drawPoint(self_x, self_y);
 			/* calclate robot theta */
-			int half_length = settings->value("marker/length").toInt() / 2;
-			int half_rear_length = settings->value("marker/rear_length").toInt() / 2;
-			int front_x = (int)(self_x + half_length * cos(theta));
-			int front_y = (int)(self_y + half_length * sin(theta));
-			int rear_x = (int)(self_x + half_length * cos(theta + M_PI));
-			int rear_y = (int)(self_y + half_length * sin(theta + M_PI));
-			int rear_left_x = (int)(rear_x + half_rear_length * cos(theta + M_PI / 2));
-			int rear_left_y = (int)(rear_y + half_rear_length * sin(theta + M_PI / 2));
-			int rear_right_x = (int)(rear_x + half_rear_length * cos(theta - M_PI / 2));
-			int rear_right_y = (int)(rear_y + half_rear_length * sin(theta - M_PI / 2));
+			const int half_length = settings->value("marker/length").toInt() / 2;
+			const int half_rear_length = settings->value("marker/rear_length").toInt() / 2;
+			const int front_x = (int)(self_x + half_length * cos(theta));
+			const int front_y = (int)(self_y + half_length * sin(theta));
+			const int rear_x = (int)(self_x + half_length * cos(theta + M_PI));
+			const int rear_y = (int)(self_y + half_length * sin(theta + M_PI));
+			const int rear_left_x = (int)(rear_x + half_rear_length * cos(theta + M_PI / 2));
+			const int rear_left_y = (int)(rear_y + half_rear_length * sin(theta + M_PI / 2));
+			const int rear_right_x = (int)(rear_x + half_rear_length * cos(theta - M_PI / 2));
+			const int rear_right_y = (int)(rear_y + half_rear_length * sin(theta - M_PI / 2));
 			paint.drawLine(front_x, front_y, rear_left_x, rear_left_y);
 			paint.drawLine(front_x, front_y, rear_right_x, rear_right_y);
 			paint.drawLine(rear_left_x, rear_left_y, rear_right_x, rear_right_y);
 			sprintf(buf, "%d", i + 1);
-			int font_offset = settings->value("marker/font_offset").toInt();
+			const int font_offset = settings->value("marker/font_offset").toInt();
 			paint.drawText(QPoint(self_x - font_offset, self_y - font_offset), buf);
 			if(positions[i].enable_ball == true) {
 				/* draw ball position as orange */
-				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), settings->value("marker/ball_size").toInt()));
+				const int ball_marker_size = settings->value("marker/ball_size").toInt();
+				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), ball_marker_size));
 				paint.drawPoint(ball_x, ball_y);
 				sprintf(buf, "%d", i + 1);
 				paint.drawText(QPoint(ball_x - font_offset, ball_y - font_offset), buf);

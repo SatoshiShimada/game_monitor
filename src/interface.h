@@ -96,12 +96,13 @@ private:
 	void createWindow(void);
 	void connection(void);
 	int getInterval(QString, QString);
+	Pos globalPosToImagePos(Pos);
 	std::vector<struct log_data_t> log_data;
 	bool fLogging;
 	bool fReverse;
 	int updateMapTimerId;
-	int log_count;
-	const int robot_num;
+	unsigned int log_count;
+	const int max_robot_num;
 
 protected:
 	void timerEvent(QTimerEvent *);
