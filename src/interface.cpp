@@ -503,6 +503,8 @@ void Interface::updateMap(void)
 				paint.drawPoint(ball_x, ball_y);
 				sprintf(buf, "%d", i + 1);
 				paint.drawText(QPoint(ball_x - font_offset, ball_y - font_offset), buf);
+				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 1));
+				paint.drawLine(front_x, front_y, ball_x, ball_y);
 			}
 		}
 	}
