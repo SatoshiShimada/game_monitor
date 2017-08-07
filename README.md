@@ -23,7 +23,6 @@ Install libraries.
 
 ```
 apt-get install libqt4-core libqt4-dev libqt4-gui qt4-dev-tools
-apt-get install libboost-all-dev
 ```
 
 If your system is Ubuntu 12.04, run follow command.
@@ -49,7 +48,6 @@ Install libraries.
 ```
 brew update -all
 brew install cartr/qt4/qt
-brew install boost
 ```
 
 Finally, compile sources.
@@ -70,4 +68,4 @@ Use `CMakeLists.txt`
 
 ## Author
 
-Satoshi SHIMADA (mylinux1204@gmail.com)
+Satoshi Shimada (mylinux1204@gmail.com)
