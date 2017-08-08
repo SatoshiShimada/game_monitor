@@ -83,6 +83,7 @@ private:
 	QLabel *image;
 	QPixmap map;
 	QPixmap origin_map;
+	QPixmap team_logo_map;
 	QGridLayout *mainLayout;
 	QHBoxLayout *checkLayout;
 	QGridLayout *labelLayout;
@@ -96,12 +97,14 @@ private:
 	void createWindow(void);
 	void connection(void);
 	int getInterval(QString, QString);
+	Pos globalPosToImagePos(Pos);
 	std::vector<struct log_data_t> log_data;
 	bool fLogging;
 	bool fReverse;
 	int updateMapTimerId;
-	int log_count;
-	const int robot_num;
+	unsigned int log_count;
+	const int max_robot_num;
+	int logo_pos_x, logo_pos_y;
 
 protected:
 	void timerEvent(QTimerEvent *);
@@ -112,7 +115,7 @@ public:
 	Interface();
 	~Interface();
 	void loadImage(const char *);
-	void loadImage(QString);
+	void loadImage(QString, QString);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
 	void decodeUdp(struct comm_info_T, struct robot *, int num);
