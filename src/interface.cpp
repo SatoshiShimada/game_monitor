@@ -19,6 +19,12 @@ Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6)
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
+	const int fw = settings->value("field_image/width").toInt();
+	const int lw = settings->value("team_logo/width").toInt();
+	const int fh = settings->value("field_image/height").toInt();
+	const int lh = settings->value("team_logo/height").toInt();
+	logo_pos_x = fw / 4 - lw / 2;
+	logo_pos_y = fh / 2 - lh / 2;
 
 	/* Run receive thread */
 	const int base_udp_port = settings->value("network/port").toInt();
@@ -29,8 +35,9 @@ Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6)
 	connection();
 
 	updateMapTimerId = startTimer(1000); /* timer by 1000msec */
-	const QString field_image_name = settings->value("field_image_name").toString();
-	loadImage(field_image_name);
+	const QString field_image_name = settings->value("field_image/name").toString();
+	const QString team_logo_image_name = settings->value("team_logo/name").toString();
+	loadImage(field_image_name, team_logo_image_name);
 
 	this->setWindowTitle("Humanoid League Game Monitor");
 }
@@ -42,13 +49,18 @@ Interface::~Interface()
 void Interface::initializeConfig(void)
 {
 	/* Field image file */
-	settings->setValue("field_image_name", settings->value("field_image_name", "hlfield.png"));
+	settings->setValue("field_image/name", settings->value("field_image/name", "hlfield.png"));
 	/* 740x540 pixel: field image size */
-	settings->setValue("field_image_width" , settings->value("field_image_width", 740));
-	settings->setValue("field_image_height", settings->value("field_image_height", 540));
+	settings->setValue("field_image/width" , settings->value("field_image/width", 740));
+	settings->setValue("field_image/height", settings->value("field_image/height", 540));
+	/* Team logo image file */
+	settings->setValue("team_logo/name", settings->value("team_logo/name", "citbrains_logo.png"));
+	/* Team logo image size */
+	settings->setValue("team_logo/width", settings->value("team_logo/width", "200"));
+	settings->setValue("team_logo/height", settings->value("team_logo/height", "200"));
 	/* field size 10000x7000 milli meter? (map size in robot used) */
-	settings->setValue("field_size_x", settings->value("field_size_x", 10000));
-	settings->setValue("field_size_y", settings->value("field_size_y", 7000));
+	settings->setValue("field_size/x", settings->value("field_size/x", 10000));
+	settings->setValue("field_size/y", settings->value("field_size/y", 7000));
 	/* marker */
 	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 3));
 	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 6));
@@ -136,16 +148,23 @@ void Interface::createWindow(void)
 	setCentralWidget(window);
 }
 
-void Interface::loadImage(QString image_filename)
+void Interface::loadImage(QString field_image_name, QString team_logo_image_name)
 {
-	QImage image_buf(image_filename);
-	if(image_buf.isNull()) {
+	QImage field_image_buf(field_image_name);
+	if(field_image_buf.isNull()) {
 		std::cerr << "Error: couldn\'t open image file" << std::endl;
 		return;
 	}
-	origin_map = QPixmap::fromImage(image_buf);
+	origin_map = QPixmap::fromImage(field_image_buf);
 	map = origin_map;
 	image->setPixmap(map);
+
+	QImage logo_image_buf(team_logo_image_name);
+	if(logo_image_buf.isNull()) {
+		std::cerr << "Error: couldn\'t open image file" << std::endl;
+		return;
+	}
+	team_logo_map = QPixmap::fromImage(logo_image_buf);
 }
 
 void Interface::loadImage(const char *image_filename)
@@ -294,10 +313,10 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 Pos Interface::globalPosToImagePos(Pos gpos)
 {
 	Pos ret_pos;
-	const int field_image_width = settings->value("field_image_width").toInt();
-	const int field_image_height = settings->value("field_image_height").toInt();
-	const int field_size_x = settings->value("field_size_x").toInt();
-	const int field_size_y = settings->value("field_size_y").toInt();
+	const int field_image_width = settings->value("field_image/width").toInt();
+	const int field_image_height = settings->value("field_image/height").toInt();
+	const int field_size_x = settings->value("field_size/x").toInt();
+	const int field_size_y = settings->value("field_size/y").toInt();
 	ret_pos.x =
 		field_image_width - (int)((double)gpos.x * ((double)field_image_width / (double)field_size_x) + ((double)field_image_width / 2));
 	ret_pos.y =
@@ -433,22 +452,23 @@ void Interface::updateMap(void)
 	/* Create new image for erase previous position marker */
 	map = origin_map;
 	QPainter paint(&map);
+	paint.drawPixmap(logo_pos_x, logo_pos_y, team_logo_map);
 
 	/* draw position marker on image */
-	for(int i = 0; i < 6; i++) {
+	for(int i = 0; i < max_robot_num; i++) {
 		int self_x = positions[i].pos.x;
 		int self_y = positions[i].pos.y;
 		double theta = positions[i].pos.th;
 		if(fReverse) {
-			self_x = settings->value("field_image_width").toInt()  - self_x;
-			self_y = settings->value("field_image_height").toInt() - self_y;
+			self_x = settings->value("field_image/width").toInt()  - self_x;
+			self_y = settings->value("field_image/height").toInt() - self_y;
 			theta = theta + M_PI;
 		}
 		int ball_x = positions[i].ball.x;
 		int ball_y = positions[i].ball.y;
 		if(fReverse) {
-			ball_x = settings->value("field_image_width").toInt()  - ball_x;
-			ball_y = settings->value("field_image_height").toInt() - ball_y;
+			ball_x = settings->value("field_image/width").toInt()  - ball_x;
+			ball_y = settings->value("field_image/height").toInt() - ball_y;
 		}
 		if(positions[i].enable_pos == true) {
 			if((local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec) > time_limit) {
@@ -520,10 +540,15 @@ void Interface::timerEvent(QTimerEvent *e)
 
 void Interface::reverseField(int state)
 {
-	if(state == Qt::Checked)
+	const int fw = settings->value("field_image/width").toInt();
+	const int lw = settings->value("team_logo/width").toInt();
+	if(state == Qt::Checked) {
 		fReverse = true;
-	else
+		logo_pos_x = fw / 2 + fw / 4 - lw / 2;
+	} else {
 		fReverse = false;
+		logo_pos_x = fw / 4 - lw / 2;
+	}
 	updateMap();
 }
 
