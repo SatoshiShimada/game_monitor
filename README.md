@@ -3,7 +3,8 @@
 # Game Monitor
 
 The robot state viewer from robot communication. It's for the robot "Accelite" of team CITBrains at RoboCup Soccer Humanoid League.
-If you find a bug please let me know by opening an issue in this repository.
+If you find a bug please let me know by opening an issue in this repository.  
+Please check Wiki for more information.
 
 ## Supported OS
 
