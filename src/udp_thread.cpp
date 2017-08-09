@@ -31,32 +31,31 @@ UdpServer::~UdpServer()
 {
 }
 
-bool getCommInfoObject(unsigned char *data, Pos*pos)
+bool getCommInfoObject(unsigned char *data, Object *obj)
 {
-	int x, y, theta;
-	bool res;
-	bool is_our_side, is_opposite_side;
-	float th;
+	bool data_exist = false;
 
 	/* calculate position of object */
 	if(data[0] & COMM_EXIST) {
-		res = true;
-		x = ((data[0] & 0x0f) << 6) + ((data[1] & 0xfc) >> 2);
+		data_exist = true;
+		int x = ((data[0] & 0x0f) << 6) + ((data[1] & 0xfc) >> 2);
 		if((x & 0x0200) != 0) x = -(0x0400 - x);
 		x *= 10;
-		y = ((data[1] & 0x03) << 8) + data[2];
+		int y = ((data[1] & 0x03) << 8) + data[2];
 		if((y & 0x0200) != 0) y = -(0x0400 - y);
 		y *= 10;
-		theta = (data[3] * 2) - 180;
-		th = (float)(theta * M_PI / 180.0);
-		is_our_side = ((data[0] & COMM_OUR_SIDE) != 0) ? true : false;
-		is_opposite_side = ((data[0] & COMM_OPPOSITE_SIDE) != 0) ? true : false;
-		pos->x = x;
-		pos->y = y;
-		pos->th = th;
-	} else {
-		res = false;
+		int theta = (data[3] * 2) - 180;
+		float th = (float)(theta * M_PI / 180.0);
+		bool is_our_side = ((data[0] & COMM_OUR_SIDE) != 0) ? true : false;
+		bool is_opposite_side = ((data[0] & COMM_OPPOSITE_SIDE) != 0) ? true : false;
+		if(is_our_side && is_opposite_side) obj->type = BALL;
+		if(is_our_side && !is_opposite_side) obj->type = SELF_POS;
+		if(!is_our_side && is_opposite_side) obj->type = ENEMY;
+		if(!is_our_side && !is_opposite_side) obj->type = GOAL_POLE;
+		obj->pos.x = x;
+		obj->pos.y = y;
+		obj->pos.th = th;
 	}
-	return res;
+	return data_exist;
 }
 

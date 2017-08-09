@@ -28,19 +28,19 @@
 #include "pos_types.h"
 
 struct PositionMarker {
-	PositionMarker() : enable_pos(false), enable_ball(false) { color[0] = '\0'; }
+	PositionMarker() : enable_pos(false), enable_ball(false), enable_goal_pole({false, false}) { color[0] = '\0'; }
 	bool enable_pos;
 	bool enable_ball;
+	bool enable_goal_pole[2];
 	struct tm lastReceiveTime;
 	char color[20];
 	Pos pos; /* self position */
 	Pos ball; /* ball position */
+	Pos goal_pole[2]; /* goal pole position */
 };
 
 struct robot {
 	QLabel *name;
-	QLabel *voltage;
-	QLabel *fps;
 	QLabel *string;
 	QLabel *cf_own;
 	QLabel *cf_ball;
@@ -60,6 +60,10 @@ struct log_data_t {
 	double theta;
 	int ball_x;
 	int ball_y;
+	int goal_pole_x1;
+	int goal_pole_y1;
+	int goal_pole_x2;
+	int goal_pole_y2;
 	int cf_own;
 	int cf_ball;
 	char msg[100];
@@ -75,7 +79,6 @@ private:
 	QCheckBox *reverse;
 	QPushButton *loadLogButton;
 	QSettings *settings;
-	QLabel *id, *name, *voltage, *fps, *string, *cf_own, *cf_ball;
 	QString filenameDrag;
 	QWidget *window;
 	std::vector<PositionMarker> positions;
@@ -113,6 +116,7 @@ protected:
 	void timerEvent(QTimerEvent *);
 	void setParamFromFile(std::vector<std::string>);
 	void setData(struct log_data_t);
+	QColor getColor(const char *);
 
 public:
 	Interface();

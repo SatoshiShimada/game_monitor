@@ -64,6 +64,7 @@ void Interface::initializeConfig(void)
 	/* marker */
 	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 3));
 	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 6));
+	settings->setValue("marker/goal_pole_size", settings->value("marker/goal_pole_size", 5));
 	settings->setValue("marker/length", settings->value("marker/length", 24));
 	settings->setValue("marker/rear_length", settings->value("marker/rear_length", 10));
 	settings->setValue("marker/font_offset", settings->value("marker/font_offset", 10));
@@ -77,13 +78,6 @@ void Interface::createWindow(void)
 	window     = new QWidget;
 	reverse    = new QCheckBox("Reverse field");
 	image      = new QLabel;
-	id         = new QLabel("ID");
-	name       = new QLabel("Name");
-	voltage    = new QLabel("Voltage");
-	fps        = new QLabel("FPS");
-	string     = new QLabel("Common String");
-	cf_own     = new QLabel("Reliability of self pos");
-	cf_ball    = new QLabel("Reliability of ball pos");
 	loadLogButton = new QPushButton("Load log file");
 	mainLayout = new QGridLayout;
 	checkLayout = new QHBoxLayout;
@@ -111,8 +105,6 @@ void Interface::createWindow(void)
 		idLabel[i]->setNum(i + 1);
 		struct robot robo;
 		robo.name = new QLabel();
-		robo.voltage = new QLabel();
-		robo.fps = new QLabel();
 		robo.string = new QLabel();
 		robo.cf_own = new QLabel();
 		robo.cf_ball = new QLabel();
@@ -128,15 +120,6 @@ void Interface::createWindow(void)
 	for(int i = 0; i < max_robot_num; i++) {
 		idLayout[i]->addWidget(idLabel[i], 1, 1);
 		idLayout[i]->addWidget(robot[i].name, 2, 1);
-		/*
-		idLayout[i]->addWidget(robot[i].voltage, 3, 1);
-		idLayout[i]->addWidget(robot[i].fps, 4, 1);
-		idLayout[i]->addWidget(robot[i].string, 5, 1);
-		idLayout[i]->addWidget(robot[i].cf_own_bar, 6, 1);
-		idLayout[i]->addWidget(robot[i].cf_ball_bar, 7, 1);
-		idLayout[i]->addWidget(robot[i].cf_own, 6, 2);
-		idLayout[i]->addWidget(robot[i].cf_ball, 7, 2);
-		*/
 		idLayout[i]->addWidget(robot[i].string, 3, 1);
 		idLayout[i]->addWidget(robot[i].cf_own_bar, 4, 1);
 		idLayout[i]->addWidget(robot[i].cf_ball_bar, 5, 1);
@@ -246,10 +229,8 @@ void Interface::decodeData6(struct comm_info_T comm_info)
 
 void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data, int num)
 {
-	char buf[2048];
 	char color_str[100];
 	int color, id;
-	double voltage;
 
 	/* MAGENTA, CYAN */
 	color = (int)(comm_info.id & 0x80) >> 7;
@@ -265,12 +246,6 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	/* ID and Color */
 	sprintf(color_str, "%s %d", ((color == MAGENTA) ? "MAGENTA" : "CYAN"), id);
 	robot_data->name->setText(color_str);
-	/* Voltage */
-	voltage = (comm_info.voltage << 3) / 100.0;
-	//sprintf(buf, "%.2lf", voltage);
-	//robot_data->voltage->setText(buf);
-	/* FPS */
-	//robot_data->fps->setNum(comm_info.fps);
 	/* Self-position confidence */
 	robot_data->cf_own->setNum(comm_info.cf_own);
 	robot_data->cf_own_bar->setValue(comm_info.cf_own);
@@ -303,25 +278,39 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	}
 	robot_data->string->setText((char *)comm_info.command);
 
-	/* Decode robot position */
-	if(getCommInfoObject(comm_info.object[1], &(positions[num].pos))) {
-		positions[num].pos = globalPosToImagePos(positions[num].pos);
-		positions[num].enable_pos  = true;
-	} else {
-		positions[num].enable_pos = false;
-	}
-	/* Decode ball position */
-	if(getCommInfoObject(comm_info.object[0], &(positions[num].ball))) {
-		positions[num].ball = globalPosToImagePos(positions[num].ball);
-		positions[num].enable_ball = true;
-	} else {
-		positions[num].enable_ball = false;
+	positions[num].enable_pos = false;
+	positions[num].enable_ball = false;
+	positions[num].enable_goal_pole[0] = false;
+	positions[num].enable_goal_pole[1] = false;
+	int goal_pole_index = 0;
+	for(int i = 0; i < MAX_COMM_INFO_OBJ; i++) {
+		struct Object obj;
+		bool exist = getCommInfoObject(comm_info.object[i], &obj);
+		if(!exist) continue;
+		if(obj.type == NONE) continue;
+		if(obj.type == SELF_POS) {
+			positions[num].pos = globalPosToImagePos(obj.pos);
+			positions[num].enable_pos  = true;
+		}
+		if(obj.type == BALL) {
+			positions[num].ball = globalPosToImagePos(obj.pos);
+			positions[num].enable_ball = true;
+		}
+		if(obj.type == GOAL_POLE) {
+			if(goal_pole_index + 1 > 2) continue;
+			positions[num].goal_pole[goal_pole_index++] = globalPosToImagePos(obj.pos);
+			positions[num].enable_goal_pole[goal_pole_index] = true;
+		}
 	}
 	updateMap();
+	/* Voltage */
+	double voltage = (comm_info.voltage << 3) / 100.0;
 	log.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
-		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command,
-		(int)comm_info.cf_own, (int)comm_info.cf_ball);
+		(int)positions[num].ball.x, (int)positions[num].ball.y,
+		(int)positions[num].goal_pole[0].x, (int)positions[num].goal_pole[0].y,
+		(int)positions[num].goal_pole[1].x, (int)positions[num].goal_pole[1].y,
+		(char *)comm_info.command, (int)comm_info.cf_own, (int)comm_info.cf_ball);
 }
 
 Pos Interface::globalPosToImagePos(Pos gpos)
@@ -368,14 +357,23 @@ void Interface::setParamFromFile(std::vector<std::string> lines)
 		if(size < 10) continue;
 		buf.ball_y = list.at(9).toInt();
 		if(size < 11) continue;
-		buf.cf_own = list.at(10).toInt();
+		buf.goal_pole_x1 = list.at(10).toInt();
 		if(size < 12) continue;
-		buf.cf_ball = list.at(11).toInt();
+		buf.goal_pole_y1 = list.at(11).toInt();
 		if(size < 13) continue;
-		strcpy(buf.msg, list.at(12).toStdString().c_str());
+		buf.goal_pole_x2 = list.at(12).toInt();
+		if(size < 14) continue;
+		buf.goal_pole_y2 = list.at(13).toInt();
+		if(size < 15) continue;
+		buf.cf_own = list.at(14).toInt();
+		if(size < 16) continue;
+		buf.cf_ball = list.at(15).toInt();
+		if(size < 17) continue;
+		strcpy(buf.msg, list.at(16).toStdString().c_str());
 		log_data.push_back(buf);
 	}
 
+	if(log_data.size() == 0) return;
 	log_count = 0;
 	setData(log_data[log_count]);
 	QString before = QString(log_data[log_count++].time_str);
@@ -411,10 +409,6 @@ void Interface::setData(struct log_data_t data)
 
 	/* ID and Color */
 	robot_data->name->setText(data.color_str);
-	/* Voltage */
-	//robot_data->voltage->setNum(data.voltage);
-	/* FPS */
-	//robot_data->fps->setNum(data.fps);
 	/* Self-position confidence */
 	robot_data->cf_own->setNum(data.cf_own);
 	robot_data->cf_own_bar->setValue(data.cf_own);
@@ -448,14 +442,23 @@ void Interface::setData(struct log_data_t data)
 	}
 	robot_data->string->setText((char *)msg);
 
+	time_t timer;
+	timer = time(NULL);
+	positions[num].lastReceiveTime = *localtime(&timer);
 	positions[num].enable_pos  = true;
 	positions[num].enable_ball = true;
+	positions[num].enable_goal_pole[0] = true;
+	positions[num].enable_goal_pole[1] = true;
 
 	positions[num].pos.x = data.x;
 	positions[num].pos.y = data.y;
 	positions[num].pos.th = data.theta;
 	positions[num].ball.x = data.ball_x;
 	positions[num].ball.y = data.ball_y;
+	positions[num].goal_pole[0].x = data.goal_pole_x1;
+	positions[num].goal_pole[0].y = data.goal_pole_y1;
+	positions[num].goal_pole[1].x = data.goal_pole_x2;
+	positions[num].goal_pole[1].y = data.goal_pole_y2;
 
 	updateMap();
 }
@@ -468,6 +471,8 @@ void Interface::updateMap(void)
 	timer = time(NULL);
 	local_time = localtime(&timer);
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
+	const int field_w = settings->value("field_image/width").toInt();
+	const int field_h = settings->value("field_image/height").toInt();
 
 	/* Create new image for erase previous position marker */
 	map = origin_map;
@@ -476,29 +481,21 @@ void Interface::updateMap(void)
 
 	/* draw position marker on image */
 	for(int i = 0; i < max_robot_num; i++) {
-		int self_x = positions[i].pos.x;
-		int self_y = positions[i].pos.y;
-		double theta = positions[i].pos.th;
-		if(fReverse) {
-			self_x = settings->value("field_image/width").toInt()  - self_x;
-			self_y = settings->value("field_image/height").toInt() - self_y;
-			theta = theta + M_PI;
-		}
-		int ball_x = positions[i].ball.x;
-		int ball_y = positions[i].ball.y;
-		if(fReverse) {
-			ball_x = settings->value("field_image/width").toInt()  - ball_x;
-			ball_y = settings->value("field_image/height").toInt() - ball_y;
-		}
-		if(positions[i].enable_pos == true) {
+		if(positions[i].enable_pos) {
+			int self_x = positions[i].pos.x;
+			int self_y = positions[i].pos.y;
+			double theta = positions[i].pos.th;
+			if(fReverse) {
+				self_x = field_w - self_x;
+				self_y = field_h - self_y;
+				theta = theta + M_PI;
+			}
 			const int elapsed = (local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec);
 			if(elapsed > time_limit) {
 				positions[i].enable_pos = false;
 				positions[i].enable_ball = false;
 				robotState[i]->setPalette(pal_state_bgcolor);
 				robot[i].name->clear();
-				robot[i].voltage->clear();
-				robot[i].fps->clear();
 				robot[i].string->clear();
 				robot[i].cf_own->clear();
 				robot[i].cf_ball->clear();
@@ -514,11 +511,8 @@ void Interface::updateMap(void)
 			 *  Other   : Black
 			 */
 			const int robot_marker_size = settings->value("marker/robot_size").toInt();
-			if(!strcmp(positions[i].color, "red")) {
-				paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), robot_marker_size));
-			} else {
-				paint.setPen(QPen(QColor(0x00, 0x00, 0x00), robot_marker_size));
-			}
+			QColor color = getColor(positions[i].color);
+			paint.setPen(QPen(color, robot_marker_size));
 			/* draw robot position */
 			paint.drawPoint(self_x, self_y);
 			/* calclate robot theta */
@@ -538,7 +532,13 @@ void Interface::updateMap(void)
 			sprintf(buf, "%d", i + 1);
 			const int font_offset = settings->value("marker/font_offset").toInt();
 			paint.drawText(QPoint(self_x - font_offset, self_y - font_offset), buf);
-			if(positions[i].enable_ball == true) {
+			if(positions[i].enable_ball) {
+				int ball_x = positions[i].ball.x;
+				int ball_y = positions[i].ball.y;
+				if(fReverse) {
+					ball_x = field_w - ball_x;
+					ball_y = field_h - ball_y;
+				}
 				/* draw ball position as orange */
 				const int ball_marker_size = settings->value("marker/ball_size").toInt();
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), ball_marker_size));
@@ -546,12 +546,44 @@ void Interface::updateMap(void)
 				sprintf(buf, "%d", i + 1);
 				paint.drawText(QPoint(ball_x - font_offset, ball_y - font_offset), buf);
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 1));
-				paint.drawLine(front_x, front_y, ball_x, ball_y);
+				paint.drawLine(self_x, self_y, ball_x, ball_y);
+			}
+			for(int j = 0; j < 2; j++) {
+				if(positions[i].enable_goal_pole[j]) {
+					int goal_pole_x = positions[i].goal_pole[j].x;
+					int goal_pole_y = positions[i].goal_pole[j].y;
+					if(fReverse) {
+						goal_pole_x = field_w - goal_pole_x;
+						goal_pole_y = field_h - goal_pole_y;
+					}
+					const int goal_pole_marker_size = settings->value("marker/goal_pole_size").toInt();
+					paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), goal_pole_marker_size));
+					paint.drawPoint(goal_pole_x, goal_pole_y);
+					paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 1));
+					paint.drawLine(self_x, self_y, goal_pole_x, goal_pole_y);
+				}
 			}
 			robot[i].time_bar->setValue(elapsed);
 		}
 	}
 	image->setPixmap(map);
+}
+
+QColor Interface::getColor(const char *color_name)
+{
+	if(!strcmp(color_name, "red")) {
+		return QColor(0xFF, 0x8E, 0x8E);
+	} else if(!strcmp(color_name, "black")) {
+		return QColor(0x00, 0x00, 0x00);
+	} else if(!strcmp(color_name, "green")) {
+		return QColor(0x8E, 0xFF, 0x8E);
+	} else if(!strcmp(color_name, "blue")) {
+		return QColor(0x8E, 0x8E, 0xFF);
+	} else if(!strcmp(color_name, "orange")) {
+		return QColor(0xFF, 0xA5, 0xA5);
+	} else {
+		return QColor(0x00, 0x00, 0x00);
+	}
 }
 
 void Interface::timerEvent(QTimerEvent *e)
