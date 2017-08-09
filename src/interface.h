@@ -60,6 +60,8 @@ struct log_data_t {
 	double theta;
 	int ball_x;
 	int ball_y;
+	int cf_own;
+	int cf_ball;
 	char msg[100];
 };
 

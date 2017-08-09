@@ -320,7 +320,8 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	updateMap();
 	log.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
-		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command);
+		(int)positions[num].ball.x, (int)positions[num].ball.y, (char *)comm_info.command,
+		(int)comm_info.cf_own, (int)comm_info.cf_ball);
 }
 
 Pos Interface::globalPosToImagePos(Pos gpos)
@@ -367,7 +368,11 @@ void Interface::setParamFromFile(std::vector<std::string> lines)
 		if(size < 10) continue;
 		buf.ball_y = list.at(9).toInt();
 		if(size < 11) continue;
-		strcpy(buf.msg, list.at(10).toStdString().c_str());
+		buf.cf_own = list.at(10).toInt();
+		if(size < 12) continue;
+		buf.cf_ball = list.at(11).toInt();
+		if(size < 13) continue;
+		strcpy(buf.msg, list.at(12).toStdString().c_str());
 		log_data.push_back(buf);
 	}
 
@@ -411,11 +416,12 @@ void Interface::setData(struct log_data_t data)
 	/* FPS */
 	//robot_data->fps->setNum(data.fps);
 	/* Self-position confidence */
-	robot_data->cf_own->setNum(0);
-	robot_data->cf_own_bar->setValue(0);
+	robot_data->cf_own->setNum(data.cf_own);
+	robot_data->cf_own_bar->setValue(data.cf_own);
 	/* Ball position confidence */
-	robot_data->cf_ball->setNum(0);
-	robot_data->cf_ball_bar->setValue(0);
+	robot_data->cf_ball->setNum(data.cf_ball);
+	robot_data->cf_ball_bar->setValue(data.cf_ball);
+	/* elapsed time */
 	robot_data->time_bar->setValue(0);
 	/* Role and message */
 	char *msg = data.msg;
