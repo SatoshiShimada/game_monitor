@@ -23,7 +23,7 @@ Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6)
 	const int lw = settings->value("team_logo/width").toInt();
 	const int fh = settings->value("field_image/height").toInt();
 	const int lh = settings->value("team_logo/height").toInt();
-	logo_pos_x = fw / 4 - lw / 2;
+	logo_pos_x = fw / 2 + fw / 4 - lw / 2;
 	logo_pos_y = fh / 2 - lh / 2;
 
 	/* Run receive thread */
@@ -599,10 +599,10 @@ void Interface::reverseField(int state)
 	const int lw = settings->value("team_logo/width").toInt();
 	if(state == Qt::Checked) {
 		fReverse = true;
-		logo_pos_x = fw / 2 + fw / 4 - lw / 2;
+		logo_pos_x = fw / 4 - lw / 2;
 	} else {
 		fReverse = false;
-		logo_pos_x = fw / 4 - lw / 2;
+		logo_pos_x = fw / 2 + fw / 4 - lw / 2;
 	}
 	updateMap();
 }
