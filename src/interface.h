@@ -46,6 +46,7 @@ struct robot {
 	QLabel *cf_ball;
 	QProgressBar *cf_own_bar;
 	QProgressBar *cf_ball_bar;
+	QProgressBar *time_bar;
 };
 
 struct log_data_t {

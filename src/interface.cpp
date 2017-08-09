@@ -101,6 +101,7 @@ void Interface::createWindow(void)
 	pal_black. setColor(QPalette::Window, QColor("#000000"));
 	pal_orange.setColor(QPalette::Window, QColor("#FFA540"));
 
+	const int time_limit = settings->value("marker/time_up_limit").toInt();
 	for(int i = 0; i < max_robot_num; i++) {
 		robotState.push_back(new QWidget());
 		robotState[i]->setAutoFillBackground(true);
@@ -117,14 +118,17 @@ void Interface::createWindow(void)
 		robo.cf_ball = new QLabel();
 		robo.cf_own_bar = new QProgressBar();
 		robo.cf_ball_bar = new QProgressBar();
+		robo.time_bar = new QProgressBar();
 		robo.cf_own_bar->setRange(0, 100);
 		robo.cf_ball_bar->setRange(0, 100);
+		robo.time_bar->setRange(0, time_limit);
 		robot.push_back(robo);
 	}
 
 	for(int i = 0; i < max_robot_num; i++) {
 		idLayout[i]->addWidget(idLabel[i], 1, 1);
 		idLayout[i]->addWidget(robot[i].name, 2, 1);
+		/*
 		idLayout[i]->addWidget(robot[i].voltage, 3, 1);
 		idLayout[i]->addWidget(robot[i].fps, 4, 1);
 		idLayout[i]->addWidget(robot[i].string, 5, 1);
@@ -132,6 +136,13 @@ void Interface::createWindow(void)
 		idLayout[i]->addWidget(robot[i].cf_ball_bar, 7, 1);
 		idLayout[i]->addWidget(robot[i].cf_own, 6, 2);
 		idLayout[i]->addWidget(robot[i].cf_ball, 7, 2);
+		*/
+		idLayout[i]->addWidget(robot[i].string, 3, 1);
+		idLayout[i]->addWidget(robot[i].cf_own_bar, 4, 1);
+		idLayout[i]->addWidget(robot[i].cf_ball_bar, 5, 1);
+		idLayout[i]->addWidget(robot[i].time_bar, 6, 1);
+		idLayout[i]->addWidget(robot[i].cf_own, 4, 2);
+		idLayout[i]->addWidget(robot[i].cf_ball, 5, 2);
 		robotState[i]->setLayout(idLayout[i]);
 	}
 
@@ -256,16 +267,18 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	robot_data->name->setText(color_str);
 	/* Voltage */
 	voltage = (comm_info.voltage << 3) / 100.0;
-	sprintf(buf, "%.2lf", voltage);
-	robot_data->voltage->setText(buf);
+	//sprintf(buf, "%.2lf", voltage);
+	//robot_data->voltage->setText(buf);
 	/* FPS */
-	robot_data->fps->setNum(comm_info.fps);
+	//robot_data->fps->setNum(comm_info.fps);
 	/* Self-position confidence */
 	robot_data->cf_own->setNum(comm_info.cf_own);
 	robot_data->cf_own_bar->setValue(comm_info.cf_own);
 	/* Ball position confidence */
 	robot_data->cf_ball->setNum(comm_info.cf_ball);
 	robot_data->cf_ball_bar->setValue(comm_info.cf_ball);
+	const int time_limit = settings->value("marker/time_up_limit").toInt();
+	robot_data->time_bar->setValue(time_limit);
 	/* Role and message */
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		/* Red */
@@ -394,15 +407,16 @@ void Interface::setData(struct log_data_t data)
 	/* ID and Color */
 	robot_data->name->setText(data.color_str);
 	/* Voltage */
-	robot_data->voltage->setNum(data.voltage);
+	//robot_data->voltage->setNum(data.voltage);
 	/* FPS */
-	robot_data->fps->setNum(data.fps);
+	//robot_data->fps->setNum(data.fps);
 	/* Self-position confidence */
 	robot_data->cf_own->setNum(0);
 	robot_data->cf_own_bar->setValue(0);
 	/* Ball position confidence */
 	robot_data->cf_ball->setNum(0);
 	robot_data->cf_ball_bar->setValue(0);
+	robot_data->time_bar->setValue(0);
 	/* Role and message */
 	char *msg = data.msg;
 	if(strstr((const char *)msg, "Attacker")) {
@@ -447,7 +461,7 @@ void Interface::updateMap(void)
 	struct tm *local_time;
 	timer = time(NULL);
 	local_time = localtime(&timer);
-	int time_limit = settings->value("marker/time_up_limit").toInt();
+	const int time_limit = settings->value("marker/time_up_limit").toInt();
 
 	/* Create new image for erase previous position marker */
 	map = origin_map;
@@ -471,7 +485,8 @@ void Interface::updateMap(void)
 			ball_y = settings->value("field_image/height").toInt() - ball_y;
 		}
 		if(positions[i].enable_pos == true) {
-			if((local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec) > time_limit) {
+			const int elapsed = (local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec);
+			if(elapsed > time_limit) {
 				positions[i].enable_pos = false;
 				positions[i].enable_ball = false;
 				robotState[i]->setPalette(pal_state_bgcolor);
@@ -483,6 +498,7 @@ void Interface::updateMap(void)
 				robot[i].cf_ball->clear();
 				robot[i].cf_own_bar->setValue(0);
 				robot[i].cf_ball_bar->setValue(0);
+				robot[i].time_bar->setValue(0);
 				continue;
 			}
 			paint.setBrush(Qt::red);
@@ -526,6 +542,7 @@ void Interface::updateMap(void)
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 1));
 				paint.drawLine(front_x, front_y, ball_x, ball_y);
 			}
+			robot[i].time_bar->setValue(elapsed);
 		}
 	}
 	image->setPixmap(map);
