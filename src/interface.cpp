@@ -114,6 +114,7 @@ void Interface::createWindow(void)
 		robo.cf_own_bar->setRange(0, 100);
 		robo.cf_ball_bar->setRange(0, 100);
 		robo.time_bar->setRange(0, time_limit);
+		robo.time_bar->setTextVisible(false);
 		robot.push_back(robo);
 	}
 
