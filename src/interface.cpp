@@ -581,7 +581,7 @@ QColor Interface::getColor(const char *color_name)
 	} else if(!strcmp(color_name, "blue")) {
 		return QColor(0x8E, 0x8E, 0xFF);
 	} else if(!strcmp(color_name, "orange")) {
-		return QColor(0xFF, 0xA5, 0xA5);
+		return QColor(0xFF, 0xA5, 0xA0);
 	} else {
 		return QColor(0x00, 0x00, 0x00);
 	}
