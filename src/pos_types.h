@@ -2,6 +2,12 @@
 #ifndef _POS_TYPES_H_
 #define _POS_TYPES_H_
 
+#define NONE 0x00
+#define SELF_POS 0x01
+#define BALL 0x02
+#define ENEMY 0x04
+#define GOAL_POLE 0x08
+
 struct Pos
 {
 	Pos() : x(0), y(0), th(0) {}
@@ -12,6 +18,13 @@ struct Pos
 	float x;
 	float y;
 	float th;
+};
+
+struct Object
+{
+	Object(): type(NONE) {}
+	struct Pos pos;
+	int type;
 };
 
 #endif // _POS_TYPES_H_

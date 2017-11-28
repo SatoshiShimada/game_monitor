@@ -6,7 +6,7 @@ class Log {
 public:
 	Log();
 	~Log();
-	int write(int, char *, int, double, int, int, float, int, int, char *);
+	int write(int, char *, int, double, int, int, float, int, int, int, int, int, int, char *, int, int);
 	int separate(void);
 	void setEnable(void);
 	void setDisable(void);
