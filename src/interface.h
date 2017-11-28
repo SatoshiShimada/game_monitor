@@ -31,7 +31,7 @@
 #include "pos_types.h"
 
 struct PositionMarker {
-	PositionMarker() : enable_pos(false), enable_ball(false), enable_goal_pole({false, false}) { color[0] = '\0'; }
+	PositionMarker() : enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
 	bool enable_pos;
 	bool enable_ball;
 	bool enable_goal_pole[2];
