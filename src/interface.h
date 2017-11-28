@@ -22,6 +22,9 @@
 #include <QMetaType>
 #include <QPainter>
 #include <QSettings>
+#include <QGridLayout>
+#include <QProgressBar>
+#include <QFileDialog>
 
 #include "udp_thread.h"
 #include "log.h"

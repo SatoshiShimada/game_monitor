@@ -4,7 +4,7 @@
 # Requirement
 ###################
 # * g++ (version > 4.8)
-# * qt4
+# * qt
 
 ###################
 # HOW TO INSTALL Qt4
@@ -30,7 +30,6 @@
 ###################
 #brew update -all
 #brew install qt4
-#qt_make.sh
 
 PROJECT='GameMonitor.pro'
 
@@ -42,7 +41,7 @@ fi
 echo $QMAKE
 $QMAKE -project -o $PROJECT
 echo 'QMAKE_CXXFLAGS += --std=c++11' >> $PROJECT
-echo 'QT += network' >> $PROJECT
+echo 'QT += network widgets' >> $PROJECT
 $QMAKE
 make all -j8
 

@@ -14,7 +14,7 @@ Please check Wiki for more information.
 
 ## Requirements
 
-* Qt 4
+* [Qt](https://www.qt.io/)
 
 ## How to build
 
