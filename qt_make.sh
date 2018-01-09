@@ -34,7 +34,7 @@
 PROJECT='GameMonitor.pro'
 
 QMAKE='qmake'
-echo $($QMAKE --verson)
+echo $($QMAKE --versin)
 $QMAKE -project -o $PROJECT
 echo 'QMAKE_CXXFLAGS += --std=c++11' >> $PROJECT
 echo 'QT += network widgets' >> $PROJECT
