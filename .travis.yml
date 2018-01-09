@@ -6,15 +6,30 @@ compiler:
   - gcc
   - clang
 dist: trusty
-addons:
-  apt:
-    packages:
-      - libqt4-core
-      - libqt4-dev
-      - libqt4-gui
-      - qt4-dev-tools
 sudo: false
+matrix:
+  include:
+  - env: QT_VERSION=qt4
+    addons:
+      apt:
+        packages:
+          - libqt4-core
+          - libqt4-dev
+          - libqt4-gui
+          - qt4-dev-tools
+  - env: QT_VERSION=qt5
+    addons:
+      apt:
+        packages:
+          - qtbase5-dev
+          - qtdeclarative5-dev
+          - libqt5webkit5-dev
+          - libsqlite3-dev
+          - qt5-default
+          - qttools5-dev-tools
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cartr/qt4/qt; fi
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then lib
 script: ./qt_make.sh
