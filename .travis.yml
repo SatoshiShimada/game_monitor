@@ -30,6 +30,4 @@ matrix:
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cartr/qt4/qt; fi
-install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then lib
 script: ./qt_make.sh
