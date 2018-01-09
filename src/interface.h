@@ -27,7 +27,7 @@
 #include <QFileDialog>
 
 #include "udp_thread.h"
-#include "log.h"
+#include "log_writer.h"
 #include "pos_types.h"
 
 struct PositionMarker {
@@ -77,7 +77,7 @@ class Interface : public QMainWindow
 	Q_OBJECT
 
 private:
-	Log log;
+	LogWriter log_writer;
 	std::vector<UdpServer *> th;
 	QCheckBox *reverse;
 	QPushButton *loadLogButton;

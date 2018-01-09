@@ -14,7 +14,7 @@ Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
-	log.setEnable();
+	log_writer.setEnable();
 	positions = std::vector<PositionMarker>(max_robot_num);
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
@@ -306,7 +306,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	updateMap();
 	/* Voltage */
 	double voltage = (comm_info.voltage << 3) / 100.0;
-	log.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
+	log_writer.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y,
 		(int)positions[num].goal_pole[0].x, (int)positions[num].goal_pole[0].y,

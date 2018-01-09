@@ -3,9 +3,9 @@
 #include <cstdio>
 #include <ctime>
 
-#include "log.h"
+#include "log_writer.h"
 
-Log::Log() : opened(false), enable(false)
+LogWriter::LogWriter() : opened(false), enable(false)
 {
 	time_t timer;
 	struct tm *local_time;
@@ -18,12 +18,12 @@ Log::Log() : opened(false), enable(false)
 	openFile(filename);
 }
 
-Log::~Log()
+LogWriter::~LogWriter()
 {
 	closeFile();
 }
 
-int Log::write(int id, char *color, int fps, double voltage,
+int LogWriter::write(int id, char *color, int fps, double voltage,
 	int posx, int posy, float posth, int ballx, int bally,
 	int goal_pole_x1, int goal_pole_y1, int goal_pole_x2, int goal_pole_y2,
 	char *str, int cf_own, int cf_ball)
@@ -50,7 +50,7 @@ int Log::write(int id, char *color, int fps, double voltage,
 	return 0;
 }
 
-int Log::separate(void)
+int LogWriter::separate(void)
 {
 	if(opened && enable) {
 		fprintf(fp, "\n---\n");
@@ -58,12 +58,12 @@ int Log::separate(void)
 	return 0;
 }
 
-void Log::setEnable(bool benable)
+void LogWriter::setEnable(bool benable)
 {
 	enable = benable;
 }
 
-void Log::openFile(char *filename)
+void LogWriter::openFile(char *filename)
 {
 	closeFile();
 	fp = fopen(filename, "w");
@@ -73,7 +73,7 @@ void Log::openFile(char *filename)
 	}
 }
 
-void Log::closeFile(void)
+void LogWriter::closeFile(void)
 {
 	if(opened) {
 		fclose(fp);
