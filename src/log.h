@@ -8,11 +8,12 @@ public:
 	~Log();
 	int write(int, char *, int, double, int, int, float, int, int, int, int, int, int, char *, int, int);
 	int separate(void);
-	void setEnable(void);
-	void setDisable(void);
+	void setEnable(bool = true);
 private:
+	void openFile(char *);
+	void closeFile(void);
 	FILE *fp;
-	bool failed;
+	bool opened;
 	bool enable;
 };
 

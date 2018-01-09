@@ -5,7 +5,7 @@
 
 #include "log.h"
 
-Log::Log()
+Log::Log() : opened(false), enable(false)
 {
 	time_t timer;
 	struct tm *local_time;
@@ -15,13 +15,12 @@ Log::Log()
 	timer = time(NULL);
 	local_time = localtime(&timer);
 	sprintf(filename, "%s%d-%d-%d-%d-%d.log", logfile_path, local_time->tm_year+1900, local_time->tm_mon+1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min);
-	failed = false;
-	enable = true;
-	fp = fopen(filename, "w");
-	if(!fp) {
-		failed = true;
-		enable = false;
-	}
+	openFile(filename);
+}
+
+Log::~Log()
+{
+	closeFile();
 }
 
 int Log::write(int id, char *color, int fps, double voltage,
@@ -34,7 +33,7 @@ int Log::write(int id, char *color, int fps, double voltage,
 
 	timer = time(NULL);
 	local_time = localtime(&timer);
-	if(!failed && enable) {
+	if(opened && enable) {
 		fprintf(fp, "%d:%d:%d,", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
 		fprintf(fp, "%d,", id);
 		fprintf(fp, "%s,", color);
@@ -53,26 +52,33 @@ int Log::write(int id, char *color, int fps, double voltage,
 
 int Log::separate(void)
 {
-	if(!failed && enable) {
+	if(opened && enable) {
 		fprintf(fp, "\n---\n");
 	}
 	return 0;
 }
 
-void Log::setEnable()
+void Log::setEnable(bool benable)
 {
-	enable = true;
+	enable = benable;
 }
 
-void Log::setDisable()
+void Log::openFile(char *filename)
 {
-	enable = false;
+	closeFile();
+	fp = fopen(filename, "w");
+	if(fp) {
+		opened = true;
+		enable = true;
+	}
 }
 
-Log::~Log()
+void Log::closeFile(void)
 {
-	if(!failed) {
+	if(opened) {
 		fclose(fp);
 	}
+	enable = false;
+	opened = false;
 }
 
