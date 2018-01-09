@@ -33,12 +33,8 @@
 
 PROJECT='GameMonitor.pro'
 
-if [ $(which qmake-qt4) ]; then
-	QMAKE='qmake-qt4'
-else
-	QMAKE='qmake'
-fi
-echo $QMAKE
+QMAKE='qmake'
+echo $($QMAKE --version)
 $QMAKE -project -o $PROJECT
 echo 'QMAKE_CXXFLAGS += --std=c++11' >> $PROJECT
 echo 'QT += network widgets' >> $PROJECT

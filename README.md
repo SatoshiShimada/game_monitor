@@ -65,7 +65,7 @@ Run `qt_make.bat` file in Developer Command Prompt window.
 [How to open it](https://msdn.microsoft.com/en-us/library/f35ctcxw.aspx "Jump to Microsoft document page")
 
 Or generate Visual Studio project file by CMake:
-Use `CMakeLists.txt`
+Using `CMakeLists.txt`
 
 ## Author
 
