@@ -14,7 +14,6 @@ addons:
       - libqt4-gui
       - qt4-dev-tools
 sudo: false
-osx_image: xcode9.2
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cartr/qt4/qt; fi
