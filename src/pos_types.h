@@ -2,11 +2,13 @@
 #ifndef _POS_TYPES_H_
 #define _POS_TYPES_H_
 
-#define NONE 0x00
-#define SELF_POS 0x01
-#define BALL 0x02
-#define ENEMY 0x04
-#define GOAL_POLE 0x08
+enum {
+	NONE = 0x00,
+	SELF_POS = 0x01,
+	BALL = 0x02,
+	ENEMY = 0x04,
+	GOAL_POLE = 0x08,
+};
 
 struct Pos
 {
