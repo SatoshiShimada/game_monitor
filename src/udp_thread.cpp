@@ -20,7 +20,7 @@ void UdpServer::readPendingDatagrams(void)
 		udpSocket->readDatagram(datagrams.data(), datagrams.size(), &sender, &senderPort);
 		char *buf = datagrams.data();
 		char *p = (char *)&comm_info;
-		for(size_t i = 0; (i < datagrams.size()) && (i < sizeof(struct comm_info_T)); i++) {
+		for(size_t i = 0; (i < (unsigned)datagrams.size()) && (i < sizeof(struct comm_info_T)); i++) {
 			*p++ = buf[i];
 		}
 		emit receiveData(comm_info);
