@@ -21,12 +21,9 @@ matrix:
     addons:
       apt:
         packages:
-          - qtbase5-dev
-          - qtdeclarative5-dev
-          - libqt5webkit5-dev
-          - libsqlite3-dev
           - qt5-default
-          - qttools5-dev-tools
+          - qt5-qmake
+          - qtbase5-dev-tools
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cartr/qt4/qt; fi
