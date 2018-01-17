@@ -84,11 +84,6 @@ private:
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
-	std::vector<PositionMarker> positions;
-	std::vector<struct robot> robot;
-	std::vector<QLabel *> idLabel;
-	std::vector<QWidget *>robotState;
-	std::vector<QGridLayout *>idLayout;
 	QLabel *image;
 	QPixmap map;
 	QPixmap origin_map;
@@ -102,6 +97,11 @@ private:
 	QPalette pal_blue;
 	QPalette pal_black;
 	QPalette pal_orange;
+	std::vector<PositionMarker> positions;
+	std::vector<struct robot> robot;
+	std::vector<QLabel *> idLabel;
+	std::vector<QWidget *>robotState;
+	std::vector<QGridLayout *>idLayout;
 	void initializeConfig(void);
 	void createWindow(void);
 	void connection(void);
@@ -115,7 +115,7 @@ private:
 	const int max_robot_num;
 	int logo_pos_x, logo_pos_y;
 
-protected:
+private:
 	void timerEvent(QTimerEvent *);
 	void setParamFromFile(std::vector<std::string>);
 	void setData(struct log_data_t);

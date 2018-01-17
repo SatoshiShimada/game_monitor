@@ -48,7 +48,7 @@ class UdpServer : public QObject
 public:
 	UdpServer(int port_num);
 	~UdpServer();
-protected:
+private:
 	struct comm_info_T comm_info;
 	QUdpSocket *udpSocket;
 private slots:
