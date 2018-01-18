@@ -72,6 +72,20 @@ struct log_data_t {
 	char msg[100];
 };
 
+class ClickWidget : public QWidget
+{
+	Q_OBJECT
+private:
+	void mouseReleaseEvent(QMouseEvent *event) override
+	{
+		if(event->button() == Qt::LeftButton) {
+			emit clicked();
+		}
+	}
+signals:
+	void clicked(void);
+};
+
 class Interface : public QMainWindow
 {
 	Q_OBJECT
@@ -100,13 +114,8 @@ private:
 	std::vector<PositionMarker> positions;
 	std::vector<struct robot> robot;
 	std::vector<QLabel *> idLabel;
-	std::vector<QWidget *>robotState;
+	std::vector<ClickWidget *>robotState;
 	std::vector<QGridLayout *>idLayout;
-	void initializeConfig(void);
-	void createWindow(void);
-	void connection(void);
-	int getInterval(QString, QString);
-	Pos globalPosToImagePos(Pos);
 	std::vector<struct log_data_t> log_data;
 	bool fLogging;
 	bool fReverse;
@@ -114,12 +123,18 @@ private:
 	unsigned int log_count;
 	const int max_robot_num;
 	int logo_pos_x, logo_pos_y;
-
-private:
+	int select_robot_num;
+	struct tm last_select_time;
+	void initializeConfig(void);
+	void createWindow(void);
+	void connection(void);
+	int getInterval(QString, QString);
+	Pos globalPosToImagePos(Pos);
 	void timerEvent(QTimerEvent *);
 	void setParamFromFile(std::vector<std::string>);
 	void setData(struct log_data_t);
 	QColor getColor(const char *);
+	void selectRobot(int);
 
 public:
 	Interface();
@@ -138,6 +153,12 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
+	void selectRobot1(void);
+	void selectRobot2(void);
+	void selectRobot3(void);
+	void selectRobot4(void);
+	void selectRobot5(void);
+	void selectRobot6(void);
 	void reverseField(int state);
 	void loadLogFile(void);
 	void updateLog(void);

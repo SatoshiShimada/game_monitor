@@ -10,7 +10,7 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6)
+Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -97,7 +97,7 @@ void Interface::createWindow(void)
 
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
 	for(int i = 0; i < max_robot_num; i++) {
-		robotState.push_back(new QWidget());
+		robotState.push_back(new ClickWidget());
 		robotState[i]->setAutoFillBackground(true);
 		robotState[i]->setPalette(pal_state_bgcolor);
 		robotState[i]->setFixedWidth(200);
@@ -196,6 +196,12 @@ void Interface::connection(void)
 	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
 	connect(loadLogButton, SIGNAL(clicked()), this, SLOT(loadLogFile()));
+	connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
+	connect(robotState[1], SIGNAL(clicked(void)), this, SLOT(selectRobot2(void)));
+	connect(robotState[2], SIGNAL(clicked(void)), this, SLOT(selectRobot3(void)));
+	connect(robotState[3], SIGNAL(clicked(void)), this, SLOT(selectRobot4(void)));
+	connect(robotState[4], SIGNAL(clicked(void)), this, SLOT(selectRobot5(void)));
+	connect(robotState[5], SIGNAL(clicked(void)), this, SLOT(selectRobot6(void)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -312,6 +318,45 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 		(int)positions[num].goal_pole[0].x, (int)positions[num].goal_pole[0].y,
 		(int)positions[num].goal_pole[1].x, (int)positions[num].goal_pole[1].y,
 		(char *)comm_info.command, (int)comm_info.cf_own, (int)comm_info.cf_ball);
+}
+
+void Interface::selectRobot1(void)
+{
+	selectRobot(0);
+}
+
+void Interface::selectRobot2(void)
+{
+	selectRobot(1);
+}
+
+void Interface::selectRobot3(void)
+{
+	selectRobot(2);
+}
+
+void Interface::selectRobot4(void)
+{
+	selectRobot(3);
+}
+
+void Interface::selectRobot5(void)
+{
+	selectRobot(4);
+}
+
+void Interface::selectRobot6(void)
+{
+	selectRobot(5);
+}
+
+void Interface::selectRobot(const int num)
+{
+	select_robot_num = num;
+	time_t timer;
+	timer = time(NULL);
+	last_select_time = *localtime(&timer);
+	updateMap();
 }
 
 Pos Interface::globalPosToImagePos(Pos gpos)
@@ -480,6 +525,10 @@ void Interface::updateMap(void)
 	QPainter paint(&map);
 	paint.drawPixmap(logo_pos_x, logo_pos_y, team_logo_map);
 
+	const int elapsed_time = (local_time->tm_min - last_select_time.tm_min) * 60 + (local_time->tm_sec - last_select_time.tm_sec);
+	if(elapsed_time >= 1) {
+		select_robot_num = -1;
+	}
 	/* draw position marker on image */
 	for(int i = 0; i < max_robot_num; i++) {
 		if(positions[i].enable_pos) {
@@ -505,7 +554,7 @@ void Interface::updateMap(void)
 				robot[i].time_bar->setValue(0);
 				continue;
 			}
-			paint.setBrush(Qt::red);
+			//paint.setBrush(Qt::red);
 			/*
 			 * self-position maker color:
 			 *  Attacker: Red
@@ -533,6 +582,18 @@ void Interface::updateMap(void)
 			sprintf(buf, "%d", i + 1);
 			const int font_offset = settings->value("marker/font_offset").toInt();
 			paint.drawText(QPoint(self_x - font_offset, self_y - font_offset), buf);
+			if(select_robot_num == i) {
+				QPen pen = paint.pen();
+				const int pen_size = 2;
+				int circle_size;
+				paint.setPen(QPen(QColor(0xff, 0x00, 0x00), pen_size));
+				circle_size = 200;
+				paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
+				paint.setPen(QPen(QColor(0xff, 0x40, 0x40), pen_size));
+				circle_size = 100;
+				paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
+				paint.setPen(pen);
+			}
 			if(positions[i].enable_ball) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
