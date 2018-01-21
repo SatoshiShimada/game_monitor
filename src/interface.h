@@ -19,6 +19,7 @@
 #include <QUrl>
 #include <QMimeData>
 #include <QString>
+#include <QSlider>
 #include <QMetaType>
 #include <QPainter>
 #include <QSettings>
@@ -99,12 +100,15 @@ private:
 	QString filenameDrag;
 	QWidget *window;
 	QLabel *image;
+	QLabel *log_step;
 	QPixmap map;
 	QPixmap origin_map;
 	QPixmap team_logo_map;
+	QSlider *log_slider;
 	QGridLayout *mainLayout;
 	QHBoxLayout *checkLayout;
 	QGridLayout *labelLayout;
+	QHBoxLayout *logLayout;
 	QPalette pal_state_bgcolor;
 	QPalette pal_red;
 	QPalette pal_green;

@@ -78,15 +78,22 @@ void Interface::createWindow(void)
 	window     = new QWidget;
 	reverse    = new QCheckBox("Reverse field");
 	image      = new QLabel;
+	log_step   = new QLabel;
+	log_slider = new QSlider(Qt::Horizontal);
+	log_slider->setRange(0, 0);
 	loadLogButton = new QPushButton("Load log file");
-	mainLayout = new QGridLayout;
+	mainLayout  = new QGridLayout;
 	checkLayout = new QHBoxLayout;
+	logLayout   = new QHBoxLayout;
 	labelLayout = new QGridLayout;
 	for(int i = 0; i < max_robot_num; i++)
 		idLayout.push_back(new QGridLayout);
 
 	checkLayout->addWidget(reverse);
 	checkLayout->addWidget(loadLogButton);
+
+	logLayout->addWidget(log_step);
+	logLayout->addWidget(log_slider);
 
 	pal_state_bgcolor.setColor(QPalette::Window, QColor("#D0D0D0"));
 	pal_red.   setColor(QPalette::Window, QColor("#FF8E8E"));
@@ -138,6 +145,7 @@ void Interface::createWindow(void)
 	mainLayout->addLayout(checkLayout, 1, 1, 1, 2);
 	mainLayout->addWidget(image, 2, 1);
 	mainLayout->addLayout(labelLayout, 2, 2);
+	mainLayout->addLayout(logLayout, 3, 1);
 
 	window->setLayout(mainLayout);
 	setCentralWidget(window);
@@ -442,6 +450,12 @@ void Interface::updateLog(void)
 {
 	setData(log_data[log_count]);
 	if(log_count + 1 >= log_data.size()) return;
+	QString step, str_log_count, str_log_total;
+	str_log_count.setNum(log_count+1);
+	str_log_total.setNum(log_data.size());
+	step += str_log_count + " / " + str_log_total;
+	log_slider->setValue(log_count);
+	log_step->setText(step);
 	QString before = QString(log_data[log_count++].time_str);
 	QString after = QString(log_data[log_count].time_str);
 	int interval = getInterval(before, after);
@@ -683,5 +697,6 @@ void Interface::loadLogFile(void)
 		lines.push_back(line);
 	}
 	setParamFromFile(lines);
+	log_slider->setMaximum(lines.size()-1);
 }
 
