@@ -608,7 +608,7 @@ void Interface::updateMap(void)
 				paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
 				paint.setPen(pen);
 			}
-			if(positions[i].enable_ball) {
+			if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
 				if(fReverse) {
