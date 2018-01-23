@@ -49,12 +49,12 @@ Interface::~Interface()
 void Interface::initializeConfig(void)
 {
 	/* Field image file */
-	settings->setValue("field_image/name", settings->value("field_image/name", "hlfield.png"));
+	settings->setValue("field_image/name", settings->value("field_image/name", "figures/hlfield.png"));
 	/* 740x540 pixel: field image size */
 	settings->setValue("field_image/width" , settings->value("field_image/width", 740));
 	settings->setValue("field_image/height", settings->value("field_image/height", 540));
 	/* Team logo image file */
-	settings->setValue("team_logo/name", settings->value("team_logo/name", "citbrains_logo.png"));
+	settings->setValue("team_logo/name", settings->value("team_logo/name", "figures/citbrains_logo.png"));
 	/* Team logo image size */
 	settings->setValue("team_logo/width", settings->value("team_logo/width", "200"));
 	settings->setValue("team_logo/height", settings->value("team_logo/height", "200"));
