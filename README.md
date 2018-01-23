@@ -2,15 +2,11 @@
 
 # Game Monitor
 
-The robot state viewer from robot communication. It's for the robot "Accelite" of team CITBrains at RoboCup Soccer Humanoid League.
+The robot state viewer via robot communication.  
+It is for CIT Brains' robot "Accelite".  
+This application supports Linux, Mac OS and Windows.  
 If you find a bug please let me know by opening an issue in this repository.  
-Please check Wiki for more information.
-
-## Supported OS
-
-* Linux
-* Mac OS
-* Windows
+Please check Wiki for more information.  
 
 ## Requirements
 
@@ -67,6 +63,7 @@ Run `qt_make.bat` file in Developer Command Prompt window.
 Or generate Visual Studio project file by CMake:
 Using `CMakeLists.txt`
 
-## Author
+## License
 
-Satoshi Shimada (mylinux1204@gmail.com)
+MIT License (see `LICENSE` file).
+
