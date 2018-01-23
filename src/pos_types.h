@@ -1,4 +1,3 @@
-
 #ifndef _POS_TYPES_H_
 #define _POS_TYPES_H_
 
