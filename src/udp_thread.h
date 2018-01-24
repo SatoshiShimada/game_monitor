@@ -56,7 +56,7 @@ signals:
 	void receiveData(struct comm_info_T);
 };
 
-bool getCommInfoObject(unsigned char *, struct Object *);
+bool getCommInfoObject(unsigned char *, Object *);
 
 #endif // _UDP_THREAD_H_
 

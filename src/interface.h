@@ -30,7 +30,8 @@
 #include "log_writer.h"
 #include "pos_types.h"
 
-struct PositionMarker {
+class PositionMarker {
+public:
 	PositionMarker() : enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
 	bool enable_pos;
 	bool enable_ball;
@@ -42,7 +43,8 @@ struct PositionMarker {
 	Pos goal_pole[2]; /* goal pole position */
 };
 
-struct robot {
+class Robot {
+public:
 	QLabel *name;
 	QLabel *string;
 	QLabel *cf_own;
@@ -52,7 +54,8 @@ struct robot {
 	QProgressBar *time_bar;
 };
 
-struct log_data_t {
+class LogData {
+public:
 	char time_str[100];
 	int id;
 	char color_str[100];
@@ -115,11 +118,11 @@ private:
 	QPalette pal_black;
 	QPalette pal_orange;
 	std::vector<PositionMarker> positions;
-	std::vector<struct robot> robot;
+	std::vector<Robot> robot;
 	std::vector<QLabel *> idLabel;
 	std::vector<ClickWidget *>robotState;
 	std::vector<QGridLayout *>idLayout;
-	std::vector<struct log_data_t> log_data;
+	std::vector<LogData> log_data;
 	bool fLogging;
 	bool fReverse;
 	int updateMapTimerId;
@@ -135,7 +138,7 @@ private:
 	Pos globalPosToImagePos(Pos);
 	void timerEvent(QTimerEvent *);
 	void setParamFromFile(std::vector<std::string>);
-	void setData(struct log_data_t);
+	void setData(LogData);
 	QColor getColor(const char *);
 	void selectRobot(int);
 
@@ -146,7 +149,7 @@ public:
 	void loadImage(QString, QString);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
-	void decodeUdp(struct comm_info_T, struct robot *, int num);
+	void decodeUdp(struct comm_info_T, Robot *, int num);
 	void updateMap(void);
 
 private slots:

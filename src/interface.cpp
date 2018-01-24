@@ -109,7 +109,7 @@ void Interface::createWindow(void)
 		robotState[i]->setFixedWidth(200);
 		idLabel.push_back(new QLabel());
 		idLabel[i]->setNum(i + 1);
-		struct robot robo;
+		Robot robo;
 		robo.name = new QLabel();
 		robo.string = new QLabel();
 		robo.cf_own = new QLabel();
@@ -241,7 +241,7 @@ void Interface::decodeData6(struct comm_info_T comm_info)
 	decodeUdp(comm_info, &robot[5], 5);
 }
 
-void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data, int num)
+void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int num)
 {
 	char color_str[100];
 	int color, id;
@@ -298,7 +298,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	positions[num].enable_goal_pole[1] = false;
 	int goal_pole_index = 0;
 	for(int i = 0; i < MAX_COMM_INFO_OBJ; i++) {
-		struct Object obj;
+		Object obj;
 		bool exist = getCommInfoObject(comm_info.object[i], &obj);
 		if(!exist) continue;
 		if(obj.type == NONE) continue;
@@ -384,7 +384,7 @@ Pos Interface::globalPosToImagePos(Pos gpos)
 void Interface::setParamFromFile(std::vector<std::string> lines)
 {
 	for(auto line : lines) {
-		struct log_data_t buf;
+		LogData buf;
 		QString qstr = QString(line.c_str());
 		QStringList list = qstr.split(QChar(','));
 
@@ -461,10 +461,10 @@ void Interface::updateLog(void)
 	QTimer::singleShot(interval, this, SLOT(updateLog()));
 }
 
-void Interface::setData(struct log_data_t data)
+void Interface::setData(LogData data)
 {
 	int num = data.id - 1;
-	struct robot *robot_data = &robot[num];
+	Robot *robot_data = &robot[num];
 
 	/* ID and Color */
 	robot_data->name->setText(data.color_str);

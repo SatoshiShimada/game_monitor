@@ -9,8 +9,9 @@ enum {
 	GOAL_POLE = 0x08,
 };
 
-struct Pos
+class Pos
 {
+public:
 	Pos() : x(0), y(0), th(0) {}
 	Pos(float ix, float iy, float ith) :
 		x(ix), y(iy), th(ith) {}
@@ -21,10 +22,11 @@ struct Pos
 	float th;
 };
 
-struct Object
+class Object
 {
+public:
 	Object(): type(NONE) {}
-	struct Pos pos;
+	Pos pos;
 	int type;
 };
 
