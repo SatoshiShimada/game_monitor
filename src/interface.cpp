@@ -9,7 +9,7 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), select_robot_num(-1)
+Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -81,9 +81,13 @@ void Interface::createWindow(void)
 	log_slider = new QSlider(Qt::Horizontal);
 	log_slider->setRange(0, 0);
 	loadLogButton = new QPushButton("Load log file");
+	log1Button  = new QPushButton("x1");
+	log2Button  = new QPushButton("x2");
+	log5Button  = new QPushButton("x5");
 	mainLayout  = new QGridLayout;
 	checkLayout = new QHBoxLayout;
 	logLayout   = new QHBoxLayout;
+	logSpeedButtonLayout = new QHBoxLayout;
 	labelLayout = new QGridLayout;
 	for(int i = 0; i < max_robot_num; i++)
 		idLayout.push_back(new QGridLayout);
@@ -93,6 +97,10 @@ void Interface::createWindow(void)
 
 	logLayout->addWidget(log_step);
 	logLayout->addWidget(log_slider);
+
+	logSpeedButtonLayout->addWidget(log1Button);
+	logSpeedButtonLayout->addWidget(log2Button);
+	logSpeedButtonLayout->addWidget(log5Button);
 
 	pal_state_bgcolor.setColor(QPalette::Window, QColor("#D0D0D0"));
 	pal_red.   setColor(QPalette::Window, QColor("#FF8E8E"));
@@ -145,6 +153,7 @@ void Interface::createWindow(void)
 	mainLayout->addWidget(image, 2, 1);
 	mainLayout->addLayout(labelLayout, 2, 2);
 	mainLayout->addLayout(logLayout, 3, 1);
+	mainLayout->addLayout(logSpeedButtonLayout, 3, 2);
 
 	window->setLayout(mainLayout);
 	setCentralWidget(window);
@@ -209,6 +218,9 @@ void Interface::connection(void)
 	connect(robotState[3], SIGNAL(clicked(void)), this, SLOT(selectRobot4(void)));
 	connect(robotState[4], SIGNAL(clicked(void)), this, SLOT(selectRobot5(void)));
 	connect(robotState[5], SIGNAL(clicked(void)), this, SLOT(selectRobot6(void)));
+	connect(log1Button, SIGNAL(clicked(void)), this, SLOT(logSpeed1(void)));
+	connect(log2Button, SIGNAL(clicked(void)), this, SLOT(logSpeed2(void)));
+	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -431,7 +443,7 @@ void Interface::setParamFromFile(std::vector<std::string> lines)
 	setData(log_data[log_count]);
 	QString before = QString(log_data[log_count++].time_str);
 	QString after = QString(log_data[log_count].time_str);
-	int interval = getInterval(before, after);
+	int interval = getInterval(before, after) / log_speed;
 	QTimer::singleShot(interval, this, SLOT(updateLog()));
 }
 
@@ -457,7 +469,7 @@ void Interface::updateLog(void)
 	log_step->setText(step);
 	QString before = QString(log_data[log_count++].time_str);
 	QString after = QString(log_data[log_count].time_str);
-	int interval = getInterval(before, after);
+	int interval = getInterval(before, after) / log_speed;
 	QTimer::singleShot(interval, this, SLOT(updateLog()));
 }
 
@@ -697,5 +709,20 @@ void Interface::loadLogFile(void)
 	}
 	setParamFromFile(lines);
 	log_slider->setMaximum(lines.size()-1);
+}
+
+void Interface::logSpeed1(void)
+{
+	log_speed = 1;
+}
+
+void Interface::logSpeed2(void)
+{
+	log_speed = 2;
+}
+
+void Interface::logSpeed5(void)
+{
+	log_speed = 5;
 }
 

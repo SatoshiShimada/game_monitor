@@ -98,6 +98,7 @@ private:
 	std::vector<UdpServer *> th;
 	QCheckBox *reverse;
 	QPushButton *loadLogButton;
+	QPushButton *log1Button, *log2Button, *log5Button;
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
@@ -111,6 +112,7 @@ private:
 	QHBoxLayout *checkLayout;
 	QGridLayout *labelLayout;
 	QHBoxLayout *logLayout;
+	QHBoxLayout *logSpeedButtonLayout;
 	QPalette pal_state_bgcolor;
 	QPalette pal_red;
 	QPalette pal_green;
@@ -129,6 +131,7 @@ private:
 	unsigned int log_count;
 	const int max_robot_num;
 	int logo_pos_x, logo_pos_y;
+	int log_speed;
 	int select_robot_num;
 	struct tm last_select_time;
 	void initializeConfig(void);
@@ -168,6 +171,9 @@ private slots:
 	void reverseField(int state);
 	void loadLogFile(void);
 	void updateLog(void);
+	void logSpeed1(void);
+	void logSpeed2(void);
+	void logSpeed5(void);
 };
 
 #endif // _INTERFACE_H_
