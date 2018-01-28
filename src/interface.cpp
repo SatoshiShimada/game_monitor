@@ -28,7 +28,7 @@ Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), log_s
 	/* Run receive thread */
 	const int base_udp_port = settings->value("network/port").toInt();
 	for(int i = 0; i < max_robot_num; i++)
-		th.push_back(new UdpServer(base_udp_port + i));
+		th.push_back(new UdpServer(i, base_udp_port + i));
 
 	createWindow();
 	connection();
@@ -117,7 +117,7 @@ void Interface::createWindow(void)
 		robotState[i]->setFixedWidth(200);
 		idLabel.push_back(new QLabel());
 		idLabel[i]->setNum(i + 1);
-		Robot robo;
+		RobotStaus robo;
 		robo.name = new QLabel();
 		robo.string = new QLabel();
 		robo.cf_own = new QLabel();
@@ -204,12 +204,8 @@ void Interface::dropEvent(QDropEvent *e)
 
 void Interface::connection(void)
 {
-	connect(th[0], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData1(struct comm_info_T)));
-	connect(th[1], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData2(struct comm_info_T)));
-	connect(th[2], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData3(struct comm_info_T)));
-	connect(th[3], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData4(struct comm_info_T)));
-	connect(th[4], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
-	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
+	for(int i = 0; i < th.size(); i++)
+		connect(th[i], SIGNAL(receiveData(int, struct comm_info_T)), this, SLOT(decodeData(int, struct comm_info_T)));
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
 	connect(loadLogButton, SIGNAL(clicked()), this, SLOT(loadLogFile()));
 	connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
@@ -218,42 +214,17 @@ void Interface::connection(void)
 	connect(robotState[3], SIGNAL(clicked(void)), this, SLOT(selectRobot4(void)));
 	connect(robotState[4], SIGNAL(clicked(void)), this, SLOT(selectRobot5(void)));
 	connect(robotState[5], SIGNAL(clicked(void)), this, SLOT(selectRobot6(void)));
-	connect(log1Button, SIGNAL(clicked(void)), this, SLOT(logSpeed1(void)));
-	connect(log2Button, SIGNAL(clicked(void)), this, SLOT(logSpeed2(void)));
-	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
+	connect(log1Button, SIGNAL(clicked(void)), this, SLOT(logSpeed1X(void)));
+	connect(log2Button, SIGNAL(clicked(void)), this, SLOT(logSpeed2X(void)));
+	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5X(void)));
 }
 
-void Interface::decodeData1(struct comm_info_T comm_info)
+void Interface::decodeData(int id, struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[0], 0);
+	decodeUdp(comm_info, &robot[id], id);
 }
 
-void Interface::decodeData2(struct comm_info_T comm_info)
-{
-	decodeUdp(comm_info, &robot[1], 1);
-}
-
-void Interface::decodeData3(struct comm_info_T comm_info)
-{
-	decodeUdp(comm_info, &robot[2], 2);
-}
-
-void Interface::decodeData4(struct comm_info_T comm_info)
-{
-	decodeUdp(comm_info, &robot[3], 3);
-}
-
-void Interface::decodeData5(struct comm_info_T comm_info)
-{
-	decodeUdp(comm_info, &robot[4], 4);
-}
-
-void Interface::decodeData6(struct comm_info_T comm_info)
-{
-	decodeUdp(comm_info, &robot[5], 5);
-}
-
-void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int num)
+void Interface::decodeUdp(struct comm_info_T comm_info, RobotStatus *robot_data, int num)
 {
 	char color_str[100];
 	int color, id;
@@ -476,7 +447,7 @@ void Interface::updateLog(void)
 void Interface::setData(LogData data)
 {
 	int num = data.id - 1;
-	Robot *robot_data = &robot[num];
+	RobotStatus *robot_data = &robot[num];
 
 	/* ID and Color */
 	robot_data->name->setText(data.color_str);
@@ -711,17 +682,17 @@ void Interface::loadLogFile(void)
 	log_slider->setMaximum(lines.size()-1);
 }
 
-void Interface::logSpeed1(void)
+void Interface::logSpeed1X(void)
 {
 	log_speed = 1;
 }
 
-void Interface::logSpeed2(void)
+void Interface::logSpeed2X(void)
 {
 	log_speed = 2;
 }
 
-void Interface::logSpeed5(void)
+void Interface::logSpeed5X(void)
 {
 	log_speed = 5;
 }

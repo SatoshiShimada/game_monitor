@@ -43,17 +43,6 @@ public:
 	Pos goal_pole[2]; /* goal pole position */
 };
 
-class Robot {
-public:
-	QLabel *name;
-	QLabel *string;
-	QLabel *cf_own;
-	QLabel *cf_ball;
-	QProgressBar *cf_own_bar;
-	QProgressBar *cf_ball_bar;
-	QProgressBar *time_bar;
-};
-
 class LogData {
 public:
 	char time_str[100];
@@ -120,7 +109,7 @@ private:
 	QPalette pal_black;
 	QPalette pal_orange;
 	std::vector<PositionMarker> positions;
-	std::vector<Robot> robot;
+	std::vector<RobotStatus> robot;
 	std::vector<QLabel *> idLabel;
 	std::vector<ClickWidget *>robotState;
 	std::vector<QGridLayout *>idLayout;
@@ -152,16 +141,11 @@ public:
 	void loadImage(QString, QString);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
-	void decodeUdp(struct comm_info_T, Robot *, int num);
+	void decodeUdp(struct comm_info_T, RobotStatus *, int num);
 	void updateMap(void);
 
 private slots:
-	void decodeData1(struct comm_info_T);
-	void decodeData2(struct comm_info_T);
-	void decodeData3(struct comm_info_T);
-	void decodeData4(struct comm_info_T);
-	void decodeData5(struct comm_info_T);
-	void decodeData6(struct comm_info_T);
+	void decodeData(int, struct comm_info_T);
 	void selectRobot1(void);
 	void selectRobot2(void);
 	void selectRobot3(void);
@@ -171,9 +155,9 @@ private slots:
 	void reverseField(int state);
 	void loadLogFile(void);
 	void updateLog(void);
-	void logSpeed1(void);
-	void logSpeed2(void);
-	void logSpeed5(void);
+	void logSpeed1X(void);
+	void logSpeed2X(void);
+	void logSpeed5X(void);
 };
 
 #endif // _INTERFACE_H_
