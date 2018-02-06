@@ -1,13 +1,6 @@
-#include <cmath>
-
 #include "udp_thread.h"
 
-inline static double radian(double degree)
-{
-	return degree * M_PI / 180.0;
-}
-
-UdpServer::UdpServer(int id, int port_num) _id(id)
+UdpServer::UdpServer(int id, int port_num) : _id(id)
 {
 	_udpSocket = new QUdpSocket(this);
 	_udpSocket->bind(QHostAddress::Any, port_num);

@@ -6,7 +6,7 @@
 #include <fstream>
 #include <string>
 
-#include "pos_types.h"
+#include "types.h"
 #include "interface.h"
 
 Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
@@ -117,7 +117,7 @@ void Interface::createWindow(void)
 		robotState[i]->setFixedWidth(200);
 		idLabel.push_back(new QLabel());
 		idLabel[i]->setNum(i + 1);
-		RobotStaus robo;
+		RobotState robo;
 		robo.name = new QLabel();
 		robo.string = new QLabel();
 		robo.cf_own = new QLabel();

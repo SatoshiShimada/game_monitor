@@ -28,7 +28,7 @@
 
 #include "udp_thread.h"
 #include "log_writer.h"
-#include "pos_types.h"
+#include "types.h"
 
 class PositionMarker {
 public:
@@ -109,7 +109,7 @@ private:
 	QPalette pal_black;
 	QPalette pal_orange;
 	std::vector<PositionMarker> positions;
-	std::vector<RobotStatus> robot;
+	std::vector<RobotState> robot;
 	std::vector<QLabel *> idLabel;
 	std::vector<ClickWidget *>robotState;
 	std::vector<QGridLayout *>idLayout;
@@ -141,7 +141,7 @@ public:
 	void loadImage(QString, QString);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
-	void decodeUdp(struct comm_info_T, RobotStatus *, int num);
+	void decodeUdp(struct comm_info_T, RobotState *, int num);
 	void updateMap(void);
 
 private slots:

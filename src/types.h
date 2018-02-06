@@ -3,7 +3,7 @@
 
 #include <string>
 #include <time.h>
-#include "pos_types.h"
+#include <cmath>
 
 static const int NUM_PLAYERS = 6;
 static const int COMM_INFO_PORT = 7110;
@@ -45,6 +45,11 @@ enum {
 	GOAL_POLE = 0x08,
 };
 
+inline static double radian(const double degree)
+{
+	return degree * M_PI / 180.0;
+}
+
 class Pos
 {
 public:
@@ -71,12 +76,24 @@ class GameState {
 
 class Role {
 public:
-	char getColor(void) = 0;
+	Role()
+	{
+	}
+	virtual ~Role()
+	{
+	}
+	virtual char getColor(void) = 0;
 };
 
 class RoleNeutral : public Role {
 public:
-	getColor(void)
+	RoleNeutral()
+	{
+	}
+	~RoleNeutral()
+	{
+	}
+	char getColor(void)
 	{
 		return 'r';
 	}
@@ -84,10 +101,10 @@ public:
 
 class RobotState {
 public:
-	RobotState() : Role(NULL) {}
+	RobotState() : role(NULL) {}
 	~RobotState()
 	{
-		delete Role;
+		delete role;
 	}
 	void setData(struct comm_info_T comm_info)
 	{
@@ -115,17 +132,17 @@ public:
 		/* ball position confidence */
 		cf_ball = comm_info.cf_ball;
 		/* role and message */
-		command((char *)comm_info.command);
+		std::string command_string((char *)comm_info.command);
 		if(strstr((const char *)comm_info.command, "Attacker")) {
-			role = new RoleNeutral;
+			role = (Role*)new RoleNeutral;
 		} else if(strstr((const char *)comm_info.command, "Neutral")) {
-			role = new RoleNeutral;
+			role = (Role*)new RoleNeutral;
 		} else if(strstr((const char *)comm_info.command, "Defender")) {
-			role = new RoleNeutral;
+			role = (Role*)new RoleNeutral;
 		} else if(strstr((const char *)comm_info.command, "Keeper")) {
-			role = new RoleNeutral;
+			role = (Role*)new RoleNeutral;
 		} else {
-			role = new RoleNeutral;
+			role = (Role*)new RoleNeutral;
 		}
 
 		for(int i = 0; i < MAX_COMM_INFO_OBJ; i++) {
@@ -154,13 +171,13 @@ private:
 			const float th = (float)radian(theta);
 			bool is_our_side = ((data[0] & COMM_OUR_SIDE) != 0) ? true : false;
 			bool is_opposite_side = ((data[0] & COMM_OPPOSITE_SIDE) != 0) ? true : false;
-			if(is_our_side && is_opposite_side) obj->type = BALL;
-			if(is_our_side && !is_opposite_side) obj->type = SELF_POS;
-			if(!is_our_side && is_opposite_side) obj->type = ENEMY;
-			if(!is_our_side && !is_opposite_side) obj->type = GOAL_POLE;
-			obj->pos.x = x;
-			obj->pos.y = y;
-			obj->pos.th = th;
+			if(is_our_side && is_opposite_side) obj.type = BALL;
+			if(is_our_side && !is_opposite_side) obj.type = SELF_POS;
+			if(!is_our_side && is_opposite_side) obj.type = ENEMY;
+			if(!is_our_side && !is_opposite_side) obj.type = GOAL_POLE;
+			obj.pos.x = x;
+			obj.pos.y = y;
+			obj.pos.th = th;
 		}
 		return data_exist;
 	}

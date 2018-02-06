@@ -5,7 +5,7 @@
 #include <QUdpSocket>
 #include <QtCore>
 
-#include "pos_types.h"
+#include "types.h"
 
 Q_DECLARE_METATYPE(comm_info_T);
 
@@ -17,7 +17,7 @@ public:
 	~UdpServer();
 private:
 	struct comm_info_T _comm_info;
-	int _id;
+	const int _id;
 	QUdpSocket *_udpSocket;
 private slots:
 	void readPendingDatagrams(void);
