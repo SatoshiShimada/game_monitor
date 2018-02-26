@@ -29,6 +29,7 @@
 #include "udp_thread.h"
 #include "log_writer.h"
 #include "pos_types.h"
+#include "capture.h"
 
 class PositionMarker {
 public:
@@ -94,6 +95,7 @@ class Interface : public QMainWindow
 	Q_OBJECT
 
 private:
+	Capture *capture;
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
 	QCheckBox *reverse;

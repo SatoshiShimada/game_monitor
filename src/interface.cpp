@@ -39,10 +39,13 @@ Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), log_s
 	loadImage(field_image_name, team_logo_image_name);
 
 	this->setWindowTitle("Humanoid League Game Monitor");
+	capture = new Capture;
+	capture->record();
 }
 
 Interface::~Interface()
 {
+	capture->stop();
 }
 
 void Interface::initializeConfig(void)
