@@ -8,6 +8,7 @@
 
 #include <QtWidgets>
 #include <QWidget>
+#include <QString>
 
 class Capture : public QWidget
 {
@@ -15,6 +16,7 @@ class Capture : public QWidget
 public:
 	Capture();
 	~Capture();
+	void setFilename(QString);
 private slots:
 	void setCamera(const QCameraInfo &);
 	void startCamera();

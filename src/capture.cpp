@@ -119,3 +119,8 @@ void Capture::stop()
 	m_mediaRecorder->stop();
 }
 
+void Capture::setFilename(QString filename)
+{
+	m_mediaRecorder->setOutputLocation(QUrl::fromLocalFile(filename));
+}
+

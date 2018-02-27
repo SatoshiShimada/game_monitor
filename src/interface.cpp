@@ -40,6 +40,7 @@ Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), log_s
 
 	this->setWindowTitle("Humanoid League Game Monitor");
 	capture = new Capture;
+	capture->setFilename(QString("out.mov"));
 	capture->record();
 }
 
