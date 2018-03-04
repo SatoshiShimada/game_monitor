@@ -97,6 +97,7 @@ private:
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
 	QCheckBox *reverse;
+	QCheckBox *viewGoalpostCheckBox;
 	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
 	QSettings *settings;
@@ -127,6 +128,7 @@ private:
 	std::vector<LogData> log_data;
 	bool fLogging;
 	bool fReverse;
+	bool fViewGoalpost;
 	int updateMapTimerId;
 	unsigned int log_count;
 	const int max_robot_num;
@@ -168,7 +170,8 @@ private slots:
 	void selectRobot4(void);
 	void selectRobot5(void);
 	void selectRobot6(void);
-	void reverseField(int state);
+	void reverseField(int);
+	void viewGoalpost(int);
 	void loadLogFile(void);
 	void updateLog(void);
 	void logSpeed1(void);

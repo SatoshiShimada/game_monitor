@@ -9,7 +9,7 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -76,6 +76,7 @@ void Interface::createWindow(void)
 {
 	window     = new QWidget;
 	reverse    = new QCheckBox("Reverse field");
+	viewGoalpostCheckBox = new QCheckBox("View Goal post");
 	image      = new QLabel;
 	log_step   = new QLabel;
 	log_slider = new QSlider(Qt::Horizontal);
@@ -92,7 +93,9 @@ void Interface::createWindow(void)
 	for(int i = 0; i < max_robot_num; i++)
 		idLayout.push_back(new QGridLayout);
 
+	viewGoalpostCheckBox->setChecked(true);
 	checkLayout->addWidget(reverse);
+	checkLayout->addWidget(viewGoalpostCheckBox);
 	checkLayout->addWidget(loadLogButton);
 
 	logLayout->addWidget(log_step);
@@ -211,6 +214,7 @@ void Interface::connection(void)
 	connect(th[4], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
 	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
+	connect(viewGoalpostCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewGoalpost(int)));
 	connect(loadLogButton, SIGNAL(clicked()), this, SLOT(loadLogFile()));
 	connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
 	connect(robotState[1], SIGNAL(clicked(void)), this, SLOT(selectRobot2(void)));
@@ -635,19 +639,21 @@ void Interface::updateMap(void)
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 1));
 				paint.drawLine(self_x, self_y, ball_x, ball_y);
 			}
-			for(int j = 0; j < 2; j++) {
-				if(positions[i].enable_goal_pole[j]) {
-					int goal_pole_x = positions[i].goal_pole[j].x;
-					int goal_pole_y = positions[i].goal_pole[j].y;
-					if(fReverse) {
-						goal_pole_x = field_w - goal_pole_x;
-						goal_pole_y = field_h - goal_pole_y;
+			if(fViewGoalpost) {
+				for(int j = 0; j < 2; j++) {
+					if(positions[i].enable_goal_pole[j]) {
+						int goal_pole_x = positions[i].goal_pole[j].x;
+						int goal_pole_y = positions[i].goal_pole[j].y;
+						if(fReverse) {
+							goal_pole_x = field_w - goal_pole_x;
+							goal_pole_y = field_h - goal_pole_y;
+						}
+						const int goal_pole_marker_size = settings->value("marker/goal_pole_size").toInt();
+						paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), goal_pole_marker_size));
+						paint.drawPoint(goal_pole_x, goal_pole_y);
+						paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 1));
+						paint.drawLine(self_x, self_y, goal_pole_x, goal_pole_y);
 					}
-					const int goal_pole_marker_size = settings->value("marker/goal_pole_size").toInt();
-					paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), goal_pole_marker_size));
-					paint.drawPoint(goal_pole_x, goal_pole_y);
-					paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 1));
-					paint.drawLine(self_x, self_y, goal_pole_x, goal_pole_y);
 				}
 			}
 			robot[i].time_bar->setValue(elapsed);
@@ -690,6 +696,16 @@ void Interface::reverseField(int state)
 	} else {
 		fReverse = false;
 		logo_pos_x = fw / 2 + fw / 4 - lw / 2;
+	}
+	updateMap();
+}
+
+void Interface::viewGoalpost(int state)
+{
+	if(state == Qt::Checked) {
+		fViewGoalpost = true;
+	} else {
+		fViewGoalpost = false;
 	}
 	updateMap();
 }
