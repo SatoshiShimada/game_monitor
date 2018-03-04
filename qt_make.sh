@@ -54,4 +54,7 @@ make all -j8
 if [ ! -d log ]; then
 	mkdir log
 fi
+if [ ! -d video ]; then
+	mkdir video
+fi
 

@@ -22,6 +22,37 @@ LogWriter::~LogWriter()
 	closeFile();
 }
 
+int LogWriter::startRecord(const char *filename)
+{
+	time_t timer;
+	struct tm *local_time;
+
+	timer = time(NULL);
+	local_time = localtime(&timer);
+	if(opened && enable) {
+		fprintf(fp, "%d:%d:%d,", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+		fprintf(fp, "%s", "record,");
+		fprintf(fp, "%s", filename);
+		fprintf(fp, "\n");
+	}
+	return 0;
+}
+
+int LogWriter::stopRecord(void)
+{
+	time_t timer;
+	struct tm *local_time;
+
+	timer = time(NULL);
+	local_time = localtime(&timer);
+	if(opened && enable) {
+		fprintf(fp, "%d:%d:%d,", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+		fprintf(fp, "%s", "stop");
+		fprintf(fp, "\n");
+	}
+	return 0;
+}
+
 int LogWriter::write(int id, char *color, int fps, double voltage,
 	int posx, int posy, float posth, int ballx, int bally,
 	int goal_pole_x1, int goal_pole_y1, int goal_pole_x2, int goal_pole_y2,

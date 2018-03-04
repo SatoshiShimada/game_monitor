@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <cstring>
+#include <ctime>
 
 #include "pos_types.h"
 #include "interface.h"
@@ -763,9 +765,20 @@ void Interface::captureButtonSlot(void)
 {
 	if(fRecording) {
 		fRecording = false;
+		log_writer.stopRecord();
 		capture->stop();
 	} else {
 		fRecording = true;
+		time_t timer;
+		struct tm *local_time;
+		char filename[1024];
+		const char *video_output_path = "videos/";
+
+		timer = time(NULL);
+		local_time = localtime(&timer);
+		sprintf(filename, "%s%d-%d-%d-%d-%d.mov", video_output_path, local_time->tm_year+1900, local_time->tm_mon+1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min);
+		capture->setFilename(QString(filename));
+		log_writer.startRecord(filename);
 		capture->record();
 	}
 }
