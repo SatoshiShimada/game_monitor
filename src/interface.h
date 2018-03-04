@@ -98,6 +98,7 @@ private:
 	Capture *capture;
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
+	QMenu *videoMenu;
 	QCheckBox *reverse;
 	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
@@ -148,6 +149,7 @@ private:
 	void setData(LogData);
 	QColor getColor(const char *);
 	void selectRobot(int);
+	void createMenus(void);
 
 public:
 	Interface();

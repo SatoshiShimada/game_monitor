@@ -1,4 +1,6 @@
 #include <QtGui>
+#include <QCameraInfo>
+#include <QMediaMetaData>
 #include <iostream>
 #include <cstring>
 #include <cmath>
@@ -9,12 +11,17 @@
 #include "pos_types.h"
 #include "interface.h"
 
+Q_DECLARE_METATYPE(QCameraInfo)
+
 Interface::Interface(): fLogging(true), fReverse(false), fRecording(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
 	log_writer.setEnable();
 	positions = std::vector<PositionMarker>(max_robot_num);
+
+	capture = new Capture;
+	capture->setFilename(QString("out.mov"));
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
@@ -31,6 +38,7 @@ Interface::Interface(): fLogging(true), fReverse(false), fRecording(false), max_
 		th.push_back(new UdpServer(base_udp_port + i));
 
 	createWindow();
+	createMenus();
 	connection();
 
 	updateMapTimerId = startTimer(1000); /* timer by 1000msec */
@@ -39,14 +47,32 @@ Interface::Interface(): fLogging(true), fReverse(false), fRecording(false), max_
 	loadImage(field_image_name, team_logo_image_name);
 
 	this->setWindowTitle("Humanoid League Game Monitor");
-	capture = new Capture;
-	capture->setFilename(QString("out.mov"));
 }
 
 Interface::~Interface()
 {
 	if(fRecording)
 		capture->stop();
+}
+
+void Interface::createMenus(void)
+{
+	videoMenu = menuBar()->addMenu(tr("&Cameras"));
+
+	QList<QCameraInfo> availableCameras = capture->getCameras();
+	QActionGroup *videoDevicesGroup = new QActionGroup(this);
+	videoDevicesGroup->setExclusive(true);
+	QAction *noVideoDeviceAction = new QAction(tr("&No Camera"), videoDevicesGroup);
+	videoMenu->addAction(noVideoDeviceAction);
+	videoMenu->addSeparator();
+	for (const QCameraInfo &cameraInfo : availableCameras) {
+		QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
+		videoDeviceAction->setCheckable(true);
+		videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
+		if (cameraInfo == QCameraInfo::defaultCamera())
+			videoDeviceAction->setChecked(true);
+		videoMenu->addAction(videoDeviceAction);
+	}
 }
 
 void Interface::initializeConfig(void)

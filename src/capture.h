@@ -17,6 +17,7 @@ public:
 	Capture();
 	~Capture();
 	void setFilename(QString);
+	QList<QCameraInfo> getCameras(void);
 private slots:
 	void setCamera(const QCameraInfo &);
 	void startCamera();
@@ -30,6 +31,7 @@ public slots:
 	void pause();
 	void stop();
 private:
+	QList<QCameraInfo> availableCameras;
 	QScopedPointer<QCamera> m_camera;
 	QScopedPointer<QCameraImageCapture> m_imageCapture;
 	QScopedPointer<QMediaRecorder> m_mediaRecorder;
