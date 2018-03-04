@@ -9,7 +9,7 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), max_robot_num(6), log_speed(1), select_robot_num(-1)
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -225,6 +225,8 @@ void Interface::connection(void)
 	connect(log1Button, SIGNAL(clicked(void)), this, SLOT(logSpeed1(void)));
 	connect(log2Button, SIGNAL(clicked(void)), this, SLOT(logSpeed2(void)));
 	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
+	connect(log_slider, SIGNAL(sliderPressed(void)), this, SLOT(pausePlayingLog(void)));
+	connect(log_slider, SIGNAL(sliderReleased(void)), this, SLOT(changeLogPosition(void)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -463,6 +465,8 @@ int Interface::getInterval(QString before, QString after)
 
 void Interface::updateLog(void)
 {
+	if(fPauseLog)
+		return;
 	setData(log_data[log_count]);
 	if(log_count + 1 >= log_data.size()) return;
 	QString step, str_log_count, str_log_total;
@@ -475,6 +479,18 @@ void Interface::updateLog(void)
 	QString after = QString(log_data[log_count].time_str);
 	int interval = getInterval(before, after) / log_speed;
 	QTimer::singleShot(interval, this, SLOT(updateLog()));
+}
+
+void Interface::pausePlayingLog(void)
+{
+	fPauseLog = true;
+}
+
+void Interface::changeLogPosition(void)
+{
+	fPauseLog = false;
+	log_count = log_slider->value();
+	updateLog();
 }
 
 void Interface::setData(LogData data)

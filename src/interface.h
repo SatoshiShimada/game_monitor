@@ -129,6 +129,7 @@ private:
 	bool fLogging;
 	bool fReverse;
 	bool fViewGoalpost;
+	bool fPauseLog;
 	int updateMapTimerId;
 	unsigned int log_count;
 	const int max_robot_num;
@@ -177,6 +178,8 @@ private slots:
 	void logSpeed1(void);
 	void logSpeed2(void);
 	void logSpeed5(void);
+	void pausePlayingLog(void);
+	void changeLogPosition(void);
 };
 
 #endif // _INTERFACE_H_
