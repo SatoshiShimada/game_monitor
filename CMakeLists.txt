@@ -5,8 +5,8 @@ project(game_monitor)
 set(SRCS
 	src/interface.cpp
 	src/interface.h
-	src/log.cpp
-	src/log.h
+	src/log_writer.cpp
+	src/log_writer.h
 	src/main.cpp
 	src/pos_types.h
 	src/udp_thread.cpp

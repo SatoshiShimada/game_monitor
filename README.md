@@ -2,31 +2,30 @@
 
 # Game Monitor
 
-The robot state viewer from robot communication. It's for the robot "Accelite" of team CITBrains at RoboCup Soccer Humanoid League.
+The robot state viewer via robot communication.  
+It is for CIT Brains' robot "Accelite".  
+This application supports Linux, Mac OS and Windows.  
 If you find a bug please let me know by opening an issue in this repository.  
-Please check Wiki for more information.
-
-## Supported OS
-
-* Linux
-* Mac OS
-* Windows
+Please check Wiki for more information.  
 
 ## Requirements
 
-* [Qt](https://www.qt.io/)
+* [Qt](https://www.qt.io/) (Version: 4.8 or 5)
+* gcc (only Linux)
+* XCode (only Mac OS)
+* Visual Studio (only Windows)
 
 ## How to build
 
 ### Linux (Ubuntu 14.04)
 
-Install libraries.
+1. Install libraries.
 
 ```
 apt-get install libqt4-core libqt4-dev libqt4-gui qt4-dev-tools
 ```
 
-If your system is Ubuntu 12.04, run follow command.
+If your system is Ubuntu 12.04, run follow commands.
 
 ```
 add-apt-repository ppa:ubuntu-toolchain-r/test
@@ -36,7 +35,7 @@ update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 20
 update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 20
 ```
 
-Finally, compile sources.
+2. Build application.
 
 ```
 ./qt_make.sh
@@ -44,14 +43,14 @@ Finally, compile sources.
 
 ### Mac OS
 
-Install libraries.
+1. Install libraries.
 
 ```
 brew update -all
 brew install cartr/qt4/qt
 ```
 
-Finally, compile sources.
+2. Build application.
 
 ```
 ./qt_make.sh
@@ -59,14 +58,14 @@ Finally, compile sources.
 
 ### Windows
 
-After install requirement: Qt 4.8 and Visual Studio
+1.  Run `qt_make.bat` script in Developer Command Prompt window.  
+[How to open](https://msdn.microsoft.com/en-us/library/f35ctcxw.aspx "Jump to Microsoft document page")
 
-Run `qt_make.bat` file in Developer Command Prompt window.
-[How to open it](https://msdn.microsoft.com/en-us/library/f35ctcxw.aspx "Jump to Microsoft document page")
+Or  
 
-Or generate Visual Studio project file by CMake:
-Using `CMakeLists.txt`
+1. Build on Visual Studio using CMake (`CMakeLists.txt`).
 
-## Author
+## License
 
-Satoshi Shimada (mylinux1204@gmail.com)
+MIT License (see `LICENSE` file).
+

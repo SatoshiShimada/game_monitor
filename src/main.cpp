@@ -1,10 +1,4 @@
-
 #include <QtGui>
-
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
 #include "interface.h"
 
 int main(int argc, char **argv)

@@ -1,4 +1,3 @@
-
 #include <QtGui>
 #include <iostream>
 #include <cstring>
@@ -10,11 +9,11 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6)
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
-	log.setEnable();
+	log_writer.setEnable();
 	positions = std::vector<PositionMarker>(max_robot_num);
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
@@ -49,12 +48,12 @@ Interface::~Interface()
 void Interface::initializeConfig(void)
 {
 	/* Field image file */
-	settings->setValue("field_image/name", settings->value("field_image/name", "hlfield.png"));
+	settings->setValue("field_image/name", settings->value("field_image/name", "figures/hlfield.png"));
 	/* 740x540 pixel: field image size */
 	settings->setValue("field_image/width" , settings->value("field_image/width", 740));
 	settings->setValue("field_image/height", settings->value("field_image/height", 540));
 	/* Team logo image file */
-	settings->setValue("team_logo/name", settings->value("team_logo/name", "citbrains_logo.png"));
+	settings->setValue("team_logo/name", settings->value("team_logo/name", "figures/citbrains_logo.png"));
 	/* Team logo image size */
 	settings->setValue("team_logo/width", settings->value("team_logo/width", "200"));
 	settings->setValue("team_logo/height", settings->value("team_logo/height", "200"));
@@ -77,16 +76,34 @@ void Interface::createWindow(void)
 {
 	window     = new QWidget;
 	reverse    = new QCheckBox("Reverse field");
+	viewGoalpostCheckBox = new QCheckBox("View Goal post");
 	image      = new QLabel;
+	log_step   = new QLabel;
+	log_slider = new QSlider(Qt::Horizontal);
+	log_slider->setRange(0, 0);
 	loadLogButton = new QPushButton("Load log file");
-	mainLayout = new QGridLayout;
+	log1Button  = new QPushButton("x1");
+	log2Button  = new QPushButton("x2");
+	log5Button  = new QPushButton("x5");
+	mainLayout  = new QGridLayout;
 	checkLayout = new QHBoxLayout;
+	logLayout   = new QHBoxLayout;
+	logSpeedButtonLayout = new QHBoxLayout;
 	labelLayout = new QGridLayout;
 	for(int i = 0; i < max_robot_num; i++)
 		idLayout.push_back(new QGridLayout);
 
+	viewGoalpostCheckBox->setChecked(true);
 	checkLayout->addWidget(reverse);
+	checkLayout->addWidget(viewGoalpostCheckBox);
 	checkLayout->addWidget(loadLogButton);
+
+	logLayout->addWidget(log_step);
+	logLayout->addWidget(log_slider);
+
+	logSpeedButtonLayout->addWidget(log1Button);
+	logSpeedButtonLayout->addWidget(log2Button);
+	logSpeedButtonLayout->addWidget(log5Button);
 
 	pal_state_bgcolor.setColor(QPalette::Window, QColor("#D0D0D0"));
 	pal_red.   setColor(QPalette::Window, QColor("#FF8E8E"));
@@ -97,13 +114,13 @@ void Interface::createWindow(void)
 
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
 	for(int i = 0; i < max_robot_num; i++) {
-		robotState.push_back(new QWidget());
+		robotState.push_back(new ClickWidget());
 		robotState[i]->setAutoFillBackground(true);
 		robotState[i]->setPalette(pal_state_bgcolor);
 		robotState[i]->setFixedWidth(200);
 		idLabel.push_back(new QLabel());
 		idLabel[i]->setNum(i + 1);
-		struct robot robo;
+		Robot robo;
 		robo.name = new QLabel();
 		robo.string = new QLabel();
 		robo.cf_own = new QLabel();
@@ -138,6 +155,8 @@ void Interface::createWindow(void)
 	mainLayout->addLayout(checkLayout, 1, 1, 1, 2);
 	mainLayout->addWidget(image, 2, 1);
 	mainLayout->addLayout(labelLayout, 2, 2);
+	mainLayout->addLayout(logLayout, 3, 1);
+	mainLayout->addLayout(logSpeedButtonLayout, 3, 2);
 
 	window->setLayout(mainLayout);
 	setCentralWidget(window);
@@ -195,7 +214,19 @@ void Interface::connection(void)
 	connect(th[4], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
 	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
+	connect(viewGoalpostCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewGoalpost(int)));
 	connect(loadLogButton, SIGNAL(clicked()), this, SLOT(loadLogFile()));
+	connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
+	connect(robotState[1], SIGNAL(clicked(void)), this, SLOT(selectRobot2(void)));
+	connect(robotState[2], SIGNAL(clicked(void)), this, SLOT(selectRobot3(void)));
+	connect(robotState[3], SIGNAL(clicked(void)), this, SLOT(selectRobot4(void)));
+	connect(robotState[4], SIGNAL(clicked(void)), this, SLOT(selectRobot5(void)));
+	connect(robotState[5], SIGNAL(clicked(void)), this, SLOT(selectRobot6(void)));
+	connect(log1Button, SIGNAL(clicked(void)), this, SLOT(logSpeed1(void)));
+	connect(log2Button, SIGNAL(clicked(void)), this, SLOT(logSpeed2(void)));
+	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
+	connect(log_slider, SIGNAL(sliderPressed(void)), this, SLOT(pausePlayingLog(void)));
+	connect(log_slider, SIGNAL(sliderReleased(void)), this, SLOT(changeLogPosition(void)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -228,7 +259,7 @@ void Interface::decodeData6(struct comm_info_T comm_info)
 	decodeUdp(comm_info, &robot[5], 5);
 }
 
-void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data, int num)
+void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int num)
 {
 	char color_str[100];
 	int color, id;
@@ -285,7 +316,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	positions[num].enable_goal_pole[1] = false;
 	int goal_pole_index = 0;
 	for(int i = 0; i < MAX_COMM_INFO_OBJ; i++) {
-		struct Object obj;
+		Object obj;
 		bool exist = getCommInfoObject(comm_info.object[i], &obj);
 		if(!exist) continue;
 		if(obj.type == NONE) continue;
@@ -306,12 +337,51 @@ void Interface::decodeUdp(struct comm_info_T comm_info, struct robot *robot_data
 	updateMap();
 	/* Voltage */
 	double voltage = (comm_info.voltage << 3) / 100.0;
-	log.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
+	log_writer.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y,
 		(int)positions[num].goal_pole[0].x, (int)positions[num].goal_pole[0].y,
 		(int)positions[num].goal_pole[1].x, (int)positions[num].goal_pole[1].y,
 		(char *)comm_info.command, (int)comm_info.cf_own, (int)comm_info.cf_ball);
+}
+
+void Interface::selectRobot1(void)
+{
+	selectRobot(0);
+}
+
+void Interface::selectRobot2(void)
+{
+	selectRobot(1);
+}
+
+void Interface::selectRobot3(void)
+{
+	selectRobot(2);
+}
+
+void Interface::selectRobot4(void)
+{
+	selectRobot(3);
+}
+
+void Interface::selectRobot5(void)
+{
+	selectRobot(4);
+}
+
+void Interface::selectRobot6(void)
+{
+	selectRobot(5);
+}
+
+void Interface::selectRobot(const int num)
+{
+	select_robot_num = num;
+	time_t timer;
+	timer = time(NULL);
+	last_select_time = *localtime(&timer);
+	updateMap();
 }
 
 Pos Interface::globalPosToImagePos(Pos gpos)
@@ -332,7 +402,7 @@ Pos Interface::globalPosToImagePos(Pos gpos)
 void Interface::setParamFromFile(std::vector<std::string> lines)
 {
 	for(auto line : lines) {
-		struct log_data_t buf;
+		LogData buf;
 		QString qstr = QString(line.c_str());
 		QStringList list = qstr.split(QChar(','));
 
@@ -379,7 +449,7 @@ void Interface::setParamFromFile(std::vector<std::string> lines)
 	setData(log_data[log_count]);
 	QString before = QString(log_data[log_count++].time_str);
 	QString after = QString(log_data[log_count].time_str);
-	int interval = getInterval(before, after);
+	int interval = getInterval(before, after) / log_speed;
 	QTimer::singleShot(interval, this, SLOT(updateLog()));
 }
 
@@ -395,18 +465,38 @@ int Interface::getInterval(QString before, QString after)
 
 void Interface::updateLog(void)
 {
+	if(fPauseLog)
+		return;
 	setData(log_data[log_count]);
 	if(log_count + 1 >= log_data.size()) return;
+	QString step, str_log_count, str_log_total;
+	str_log_count.setNum(log_count+1);
+	str_log_total.setNum(log_data.size());
+	step += str_log_count + " / " + str_log_total;
+	log_slider->setValue(log_count);
+	log_step->setText(step);
 	QString before = QString(log_data[log_count++].time_str);
 	QString after = QString(log_data[log_count].time_str);
-	int interval = getInterval(before, after);
+	int interval = getInterval(before, after) / log_speed;
 	QTimer::singleShot(interval, this, SLOT(updateLog()));
 }
 
-void Interface::setData(struct log_data_t data)
+void Interface::pausePlayingLog(void)
+{
+	fPauseLog = true;
+}
+
+void Interface::changeLogPosition(void)
+{
+	fPauseLog = false;
+	log_count = log_slider->value();
+	updateLog();
+}
+
+void Interface::setData(LogData data)
 {
 	int num = data.id - 1;
-	struct robot *robot_data = &robot[num];
+	Robot *robot_data = &robot[num];
 
 	/* ID and Color */
 	robot_data->name->setText(data.color_str);
@@ -480,6 +570,10 @@ void Interface::updateMap(void)
 	QPainter paint(&map);
 	paint.drawPixmap(logo_pos_x, logo_pos_y, team_logo_map);
 
+	const int elapsed_time = (local_time->tm_min - last_select_time.tm_min) * 60 + (local_time->tm_sec - last_select_time.tm_sec);
+	if(elapsed_time >= 1) {
+		select_robot_num = -1;
+	}
 	/* draw position marker on image */
 	for(int i = 0; i < max_robot_num; i++) {
 		if(positions[i].enable_pos) {
@@ -505,7 +599,7 @@ void Interface::updateMap(void)
 				robot[i].time_bar->setValue(0);
 				continue;
 			}
-			paint.setBrush(Qt::red);
+			//paint.setBrush(Qt::red);
 			/*
 			 * self-position maker color:
 			 *  Attacker: Red
@@ -533,7 +627,19 @@ void Interface::updateMap(void)
 			sprintf(buf, "%d", i + 1);
 			const int font_offset = settings->value("marker/font_offset").toInt();
 			paint.drawText(QPoint(self_x - font_offset, self_y - font_offset), buf);
-			if(positions[i].enable_ball) {
+			if(select_robot_num == i) {
+				QPen pen = paint.pen();
+				const int pen_size = 2;
+				int circle_size;
+				paint.setPen(QPen(QColor(0xff, 0x00, 0x00), pen_size));
+				circle_size = 200;
+				paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
+				paint.setPen(QPen(QColor(0xff, 0x40, 0x40), pen_size));
+				circle_size = 100;
+				paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
+				paint.setPen(pen);
+			}
+			if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
 				if(fReverse) {
@@ -549,19 +655,21 @@ void Interface::updateMap(void)
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 1));
 				paint.drawLine(self_x, self_y, ball_x, ball_y);
 			}
-			for(int j = 0; j < 2; j++) {
-				if(positions[i].enable_goal_pole[j]) {
-					int goal_pole_x = positions[i].goal_pole[j].x;
-					int goal_pole_y = positions[i].goal_pole[j].y;
-					if(fReverse) {
-						goal_pole_x = field_w - goal_pole_x;
-						goal_pole_y = field_h - goal_pole_y;
+			if(fViewGoalpost) {
+				for(int j = 0; j < 2; j++) {
+					if(positions[i].enable_goal_pole[j]) {
+						int goal_pole_x = positions[i].goal_pole[j].x;
+						int goal_pole_y = positions[i].goal_pole[j].y;
+						if(fReverse) {
+							goal_pole_x = field_w - goal_pole_x;
+							goal_pole_y = field_h - goal_pole_y;
+						}
+						const int goal_pole_marker_size = settings->value("marker/goal_pole_size").toInt();
+						paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), goal_pole_marker_size));
+						paint.drawPoint(goal_pole_x, goal_pole_y);
+						paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 1));
+						paint.drawLine(self_x, self_y, goal_pole_x, goal_pole_y);
 					}
-					const int goal_pole_marker_size = settings->value("marker/goal_pole_size").toInt();
-					paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), goal_pole_marker_size));
-					paint.drawPoint(goal_pole_x, goal_pole_y);
-					paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 1));
-					paint.drawLine(self_x, self_y, goal_pole_x, goal_pole_y);
 				}
 			}
 			robot[i].time_bar->setValue(elapsed);
@@ -608,6 +716,16 @@ void Interface::reverseField(int state)
 	updateMap();
 }
 
+void Interface::viewGoalpost(int state)
+{
+	if(state == Qt::Checked) {
+		fViewGoalpost = true;
+	} else {
+		fViewGoalpost = false;
+	}
+	updateMap();
+}
+
 void Interface::loadLogFile(void)
 {
 	QString fileName = QFileDialog::getOpenFileName(this, "log file", "./log", "*.log");
@@ -622,5 +740,21 @@ void Interface::loadLogFile(void)
 		lines.push_back(line);
 	}
 	setParamFromFile(lines);
+	log_slider->setMaximum(lines.size()-1);
+}
+
+void Interface::logSpeed1(void)
+{
+	log_speed = 1;
+}
+
+void Interface::logSpeed2(void)
+{
+	log_speed = 2;
+}
+
+void Interface::logSpeed5(void)
+{
+	log_speed = 5;
 }
 

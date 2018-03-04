@@ -1,7 +1,11 @@
-
 #include <cmath>
 
 #include "udp_thread.h"
+
+inline static double radian(double degree)
+{
+	return degree * M_PI / 180.0;
+}
 
 UdpServer::UdpServer(int port_num)
 {
@@ -20,7 +24,7 @@ void UdpServer::readPendingDatagrams(void)
 		udpSocket->readDatagram(datagrams.data(), datagrams.size(), &sender, &senderPort);
 		char *buf = datagrams.data();
 		char *p = (char *)&comm_info;
-		for(size_t i = 0; (i < datagrams.size()) && (i < sizeof(struct comm_info_T)); i++) {
+		for(size_t i = 0; (i < (unsigned)datagrams.size()) && (i < sizeof(struct comm_info_T)); i++) {
 			*p++ = buf[i];
 		}
 		emit receiveData(comm_info);
@@ -44,8 +48,8 @@ bool getCommInfoObject(unsigned char *data, Object *obj)
 		int y = ((data[1] & 0x03) << 8) + data[2];
 		if((y & 0x0200) != 0) y = -(0x0400 - y);
 		y *= 10;
-		int theta = (data[3] * 2) - 180;
-		float th = (float)(theta * M_PI / 180.0);
+		const int theta = (data[3] * 2) - 180;
+		const float th = (float)radian(theta);
 		bool is_our_side = ((data[0] & COMM_OUR_SIDE) != 0) ? true : false;
 		bool is_opposite_side = ((data[0] & COMM_OPPOSITE_SIDE) != 0) ? true : false;
 		if(is_our_side && is_opposite_side) obj->type = BALL;

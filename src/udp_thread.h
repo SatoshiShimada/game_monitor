@@ -1,4 +1,3 @@
-
 #ifndef _UDP_THREAD_H_
 #define _UDP_THREAD_H_
 
@@ -46,9 +45,9 @@ class UdpServer : public QObject
 {
 	Q_OBJECT
 public:
-	UdpServer(int port_num);
+	UdpServer(int);
 	~UdpServer();
-protected:
+private:
 	struct comm_info_T comm_info;
 	QUdpSocket *udpSocket;
 private slots:
@@ -57,7 +56,7 @@ signals:
 	void receiveData(struct comm_info_T);
 };
 
-bool getCommInfoObject(unsigned char *data, struct Object *);
+bool getCommInfoObject(unsigned char *, Object *);
 
 #endif // _UDP_THREAD_H_
 
