@@ -29,8 +29,8 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 {
 	m_camera.reset(new QCamera(cameraInfo));
 
-	//connect(m_camera.data(), &QCamera::stateChanged, this, &Camera::updateCameraState);
-	//connect(m_camera.data(), QOverload<QCamera::Error>::of(&QCamera::error), this, &Camera::displayCameraError);
+	//connect(m_camera.data(), &Capture::stateChanged, this, &Capture::updateCameraState);
+	connect(m_camera.data(), QOverload<QCamera::Error>::of(&QCamera::error), this, &Capture::displayCameraError);
 
 	m_mediaRecorder.reset(new QMediaRecorder(m_camera.data()));
 	//connect(m_mediaRecorder.data(), &QMediaRecorder::stateChanged, this, &Camera::updateRecorderState);
@@ -38,7 +38,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 	m_imageCapture.reset(new QCameraImageCapture(m_camera.data()));
 
 	//connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
-	//connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error), this, &Camera::displayRecorderError);
+	connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error), this, &Capture::displayRecorderError);
 
 	m_mediaRecorder->setMetaData(QMediaMetaData::Title, QVariant(QLatin1String("Test Title")));
 
@@ -53,7 +53,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 	//connect(m_imageCapture.data(), &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
 	//connect(m_imageCapture.data(), &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
 	connect(m_imageCapture.data(), &QCameraImageCapture::imageSaved, this, &Capture::imageSaved);
-	//connect(m_imageCapture.data(), QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error), this, &Camera::displayCaptureError);
+	connect(m_imageCapture.data(), QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error), this, &Capture::displayCaptureError);
 
 	//connect(m_camera.data(), QOverload<QCamera::LockStatus, QCamera::LockChangeReason>::of(&QCamera::lockStatusChanged), this, &Camera::updateLockStatus);
 
@@ -116,6 +116,24 @@ void Capture::stop()
 
 void Capture::setFilename(QString filename)
 {
-	m_mediaRecorder->setOutputLocation(QUrl::fromLocalFile(filename));
+	QDir name(filename);
+	m_mediaRecorder->setOutputLocation(QUrl(name.absolutePath()));
+}
+
+void Capture::displayCaptureError(int id, const QCameraImageCapture::Error error, const QString &errorString)
+{
+	Q_UNUSED(id);
+	Q_UNUSED(error);
+	QMessageBox::warning(this, tr("Image Capture Error"), errorString);
+}
+
+void Capture::displayCameraError(void)
+{
+	QMessageBox::warning(this, tr("Camera Error"), m_camera->errorString());
+}
+
+void Capture::displayRecorderError(void)
+{
+	QMessageBox::warning(this, tr("Capture Error"), m_mediaRecorder->errorString());
 }
 
