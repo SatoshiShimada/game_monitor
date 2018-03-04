@@ -37,7 +37,7 @@ QMAKE='qmake'
 echo $($QMAKE --version)
 $QMAKE -project -o $PROJECT
 echo 'QMAKE_CXXFLAGS += --std=c++11' >> $PROJECT
-echo 'QT += network widgets' >> $PROJECT
+echo 'QT += network widgets multimedia multimediawidgets' >> $PROJECT
 
 if [ ! -d build ]; then
 	mkdir build
@@ -53,5 +53,8 @@ make all -j8
 
 if [ ! -d log ]; then
 	mkdir log
+fi
+if [ ! -d videos ]; then
+	mkdir videos
 fi
 

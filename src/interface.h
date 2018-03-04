@@ -29,6 +29,7 @@
 #include "udp_thread.h"
 #include "log_writer.h"
 #include "pos_types.h"
+#include "capture.h"
 
 class PositionMarker {
 public:
@@ -94,12 +95,15 @@ class Interface : public QMainWindow
 	Q_OBJECT
 
 private:
+	Capture *capture;
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
+	QMenu *videoMenu;
 	QCheckBox *reverse;
 	QCheckBox *viewGoalpostCheckBox;
 	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
+	QPushButton *recordButton;
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
@@ -130,6 +134,7 @@ private:
 	bool fReverse;
 	bool fViewGoalpost;
 	bool fPauseLog;
+	bool fRecording;
 	int updateMapTimerId;
 	unsigned int log_count;
 	const int max_robot_num;
@@ -147,6 +152,7 @@ private:
 	void setData(LogData);
 	QColor getColor(const char *);
 	void selectRobot(int);
+	void createMenus(void);
 
 public:
 	Interface();
@@ -180,6 +186,7 @@ private slots:
 	void logSpeed5(void);
 	void pausePlayingLog(void);
 	void changeLogPosition(void);
+	void captureButtonSlot(void);
 };
 
 #endif // _INTERFACE_H_

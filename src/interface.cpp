@@ -1,20 +1,28 @@
 #include <QtGui>
+#include <QCameraInfo>
+#include <QMediaMetaData>
 #include <iostream>
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <cstring>
+#include <ctime>
 
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
+Q_DECLARE_METATYPE(QCameraInfo)
+
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
 	log_writer.setEnable();
 	positions = std::vector<PositionMarker>(max_robot_num);
+
+	capture = new Capture;
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
@@ -31,6 +39,7 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 		th.push_back(new UdpServer(base_udp_port + i));
 
 	createWindow();
+	createMenus();
 	connection();
 
 	updateMapTimerId = startTimer(1000); /* timer by 1000msec */
@@ -43,6 +52,28 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 
 Interface::~Interface()
 {
+	if(fRecording)
+		capture->stop();
+}
+
+void Interface::createMenus(void)
+{
+	videoMenu = menuBar()->addMenu(tr("&Cameras"));
+
+	QList<QCameraInfo> availableCameras = capture->getCameras();
+	QActionGroup *videoDevicesGroup = new QActionGroup(this);
+	videoDevicesGroup->setExclusive(true);
+	QAction *noVideoDeviceAction = new QAction(tr("&No Camera"), videoDevicesGroup);
+	videoMenu->addAction(noVideoDeviceAction);
+	videoMenu->addSeparator();
+	for (const QCameraInfo &cameraInfo : availableCameras) {
+		QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
+		videoDeviceAction->setCheckable(true);
+		videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
+		if (cameraInfo == QCameraInfo::defaultCamera())
+			videoDeviceAction->setChecked(true);
+		videoMenu->addAction(videoDeviceAction);
+	}
 }
 
 void Interface::initializeConfig(void)
@@ -85,6 +116,7 @@ void Interface::createWindow(void)
 	log1Button  = new QPushButton("x1");
 	log2Button  = new QPushButton("x2");
 	log5Button  = new QPushButton("x5");
+	recordButton = new QPushButton("record");
 	mainLayout  = new QGridLayout;
 	checkLayout = new QHBoxLayout;
 	logLayout   = new QHBoxLayout;
@@ -97,6 +129,7 @@ void Interface::createWindow(void)
 	checkLayout->addWidget(reverse);
 	checkLayout->addWidget(viewGoalpostCheckBox);
 	checkLayout->addWidget(loadLogButton);
+	checkLayout->addWidget(recordButton);
 
 	logLayout->addWidget(log_step);
 	logLayout->addWidget(log_slider);
@@ -227,6 +260,7 @@ void Interface::connection(void)
 	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
 	connect(log_slider, SIGNAL(sliderPressed(void)), this, SLOT(pausePlayingLog(void)));
 	connect(log_slider, SIGNAL(sliderReleased(void)), this, SLOT(changeLogPosition(void)));
+	connect(recordButton, SIGNAL(clicked(void)), this, SLOT(captureButtonSlot(void)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -756,5 +790,27 @@ void Interface::logSpeed2(void)
 void Interface::logSpeed5(void)
 {
 	log_speed = 5;
+}
+
+void Interface::captureButtonSlot(void)
+{
+	if(fRecording) {
+		fRecording = false;
+		log_writer.stopRecord();
+		capture->stop();
+	} else {
+		fRecording = true;
+		time_t timer;
+		struct tm *local_time;
+		char filename[1024];
+		const char *video_output_path = "videos/";
+
+		timer = time(NULL);
+		local_time = localtime(&timer);
+		sprintf(filename, "%s%d-%d-%d-%d-%d.mov", video_output_path, local_time->tm_year+1900, local_time->tm_mon+1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min);
+		capture->setFilename(QString(filename));
+		log_writer.startRecord(filename);
+		capture->record();
+	}
 }
 
