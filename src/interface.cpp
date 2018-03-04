@@ -9,7 +9,7 @@
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
+Interface::Interface(): fLogging(true), fReverse(false), fRecording(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -41,12 +41,12 @@ Interface::Interface(): fLogging(true), fReverse(false), max_robot_num(6), log_s
 	this->setWindowTitle("Humanoid League Game Monitor");
 	capture = new Capture;
 	capture->setFilename(QString("out.mov"));
-	capture->record();
 }
 
 Interface::~Interface()
 {
-	capture->stop();
+	if(fRecording)
+		capture->stop();
 }
 
 void Interface::initializeConfig(void)
@@ -88,6 +88,7 @@ void Interface::createWindow(void)
 	log1Button  = new QPushButton("x1");
 	log2Button  = new QPushButton("x2");
 	log5Button  = new QPushButton("x5");
+	recordButton = new QPushButton("record");
 	mainLayout  = new QGridLayout;
 	checkLayout = new QHBoxLayout;
 	logLayout   = new QHBoxLayout;
@@ -98,6 +99,7 @@ void Interface::createWindow(void)
 
 	checkLayout->addWidget(reverse);
 	checkLayout->addWidget(loadLogButton);
+	checkLayout->addWidget(recordButton);
 
 	logLayout->addWidget(log_step);
 	logLayout->addWidget(log_slider);
@@ -225,6 +227,7 @@ void Interface::connection(void)
 	connect(log1Button, SIGNAL(clicked(void)), this, SLOT(logSpeed1(void)));
 	connect(log2Button, SIGNAL(clicked(void)), this, SLOT(logSpeed2(void)));
 	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
+	connect(recordButton, SIGNAL(clicked(void)), this, SLOT(captureButtonSlot(void)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -728,5 +731,16 @@ void Interface::logSpeed2(void)
 void Interface::logSpeed5(void)
 {
 	log_speed = 5;
+}
+
+void Interface::captureButtonSlot(void)
+{
+	if(fRecording) {
+		fRecording = false;
+		capture->stop();
+	} else {
+		fRecording = true;
+		capture->record();
+	}
 }
 

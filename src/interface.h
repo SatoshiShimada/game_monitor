@@ -101,6 +101,7 @@ private:
 	QCheckBox *reverse;
 	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
+	QPushButton *recordButton;
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
@@ -129,6 +130,7 @@ private:
 	std::vector<LogData> log_data;
 	bool fLogging;
 	bool fReverse;
+	bool fRecording;
 	int updateMapTimerId;
 	unsigned int log_count;
 	const int max_robot_num;
@@ -176,6 +178,7 @@ private slots:
 	void logSpeed1(void);
 	void logSpeed2(void);
 	void logSpeed5(void);
+	void captureButtonSlot(void);
 };
 
 #endif // _INTERFACE_H_
