@@ -72,7 +72,7 @@ void Capture::updateCameraDevice(QAction *action)
 void Capture::updateCaptureMode()
 {
 	QCamera::CaptureModes captureMode = QCamera::CaptureVideo;
-	if(m_camera->isCaptureModeSupported(captureMode));
+	if(m_camera->isCaptureModeSupported(captureMode))
 		m_camera->setCaptureMode(captureMode);
 }
 
@@ -84,6 +84,7 @@ void Capture::setExposureCompensation(int index)
 void Capture::imageSaved(int id, const QString &fileName)
 {
 	Q_UNUSED(id);
+	Q_UNUSED(fileName);
 	m_isCaptureingImage = false;
 	if(m_applicationExiting)
 		close();

@@ -18,8 +18,9 @@ public:
 	~Capture();
 	void setFilename(QString);
 	QList<QCameraInfo> getCameras(void);
-private slots:
+public slots:
 	void setCamera(const QCameraInfo &);
+private slots:
 	void startCamera();
 	void stopCamera();
 	void updateCameraDevice(QAction *);

@@ -181,6 +181,7 @@ private slots:
 	void logSpeed2(void);
 	void logSpeed5(void);
 	void captureButtonSlot(void);
+	void updateCameraDevice(QAction *);
 };
 
 #endif // _INTERFACE_H_
