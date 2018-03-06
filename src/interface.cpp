@@ -121,7 +121,7 @@ void Interface::createWindow(void)
 	log1Button  = new QPushButton("x1");
 	log2Button  = new QPushButton("x2");
 	log5Button  = new QPushButton("x5");
-	recordButton = new QPushButton("record");
+	recordButton = new QPushButton("Record");
 	mainLayout  = new QGridLayout;
 	checkLayout = new QHBoxLayout;
 	logLayout   = new QHBoxLayout;
@@ -267,6 +267,7 @@ void Interface::connection(void)
 	connect(log_slider, SIGNAL(sliderReleased(void)), this, SLOT(changeLogPosition(void)));
 	connect(recordButton, SIGNAL(clicked(void)), this, SLOT(captureButtonSlot(void)));
 	connect(capture, SIGNAL(updateRecordTimeSignal(QString)), this, SLOT(showRecordTime(QString)));
+	connect(capture, SIGNAL(updateRecordButtonMessage(QString)), this, SLOT(setRecordButtonText(QString)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -828,5 +829,10 @@ void Interface::updateCameraDevice(QAction *action)
 void Interface::showRecordTime(QString message)
 {
 	statusBar->showMessage(message);
+}
+
+void Interface::setRecordButtonText(QString text)
+{
+	recordButton->setText(text);
 }
 

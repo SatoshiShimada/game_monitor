@@ -190,6 +190,7 @@ private slots:
 	void captureButtonSlot(void);
 	void updateCameraDevice(QAction *);
 	void showRecordTime(QString);
+	void setRecordButtonText(QString);
 };
 
 #endif // _INTERFACE_H_

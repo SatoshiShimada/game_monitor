@@ -30,7 +30,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 	//connect(m_camera.data(), QOverload<QCamera::Error>::of(&QCamera::error), this, &Capture::displayCameraError);
 
 	m_mediaRecorder.reset(new QMediaRecorder(m_camera.data()));
-	//connect(m_mediaRecorder.data(), &QMediaRecorder::stateChanged, this, &Camera::updateRecorderState);
+	connect(m_mediaRecorder.data(), &QMediaRecorder::stateChanged, this, &Capture::updateRecorderState);
 
 	m_imageCapture.reset(new QCameraImageCapture(m_camera.data()));
 
@@ -43,9 +43,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 	viewfinder->hide();
 	m_camera->setViewfinder(viewfinder);
 
-	//updateCameraState(m_camera->state());
-	//updateLockStatus(m_camera->lockStatus(), QCamera::UserRequest);
-	//updateRecorderState(m_mediaRecorder->state());
+	updateRecorderState(m_mediaRecorder->state());
 
 	//connect(m_imageCapture.data(), &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
 	//connect(m_imageCapture.data(), &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
@@ -141,5 +139,19 @@ void Capture::updateRecordTime(void)
 {
 	QString str = QString("Record %1 sec").arg(m_mediaRecorder->duration() / 1000);
 	emit updateRecordTimeSignal(str);
+}
+
+void Capture::updateRecorderState(QMediaRecorder::State state)
+{
+	switch(state) {
+	case QMediaRecorder::StoppedState:
+		emit updateRecordButtonMessage(QString("Record"));
+		break;
+	case QMediaRecorder::PausedState:
+		break;
+	case QMediaRecorder::RecordingState:
+		emit updateRecordButtonMessage(QString("Stop record"));
+		break;
+	}
 }
 
