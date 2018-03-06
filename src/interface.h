@@ -99,6 +99,7 @@ private:
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
 	QMenu *videoMenu;
+	QStatusBar *statusBar;
 	QCheckBox *reverse;
 	QCheckBox *viewGoalpostCheckBox;
 	QPushButton *loadLogButton;

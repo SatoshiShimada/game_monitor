@@ -24,6 +24,10 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 
 	capture = new Capture;
 
+	statusBar = new QStatusBar;
+	statusBar->showMessage(QString("GameMonitor: Ready"));
+	setStatusBar(statusBar);
+
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
 	const int fw = settings->value("field_image/width").toInt();
