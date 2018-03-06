@@ -75,7 +75,7 @@ void Interface::createMenus(void)
 			videoDeviceAction->setChecked(true);
 		videoMenu->addAction(videoDeviceAction);
 	}
-	connect(videoDevicesGroup, SIGNAL(QActionGroup::triggerd()), this, SLOT(Interface::updateCameraDevice()));
+	connect(videoDevicesGroup, SIGNAL(triggered(QAction *)), this, SLOT(updateCameraDevice(QAction *)));
 }
 
 void Interface::initializeConfig(void)
