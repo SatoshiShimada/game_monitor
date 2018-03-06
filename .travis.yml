@@ -9,11 +9,10 @@ matrix:
     addons:
       apt:
         packages:
-          - qt5-default
-          - qt5-qmake
-          - qtbase5-dev-tools
-          - qtmultimedia5-dev
-          - qtmobility-dev
+          - build-essential
+          - libofontconfig1
+          - mesa-common-dev
+          - libglu1-mesa-dev
   - env: QT_VERSION=qt5
     os: linux
     compiler: clang
@@ -41,4 +40,6 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt@5.5; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force qt@5.5; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget http://download.qt.io/officia_releases/qt/5.7/5.7.0/qt-opensource-linux-x64-5.7.0.run; chmod +x qt-opensource-linux-x64-5.7.0.run; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./qt-opensource-linux-x64-5.7.0.run; fi
 script: ./qt_make.sh
