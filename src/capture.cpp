@@ -32,8 +32,6 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 	m_mediaRecorder.reset(new QMediaRecorder(m_camera.data()));
 	connect(m_mediaRecorder.data(), &QMediaRecorder::stateChanged, this, &Capture::updateRecorderState);
 
-	m_imageCapture.reset(new QCameraImageCapture(m_camera.data()));
-
 	connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Capture::updateRecordTime);
 	//connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error), this, &Capture::displayRecorderError);
 
@@ -45,15 +43,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 
 	updateRecorderState(m_mediaRecorder->state());
 
-	//connect(m_imageCapture.data(), &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
-	//connect(m_imageCapture.data(), &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
-	connect(m_imageCapture.data(), &QCameraImageCapture::imageSaved, this, &Capture::imageSaved);
-	//connect(m_imageCapture.data(), QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error), this, &Capture::displayCaptureError);
-
 	//connect(m_camera.data(), QOverload<QCamera::LockStatus, QCamera::LockChangeReason>::of(&QCamera::lockStatusChanged), this, &Camera::updateLockStatus);
-
-	//ui->captureWidget->setTabEnabled(0, (m_camera->isCaptureModeSupported(QCamera::CaptureStillImage)));
-	//ui->captureWidget->setTabEnabled(1, (m_camera->isCaptureModeSupported(QCamera::CaptureVideo)));
 
 	updateCaptureMode();
 	m_camera->start();
@@ -74,15 +64,6 @@ void Capture::updateCaptureMode()
 void Capture::setExposureCompensation(int index)
 {
 	m_camera->exposure()->setExposureCompensation(index * 0.5);
-}
-
-void Capture::imageSaved(int id, const QString &fileName)
-{
-	Q_UNUSED(id);
-	Q_UNUSED(fileName);
-	m_isCaptureingImage = false;
-	if(m_applicationExiting)
-		close();
 }
 
 void Capture::startCamera()
@@ -116,13 +97,6 @@ void Capture::setFilename(QString filename)
 {
 	QDir name(filename);
 	m_mediaRecorder->setOutputLocation(QUrl(name.absolutePath()));
-}
-
-void Capture::displayCaptureError(int id, const QCameraImageCapture::Error error, const QString &errorString)
-{
-	Q_UNUSED(id);
-	Q_UNUSED(error);
-	QMessageBox::warning(this, tr("Image Capture Error"), errorString);
 }
 
 void Capture::displayCameraError(void)

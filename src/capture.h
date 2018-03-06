@@ -27,7 +27,6 @@ private slots:
 	void updateCameraDevice(QAction *);
 	void updateCaptureMode();
 	void setExposureCompensation(int);
-	void imageSaved(int, const QString &);
 	void updateRecordTime(void);
 	void updateRecorderState(QMediaRecorder::State);
 public slots:
@@ -36,14 +35,12 @@ public slots:
 	void stop();
 	void displayRecorderError(void);
 	void displayCameraError(void);
-	void displayCaptureError(int id, const QCameraImageCapture::Error error, const QString &errorString);
 signals:
 	void updateRecordTimeSignal(QString);
 	void updateRecordButtonMessage(QString);
 private:
 	QList<QCameraInfo> availableCameras;
 	QScopedPointer<QCamera> m_camera;
-	QScopedPointer<QCameraImageCapture> m_imageCapture;
 	QScopedPointer<QMediaRecorder> m_mediaRecorder;
 	QCameraViewfinder *viewfinder;
 	QImageEncoderSettings m_imageSettings;
