@@ -30,7 +30,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 	m_camera.reset(new QCamera(cameraInfo));
 
 	//connect(m_camera.data(), &Capture::stateChanged, this, &Capture::updateCameraState);
-	connect(m_camera.data(), QOverload<QCamera::Error>::of(&QCamera::error), this, &Capture::displayCameraError);
+	//connect(m_camera.data(), QOverload<QCamera::Error>::of(&QCamera::error), this, &Capture::displayCameraError);
 
 	m_mediaRecorder.reset(new QMediaRecorder(m_camera.data()));
 	//connect(m_mediaRecorder.data(), &QMediaRecorder::stateChanged, this, &Camera::updateRecorderState);
@@ -38,7 +38,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 	m_imageCapture.reset(new QCameraImageCapture(m_camera.data()));
 
 	//connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
-	connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error), this, &Capture::displayRecorderError);
+	//connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error), this, &Capture::displayRecorderError);
 
 	m_mediaRecorder->setMetaData(QMediaMetaData::Title, QVariant(QLatin1String("Test Title")));
 
@@ -53,7 +53,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 	//connect(m_imageCapture.data(), &QCameraImageCapture::readyForCaptureChanged, this, &Camera::readyForCapture);
 	//connect(m_imageCapture.data(), &QCameraImageCapture::imageCaptured, this, &Camera::processCapturedImage);
 	connect(m_imageCapture.data(), &QCameraImageCapture::imageSaved, this, &Capture::imageSaved);
-	connect(m_imageCapture.data(), QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error), this, &Capture::displayCaptureError);
+	//connect(m_imageCapture.data(), QOverload<int, QCameraImageCapture::Error, const QString &>::of(&QCameraImageCapture::error), this, &Capture::displayCaptureError);
 
 	//connect(m_camera.data(), QOverload<QCamera::LockStatus, QCamera::LockChangeReason>::of(&QCamera::lockStatusChanged), this, &Camera::updateLockStatus);
 
