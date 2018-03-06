@@ -187,6 +187,7 @@ private slots:
 	void pausePlayingLog(void);
 	void changeLogPosition(void);
 	void captureButtonSlot(void);
+	void updateCameraDevice(QAction *);
 };
 
 #endif // _INTERFACE_H_

@@ -74,6 +74,7 @@ void Interface::createMenus(void)
 			videoDeviceAction->setChecked(true);
 		videoMenu->addAction(videoDeviceAction);
 	}
+	connect(videoDevicesGroup, SIGNAL(triggered(QAction *)), this, SLOT(updateCameraDevice(QAction *)));
 }
 
 void Interface::initializeConfig(void)
@@ -812,5 +813,10 @@ void Interface::captureButtonSlot(void)
 		log_writer.startRecord(filename);
 		capture->record();
 	}
+}
+
+void Interface::updateCameraDevice(QAction *action)
+{
+	capture->setCamera(qvariant_cast<QCameraInfo>(action->data()));
 }
 
