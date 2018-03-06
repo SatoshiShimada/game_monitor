@@ -11,6 +11,7 @@ public:
 	int separate(void);
 	void setEnable(bool = true);
 private:
+	void openFileCurrentTime(void);
 	void openFile(char *);
 	void closeFile(void);
 	FILE *fp;
