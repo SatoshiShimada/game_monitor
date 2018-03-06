@@ -11,8 +11,6 @@ Q_DECLARE_METATYPE(QCameraInfo)
 Capture::Capture() : m_isCaptureingImage(false), m_applicationExiting(false)
 {
 	availableCameras = QCameraInfo::availableCameras();
-	//connect(videoDevicesGroup, &QActionGroup::triggered, this, &Capture::updateCameraDevice);
-	//connect(ui->captureWidget, &QTabWidget::currentChanged, this, &Camera::updateCaptureMode);
 	setCamera(QCameraInfo::defaultCamera());
 }
 
@@ -29,7 +27,6 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 {
 	m_camera.reset(new QCamera(cameraInfo));
 
-	//connect(m_camera.data(), &Capture::stateChanged, this, &Capture::updateCameraState);
 	//connect(m_camera.data(), QOverload<QCamera::Error>::of(&QCamera::error), this, &Capture::displayCameraError);
 
 	m_mediaRecorder.reset(new QMediaRecorder(m_camera.data()));
@@ -42,9 +39,9 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 
 	m_mediaRecorder->setMetaData(QMediaMetaData::Title, QVariant(QLatin1String("Test Title")));
 
-	//connect(ui->exposureCompensation, &QAbstractSlider::valueChanged, this, &Camera::setExposureCompensation);
-
-	//m_camera->setViewfinder(ui->viewfinder);
+	viewfinder = new QCameraViewfinder;
+	viewfinder->hide();
+	m_camera->setViewfinder(viewfinder);
 
 	//updateCameraState(m_camera->state());
 	//updateLockStatus(m_camera->lockStatus(), QCamera::UserRequest);
@@ -103,6 +100,7 @@ void Capture::stopCamera()
 void Capture::record()
 {
 	m_mediaRecorder->record();
+	viewfinder->show();
 }
 
 void Capture::pause()
@@ -113,6 +111,7 @@ void Capture::pause()
 void Capture::stop()
 {
 	m_mediaRecorder->stop();
+	viewfinder->hide();
 }
 
 void Capture::setFilename(QString filename)

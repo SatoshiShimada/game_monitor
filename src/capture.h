@@ -3,6 +3,7 @@
 
 #include <QCamera>
 #include <QCameraImageCapture>
+#include <QCameraViewfinder>
 #include <QMediaRecorder>
 #include <QScopedPointer>
 
@@ -42,7 +43,7 @@ private:
 	QScopedPointer<QCamera> m_camera;
 	QScopedPointer<QCameraImageCapture> m_imageCapture;
 	QScopedPointer<QMediaRecorder> m_mediaRecorder;
-
+	QCameraViewfinder *viewfinder;
 	QImageEncoderSettings m_imageSettings;
 	QAudioEncoderSettings m_audioSettings;
 	QVideoEncoderSettings m_videoSettings;
