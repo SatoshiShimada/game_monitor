@@ -54,7 +54,7 @@ void Capture::updateCameraDevice(QAction *action)
 	setCamera(qvariant_cast<QCameraInfo>(action->data()));
 }
 
-void Capture::updateCaptureMode()
+void Capture::updateCaptureMode(void)
 {
 	QCamera::CaptureModes captureMode = QCamera::CaptureVideo;
 	if(m_camera->isCaptureModeSupported(captureMode))
@@ -66,28 +66,28 @@ void Capture::setExposureCompensation(int index)
 	m_camera->exposure()->setExposureCompensation(index * 0.5);
 }
 
-void Capture::startCamera()
+void Capture::startCamera(void)
 {
 	m_camera->start();
 }
 
-void Capture::stopCamera()
+void Capture::stopCamera(void)
 {
 	m_camera->stop();
 }
 
-void Capture::record()
+void Capture::record(void)
 {
 	m_mediaRecorder->record();
 	viewfinder->show();
 }
 
-void Capture::pause()
+void Capture::pause(void)
 {
 	m_mediaRecorder->pause();
 }
 
-void Capture::stop()
+void Capture::stop(void)
 {
 	m_mediaRecorder->stop();
 	viewfinder->hide();

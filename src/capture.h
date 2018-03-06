@@ -22,17 +22,17 @@ public:
 public slots:
 	void setCamera(const QCameraInfo &);
 private slots:
-	void startCamera();
-	void stopCamera();
+	void startCamera(void);
+	void stopCamera(void);
 	void updateCameraDevice(QAction *);
-	void updateCaptureMode();
+	void updateCaptureMode(void);
 	void setExposureCompensation(int);
 	void updateRecordTime(void);
 	void updateRecorderState(QMediaRecorder::State);
 public slots:
-	void record();
-	void pause();
-	void stop();
+	void record(void);
+	void pause(void);
+	void stop(void);
 	void displayRecorderError(void);
 	void displayCameraError(void);
 signals:
