@@ -31,6 +31,9 @@ public slots:
 	void record();
 	void pause();
 	void stop();
+	void displayRecorderError(void);
+	void displayCameraError(void);
+	void displayCaptureError(int id, const QCameraImageCapture::Error error, const QString &errorString);
 private:
 	QList<QCameraInfo> availableCameras;
 	QScopedPointer<QCamera> m_camera;

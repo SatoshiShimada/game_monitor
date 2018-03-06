@@ -23,7 +23,6 @@ Interface::Interface(): fLogging(true), fReverse(false), fRecording(false), max_
 	positions = std::vector<PositionMarker>(max_robot_num);
 
 	capture = new Capture;
-	capture->setFilename(QString("out.mov"));
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
