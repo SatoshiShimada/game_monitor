@@ -27,6 +27,7 @@ private slots:
 	void updateCaptureMode();
 	void setExposureCompensation(int);
 	void imageSaved(int, const QString &);
+	void updateRecordTime(void);
 public slots:
 	void record();
 	void pause();
@@ -34,6 +35,8 @@ public slots:
 	void displayRecorderError(void);
 	void displayCameraError(void);
 	void displayCaptureError(int id, const QCameraImageCapture::Error error, const QString &errorString);
+signals:
+	void updateRecordTimeSignal(QString);
 private:
 	QList<QCameraInfo> availableCameras;
 	QScopedPointer<QCamera> m_camera;

@@ -266,6 +266,7 @@ void Interface::connection(void)
 	connect(log_slider, SIGNAL(sliderPressed(void)), this, SLOT(pausePlayingLog(void)));
 	connect(log_slider, SIGNAL(sliderReleased(void)), this, SLOT(changeLogPosition(void)));
 	connect(recordButton, SIGNAL(clicked(void)), this, SLOT(captureButtonSlot(void)));
+	connect(capture, SIGNAL(updateRecordTimeSignal(QString)), this, SLOT(showRecordTime(QString)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -822,5 +823,10 @@ void Interface::captureButtonSlot(void)
 void Interface::updateCameraDevice(QAction *action)
 {
 	capture->setCamera(qvariant_cast<QCameraInfo>(action->data()));
+}
+
+void Interface::showRecordTime(QString message)
+{
+	statusBar->showMessage(message);
 }
 

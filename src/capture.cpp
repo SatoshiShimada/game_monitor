@@ -37,7 +37,7 @@ void Capture::setCamera(const QCameraInfo &cameraInfo)
 
 	m_imageCapture.reset(new QCameraImageCapture(m_camera.data()));
 
-	//connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Camera::updateRecordTime);
+	connect(m_mediaRecorder.data(), &QMediaRecorder::durationChanged, this, &Capture::updateRecordTime);
 	//connect(m_mediaRecorder.data(), QOverload<QMediaRecorder::Error>::of(&QMediaRecorder::error), this, &Capture::displayRecorderError);
 
 	m_mediaRecorder->setMetaData(QMediaMetaData::Title, QVariant(QLatin1String("Test Title")));
@@ -136,5 +136,11 @@ void Capture::displayCameraError(void)
 void Capture::displayRecorderError(void)
 {
 	QMessageBox::warning(this, tr("Capture Error"), m_mediaRecorder->errorString());
+}
+
+void Capture::updateRecordTime(void)
+{
+	QString str = QString("Record %1 sec").arg(m_mediaRecorder->duration() / 1000);
+	emit updateRecordTimeSignal(str);
 }
 
