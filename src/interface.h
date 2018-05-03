@@ -32,7 +32,8 @@
 
 class PositionMarker {
 public:
-	PositionMarker() : enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
+	PositionMarker() : colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
+	int colornum;
 	bool enable_pos;
 	bool enable_ball;
 	bool enable_goal_pole[2];
