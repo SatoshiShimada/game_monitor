@@ -322,6 +322,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	/* Self-position confidence */
 	robot_data->cf_own->setNum(comm_info.cf_own);
 	robot_data->cf_own_bar->setValue(comm_info.cf_own);
+	positions[num].self_conf = comm_info.cf_own;
 	/* Ball position confidence */
 	robot_data->cf_ball->setNum(comm_info.cf_ball);
 	robot_data->cf_ball_bar->setValue(comm_info.cf_ball);
@@ -370,9 +371,10 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 			positions[num].enable_ball = true;
 		}
 		if(obj.type == GOAL_POLE) {
-			if(goal_pole_index + 1 > 2) continue;
-			positions[num].goal_pole[goal_pole_index++] = globalPosToImagePos(obj.pos);
+			if(goal_pole_index >= 2) continue;
+			positions[num].goal_pole[goal_pole_index] = globalPosToImagePos(obj.pos);
 			positions[num].enable_goal_pole[goal_pole_index] = true;
+			goal_pole_index++;
 		}
 	}
 	updateMap();
@@ -616,6 +618,22 @@ void Interface::updateMap(void)
 		select_robot_num = -1;
 	}
 	/* draw position marker on image */
+	for(int i = 0; i < max_robot_num; i++) {
+		if(positions[i].enable_pos) {
+			int self_x = positions[i].pos.x;
+			int self_y = positions[i].pos.y;
+			double theta = positions[i].pos.th;
+			if(fReverse) {
+				self_x = field_w - self_x;
+				self_y = field_h - self_y;
+				theta = theta + M_PI;
+			}
+			paint.setPen(QPen(QColor(0xff, 0x00, 0x00), 2));
+			int circle_size = 2 * (100 - positions[i].self_conf);
+			paint.setBrush(Qt::lightGray);
+			paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
+		}
+	}
 	for(int i = 0; i < max_robot_num; i++) {
 		if(positions[i].enable_pos) {
 			int self_x = positions[i].pos.x;
