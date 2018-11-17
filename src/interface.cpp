@@ -593,6 +593,7 @@ void Interface::setData(LogData data)
 	positions[num].goal_pole[0].y = data.goal_pole_y1;
 	positions[num].goal_pole[1].x = data.goal_pole_x2;
 	positions[num].goal_pole[1].y = data.goal_pole_y2;
+	positions[num].self_conf = data.cf_own;
 
 	updateMap();
 }
@@ -628,9 +629,15 @@ void Interface::updateMap(void)
 				self_y = field_h - self_y;
 				theta = theta + M_PI;
 			}
-			paint.setPen(QPen(QColor(0xff, 0x00, 0x00), 2));
+			if(positions[i].self_conf < 50) {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0xff), 2));
+			} else if(positions[i].self_conf < 80) {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0xff), 4));
+			} else {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0xff), 6));
+			}
 			int circle_size = 2 * (100 - positions[i].self_conf);
-			paint.setBrush(Qt::lightGray);
+			//paint.setBrush(Qt::lightGray);
 			paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
 		}
 	}
