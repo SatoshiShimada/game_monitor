@@ -40,6 +40,4 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force qt; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://download.qt.io/official_releases/qt/5.6/5.6.3/qt-opensource-linux-x64-5.6.3.run; chmod +x qt-opensource-linux-x64-5.6.3.run; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./qt-opensource-linux-x64-5.6.3.run; fi
 script: ./qt_make.sh
