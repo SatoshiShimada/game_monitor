@@ -737,6 +737,7 @@ void Interface::updateMap(void)
 					if(positions[i].enable_goal_pole[j]) {
 						int goal_pole_x = positions[i].goal_pole[j].x;
 						int goal_pole_y = positions[i].goal_pole[j].y;
+						bool flag_reverse = false;
 						if((positions[i].colornum == 0 && fReverse) ||
 						   (positions[i].colornum == 1 && !fReverse)) {
 							flag_reverse = true;
@@ -845,7 +846,7 @@ void Interface::captureButtonSlot(void)
 		fRecording = false;
 		log_writer.stopRecord();
 		capture->stop();
-		setRecordButtonText(QString("Record video");
+		setRecordButtonText(QString("Record video"));
 	} else {
 		fRecording = true;
 		time_t timer;
@@ -858,7 +859,7 @@ void Interface::captureButtonSlot(void)
 		capture->setFilename(QString(filename));
 		log_writer.startRecord(filename);
 		capture->record();
-		setRecordButtonText(QString("Stop recording");
+		setRecordButtonText(QString("Stop recording"));
 	}
 }
 
