@@ -10,7 +10,7 @@ Please check Wiki for more information.
 
 ## Requirements
 
-* [Qt](https://www.qt.io/) (Version: 5.3 -)
+* [Qt](https://www.qt.io/) (Version: 5.3 or greater)
 * gcc (only Linux)
 * XCode (only Mac OS)
 * Visual Studio (only Windows)

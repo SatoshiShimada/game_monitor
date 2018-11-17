@@ -121,7 +121,7 @@ void Interface::createWindow(void)
 	log1Button  = new QPushButton("x1");
 	log2Button  = new QPushButton("x2");
 	log5Button  = new QPushButton("x5");
-	recordButton = new QPushButton("Record");
+	recordButton = new QPushButton("Record video");
 	mainLayout  = new QGridLayout;
 	checkLayout = new QHBoxLayout;
 	logLayout   = new QHBoxLayout;
@@ -308,6 +308,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	/* MAGENTA, CYAN */
 	color = (int)(comm_info.id & 0x80) >> 7;
 	id    = (int)(comm_info.id & 0x7F);
+	positions[num].colornum = color;
 
 	/* record time of receive data */
 	time_t timer;
@@ -624,7 +625,12 @@ void Interface::updateMap(void)
 			int self_x = positions[i].pos.x;
 			int self_y = positions[i].pos.y;
 			double theta = positions[i].pos.th;
-			if(fReverse) {
+			bool flag_reverse = false;
+			if((positions[i].colornum == 0 && fReverse) ||
+			   (positions[i].colornum == 1 && !fReverse)) {
+				flag_reverse = true;
+			}
+			if(flag_reverse) {
 				self_x = field_w - self_x;
 				self_y = field_h - self_y;
 				theta = theta + M_PI;
@@ -708,7 +714,12 @@ void Interface::updateMap(void)
 			if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
-				if(fReverse) {
+				bool flag_reverse = false;
+				if((positions[i].colornum == 0 && fReverse) ||
+				   (positions[i].colornum == 1 && !fReverse)) {
+					flag_reverse = true;
+				}
+				if(flag_reverse) {
 					ball_x = field_w - ball_x;
 					ball_y = field_h - ball_y;
 				}
@@ -726,7 +737,11 @@ void Interface::updateMap(void)
 					if(positions[i].enable_goal_pole[j]) {
 						int goal_pole_x = positions[i].goal_pole[j].x;
 						int goal_pole_y = positions[i].goal_pole[j].y;
-						if(fReverse) {
+						if((positions[i].colornum == 0 && fReverse) ||
+						   (positions[i].colornum == 1 && !fReverse)) {
+							flag_reverse = true;
+						}
+						if(flag_reverse) {
 							goal_pole_x = field_w - goal_pole_x;
 							goal_pole_y = field_h - goal_pole_y;
 						}
@@ -830,19 +845,20 @@ void Interface::captureButtonSlot(void)
 		fRecording = false;
 		log_writer.stopRecord();
 		capture->stop();
+		setRecordButtonText(QString("Record video");
 	} else {
 		fRecording = true;
 		time_t timer;
 		struct tm *local_time;
 		char filename[1024];
 		const char *video_output_path = "videos/";
-
 		timer = time(NULL);
 		local_time = localtime(&timer);
 		sprintf(filename, "%s%d-%d-%d-%d-%d.mov", video_output_path, local_time->tm_year+1900, local_time->tm_mon+1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min);
 		capture->setFilename(QString(filename));
 		log_writer.startRecord(filename);
 		capture->record();
+		setRecordButtonText(QString("Stop recording");
 	}
 }
 
