@@ -20,7 +20,6 @@ matrix:
     addons:
       apt:
         packages:
-          - build-essential
           - qt5-default
           - qt5-qmake
           - qtbase5-dev-tools
@@ -39,8 +38,9 @@ matrix:
     compiler: clang
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt@5.5; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force qt@5.5; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget http://download.qt.io/officia_releases/qt/5.7/5.7.0/qt-opensource-linux-x64-5.7.0.run; chmod +x qt-opensource-linux-x64-5.7.0.run; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./qt-opensource-linux-x64-5.7.0.run; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://download.qt.io/official_releases/qt/5.11/5.11.2/qt-opensource-linux-x64-5.11.2.run; chmod +x qt-opensource-linux-x64-5.11.2.run; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./qt-opensource-linux-x64-5.11.2.run; fi
 script: ./qt_make.sh
