@@ -5,10 +5,13 @@ class LogWriter {
 public:
 	LogWriter();
 	~LogWriter();
+	int startRecord(const char *);
+	int stopRecord(void);
 	int write(int, char *, int, double, int, int, float, int, int, int, int, int, int, char *, int, int);
 	int separate(void);
 	void setEnable(bool = true);
 private:
+	void openFileCurrentTime(void);
 	void openFile(char *);
 	void closeFile(void);
 	FILE *fp;

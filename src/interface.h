@@ -29,10 +29,13 @@
 #include "udp_thread.h"
 #include "log_writer.h"
 #include "pos_types.h"
+#include "capture.h"
 
 class PositionMarker {
 public:
-	PositionMarker() : enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
+	PositionMarker() : self_conf(0.0), colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
+	double self_conf;
+	int colornum;
 	bool enable_pos;
 	bool enable_ball;
 	bool enable_goal_pole[2];
@@ -94,12 +97,16 @@ class Interface : public QMainWindow
 	Q_OBJECT
 
 private:
+	Capture *capture;
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
+	QMenu *videoMenu;
+	QStatusBar *statusBar;
 	QCheckBox *reverse;
 	QCheckBox *viewGoalpostCheckBox;
 	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
+	QPushButton *recordButton;
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
@@ -130,6 +137,7 @@ private:
 	bool fReverse;
 	bool fViewGoalpost;
 	bool fPauseLog;
+	bool fRecording;
 	int updateMapTimerId;
 	unsigned int log_count;
 	const int max_robot_num;
@@ -147,6 +155,7 @@ private:
 	void setData(LogData);
 	QColor getColor(const char *);
 	void selectRobot(int);
+	void createMenus(void);
 
 public:
 	Interface();
@@ -180,6 +189,10 @@ private slots:
 	void logSpeed5(void);
 	void pausePlayingLog(void);
 	void changeLogPosition(void);
+	void captureButtonSlot(void);
+	void updateCameraDevice(QAction *);
+	void showRecordTime(QString);
+	void setRecordButtonText(QString);
 };
 
 #endif // _INTERFACE_H_

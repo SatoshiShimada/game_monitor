@@ -6,6 +6,15 @@
 
 LogWriter::LogWriter() : opened(false), enable(false)
 {
+}
+
+LogWriter::~LogWriter()
+{
+	closeFile();
+}
+
+void LogWriter::openFileCurrentTime(void)
+{
 	time_t timer;
 	struct tm *local_time;
 	char filename[1024];
@@ -17,9 +26,37 @@ LogWriter::LogWriter() : opened(false), enable(false)
 	openFile(filename);
 }
 
-LogWriter::~LogWriter()
+int LogWriter::startRecord(const char *filename)
 {
-	closeFile();
+	time_t timer;
+	struct tm *local_time;
+
+	timer = time(NULL);
+	local_time = localtime(&timer);
+	if(enable && !opened)
+		openFileCurrentTime();
+	if(opened && enable) {
+		fprintf(fp, "%d:%d:%d,", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+		fprintf(fp, "%s", "record,");
+		fprintf(fp, "%s", filename);
+		fprintf(fp, "\n");
+	}
+	return 0;
+}
+
+int LogWriter::stopRecord(void)
+{
+	time_t timer;
+	struct tm *local_time;
+
+	timer = time(NULL);
+	local_time = localtime(&timer);
+	if(opened && enable) {
+		fprintf(fp, "%d:%d:%d,", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+		fprintf(fp, "%s", "stop");
+		fprintf(fp, "\n");
+	}
+	return 0;
 }
 
 int LogWriter::write(int id, char *color, int fps, double voltage,
@@ -32,6 +69,8 @@ int LogWriter::write(int id, char *color, int fps, double voltage,
 
 	timer = time(NULL);
 	local_time = localtime(&timer);
+	if(enable && !opened)
+		openFileCurrentTime();
 	if(opened && enable) {
 		fprintf(fp, "%d:%d:%d,", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
 		fprintf(fp, "%d,", id);

@@ -1,20 +1,32 @@
 #include <QtGui>
+#include <QCameraInfo>
+#include <QMediaMetaData>
 #include <iostream>
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <cstring>
+#include <ctime>
 
 #include "pos_types.h"
 #include "interface.h"
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
+Q_DECLARE_METATYPE(QCameraInfo)
+
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
 	log_writer.setEnable();
 	positions = std::vector<PositionMarker>(max_robot_num);
+
+	capture = new Capture;
+
+	statusBar = new QStatusBar;
+	statusBar->showMessage(QString("GameMonitor: Ready"));
+	setStatusBar(statusBar);
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
@@ -31,6 +43,7 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 		th.push_back(new UdpServer(base_udp_port + i));
 
 	createWindow();
+	createMenus();
 	connection();
 
 	updateMapTimerId = startTimer(1000); /* timer by 1000msec */
@@ -43,6 +56,29 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 
 Interface::~Interface()
 {
+	if(fRecording)
+		capture->stop();
+}
+
+void Interface::createMenus(void)
+{
+	videoMenu = menuBar()->addMenu(tr("&Cameras"));
+
+	QList<QCameraInfo> availableCameras = capture->getCameras();
+	QActionGroup *videoDevicesGroup = new QActionGroup(this);
+	videoDevicesGroup->setExclusive(true);
+	QAction *noVideoDeviceAction = new QAction(tr("&No Camera"), videoDevicesGroup);
+	videoMenu->addAction(noVideoDeviceAction);
+	videoMenu->addSeparator();
+	for (const QCameraInfo &cameraInfo : availableCameras) {
+		QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
+		videoDeviceAction->setCheckable(true);
+		videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
+		if (cameraInfo == QCameraInfo::defaultCamera())
+			videoDeviceAction->setChecked(true);
+		videoMenu->addAction(videoDeviceAction);
+	}
+	connect(videoDevicesGroup, SIGNAL(triggered(QAction *)), this, SLOT(updateCameraDevice(QAction *)));
 }
 
 void Interface::initializeConfig(void)
@@ -85,6 +121,7 @@ void Interface::createWindow(void)
 	log1Button  = new QPushButton("x1");
 	log2Button  = new QPushButton("x2");
 	log5Button  = new QPushButton("x5");
+	recordButton = new QPushButton("Record video");
 	mainLayout  = new QGridLayout;
 	checkLayout = new QHBoxLayout;
 	logLayout   = new QHBoxLayout;
@@ -97,6 +134,7 @@ void Interface::createWindow(void)
 	checkLayout->addWidget(reverse);
 	checkLayout->addWidget(viewGoalpostCheckBox);
 	checkLayout->addWidget(loadLogButton);
+	checkLayout->addWidget(recordButton);
 
 	logLayout->addWidget(log_step);
 	logLayout->addWidget(log_slider);
@@ -227,6 +265,9 @@ void Interface::connection(void)
 	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
 	connect(log_slider, SIGNAL(sliderPressed(void)), this, SLOT(pausePlayingLog(void)));
 	connect(log_slider, SIGNAL(sliderReleased(void)), this, SLOT(changeLogPosition(void)));
+	connect(recordButton, SIGNAL(clicked(void)), this, SLOT(captureButtonSlot(void)));
+	connect(capture, SIGNAL(updateRecordTimeSignal(QString)), this, SLOT(showRecordTime(QString)));
+	connect(capture, SIGNAL(updateRecordButtonMessage(QString)), this, SLOT(setRecordButtonText(QString)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -267,6 +308,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	/* MAGENTA, CYAN */
 	color = (int)(comm_info.id & 0x80) >> 7;
 	id    = (int)(comm_info.id & 0x7F);
+	positions[num].colornum = color;
 
 	/* record time of receive data */
 	time_t timer;
@@ -281,6 +323,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	/* Self-position confidence */
 	robot_data->cf_own->setNum(comm_info.cf_own);
 	robot_data->cf_own_bar->setValue(comm_info.cf_own);
+	positions[num].self_conf = comm_info.cf_own;
 	/* Ball position confidence */
 	robot_data->cf_ball->setNum(comm_info.cf_ball);
 	robot_data->cf_ball_bar->setValue(comm_info.cf_ball);
@@ -329,9 +372,10 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 			positions[num].enable_ball = true;
 		}
 		if(obj.type == GOAL_POLE) {
-			if(goal_pole_index + 1 > 2) continue;
-			positions[num].goal_pole[goal_pole_index++] = globalPosToImagePos(obj.pos);
+			if(goal_pole_index >= 2) continue;
+			positions[num].goal_pole[goal_pole_index] = globalPosToImagePos(obj.pos);
 			positions[num].enable_goal_pole[goal_pole_index] = true;
+			goal_pole_index++;
 		}
 	}
 	updateMap();
@@ -550,6 +594,7 @@ void Interface::setData(LogData data)
 	positions[num].goal_pole[0].y = data.goal_pole_y1;
 	positions[num].goal_pole[1].x = data.goal_pole_x2;
 	positions[num].goal_pole[1].y = data.goal_pole_y2;
+	positions[num].self_conf = data.cf_own;
 
 	updateMap();
 }
@@ -575,6 +620,33 @@ void Interface::updateMap(void)
 		select_robot_num = -1;
 	}
 	/* draw position marker on image */
+	for(int i = 0; i < max_robot_num; i++) {
+		if(positions[i].enable_pos) {
+			int self_x = positions[i].pos.x;
+			int self_y = positions[i].pos.y;
+			double theta = positions[i].pos.th;
+			bool flag_reverse = false;
+			if((positions[i].colornum == 0 && fReverse) ||
+			   (positions[i].colornum == 1 && !fReverse)) {
+				flag_reverse = true;
+			}
+			if(flag_reverse) {
+				self_x = field_w - self_x;
+				self_y = field_h - self_y;
+				theta = theta + M_PI;
+			}
+			if(positions[i].self_conf < 50) {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0xff), 2));
+			} else if(positions[i].self_conf < 80) {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0xff), 4));
+			} else {
+				paint.setPen(QPen(QColor(0x00, 0x00, 0xff), 6));
+			}
+			int circle_size = 2 * (100 - positions[i].self_conf);
+			//paint.setBrush(Qt::lightGray);
+			paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
+		}
+	}
 	for(int i = 0; i < max_robot_num; i++) {
 		if(positions[i].enable_pos) {
 			int self_x = positions[i].pos.x;
@@ -642,7 +714,12 @@ void Interface::updateMap(void)
 			if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
-				if(fReverse) {
+				bool flag_reverse = false;
+				if((positions[i].colornum == 0 && fReverse) ||
+				   (positions[i].colornum == 1 && !fReverse)) {
+					flag_reverse = true;
+				}
+				if(flag_reverse) {
 					ball_x = field_w - ball_x;
 					ball_y = field_h - ball_y;
 				}
@@ -660,7 +737,12 @@ void Interface::updateMap(void)
 					if(positions[i].enable_goal_pole[j]) {
 						int goal_pole_x = positions[i].goal_pole[j].x;
 						int goal_pole_y = positions[i].goal_pole[j].y;
-						if(fReverse) {
+						bool flag_reverse = false;
+						if((positions[i].colornum == 0 && fReverse) ||
+						   (positions[i].colornum == 1 && !fReverse)) {
+							flag_reverse = true;
+						}
+						if(flag_reverse) {
 							goal_pole_x = field_w - goal_pole_x;
 							goal_pole_y = field_h - goal_pole_y;
 						}
@@ -756,5 +838,43 @@ void Interface::logSpeed2(void)
 void Interface::logSpeed5(void)
 {
 	log_speed = 5;
+}
+
+void Interface::captureButtonSlot(void)
+{
+	if(fRecording) {
+		fRecording = false;
+		log_writer.stopRecord();
+		capture->stop();
+		setRecordButtonText(QString("Record video"));
+	} else {
+		fRecording = true;
+		time_t timer;
+		struct tm *local_time;
+		char filename[1024];
+		const char *video_output_path = "videos/";
+		timer = time(NULL);
+		local_time = localtime(&timer);
+		sprintf(filename, "%s%d-%d-%d-%d-%d.mov", video_output_path, local_time->tm_year+1900, local_time->tm_mon+1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min);
+		capture->setFilename(QString(filename));
+		log_writer.startRecord(filename);
+		capture->record();
+		setRecordButtonText(QString("Stop recording"));
+	}
+}
+
+void Interface::updateCameraDevice(QAction *action)
+{
+	capture->setCamera(qvariant_cast<QCameraInfo>(action->data()));
+}
+
+void Interface::showRecordTime(QString message)
+{
+	statusBar->showMessage(message);
+}
+
+void Interface::setRecordButtonText(QString text)
+{
+	recordButton->setText(text);
 }
 

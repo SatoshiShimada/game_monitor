@@ -1,37 +1,19 @@
 language: cpp
-dist: trusty
+dist: xenial
 sudo: false
 matrix:
   include:
-  - env: QT_VERSION=qt4
-    os: linux
-    compiler: gcc
-    addons:
-      apt:
-        packages:
-          - libqt4-core
-          - libqt4-dev
-          - libqt4-gui
-          - qt4-dev-tools
-  - env: QT_VERSION=qt4
-    os: linux
-    compiler: clang
-    addons:
-      apt:
-        packages:
-          - libqt4-core
-          - libqt4-dev
-          - libqt4-gui
-          - qt4-dev-tools
   - env: QT_VERSION=qt5
     os: linux
     compiler: gcc
     addons:
       apt:
         packages:
+          - build-essential
           - qt5-default
           - qt5-qmake
           - qtbase5-dev-tools
+          - qtmultimedia5-dev
   - env: QT_VERSION=qt5
     os: linux
     compiler: clang
@@ -41,19 +23,21 @@ matrix:
           - qt5-default
           - qt5-qmake
           - qtbase5-dev-tools
-  - env: QT_VERSION=qt4
+          - qtmultimedia5-dev
+  - env: QT_VERSION=qt5
     os: osx
     osx_image: xcode9.2
     compiler: gcc
-  - env: QT_VERSION=qt4
+  - env: QT_VERSION=qt5
     os: osx
     osx_image: xcode8
     compiler: gcc
-  - env: QT_VERSION=qt4
+  - env: QT_VERSION=qt5
     os: osx
     osx_image: xcode9.2
     compiler: clang
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update -all; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cartr/qt4/qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force qt; fi
 script: ./qt_make.sh
