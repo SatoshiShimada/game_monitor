@@ -31,6 +31,20 @@ apt install qt5-default
 ./qt_make.sh
 ```
 
+### Linux (Ubuntu 18.04)
+
+1. Install libraries.
+
+```
+apt install qt5-default qtmultimedia5-dev
+```
+
+2. Build application.
+
+```
+./qt_make.sh
+```
+
 ### Mac OS
 
 1. Install libraries.
