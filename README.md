@@ -12,17 +12,29 @@ Please check Wiki for more information.
 
 * [Qt](https://www.qt.io/) (Version: 5.3 or greater)
 * gcc (only Linux)
-* XCode (only Mac OS)
+* XCode (only Mac OS)(Version: 9 or greater)
 * Visual Studio (only Windows)
 
 ## How to build
+
+### Linux (Ubuntu 14.04)
+
+1. Install libraries.
+
+```shell
+apt install build-essential
+```
+
+This application require Qt 5.3 or greater.
+But, Qt version is 5.2 if install using `apt-get`.
+You need install Qt from source code.
 
 ### Linux (Ubuntu 16.04)
 
 1. Install libraries.
 
 ```
-apt install qt5-default
+apt install build-essential qt5-default qt5-qmake qtbase5-dev-tools qtmultimedia5-dev
 ```
 
 2. Build application.

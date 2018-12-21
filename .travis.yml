@@ -4,18 +4,6 @@ matrix:
   include:
   - env: QT_VERSION=qt5
     os: linux
-    dist: trusty # Ubuntu 14.04 LTS
-    compiler: gcc
-    addons:
-      apt:
-        packages:
-          - build-essential
-          - qt5-default
-          - qt5-qmake
-          - qtbase5-dev-tools
-          - qtmultimedia5-dev
-  - env: QT_VERSION=qt5
-    os: linux
     dist: xenial # Ubuntu 16.04 LTS
     compiler: gcc
     addons:
@@ -28,20 +16,8 @@ matrix:
           - qtmultimedia5-dev
   - env: QT_VERSION=qt5
     os: linux
-    dist: bionic # Ubuntu 18.04 LTS
-    compiler: gcc
-    addons:
-      apt:
-        packages:
-          - build-essential
-          - qt5-default
-          - qt5-qmake
-          - qtbase5-dev-tools
-          - qtmultimedia5-dev
-  - env: QT_VERSION=qt5
-    os: linux
     compiler: clang
-    dist: xenial
+    dist: xenial # Ubuntu 16.04 LTS
     addons:
       apt:
         packages:
@@ -53,10 +29,6 @@ matrix:
     os: osx
     osx_image: xcode9.2
     compiler: gcc
-  #- env: QT_VERSION=qt5
-    #os: osx
-    #osx_image: xcode8
-    #compiler: gcc
   - env: QT_VERSION=qt5
     os: osx
     osx_image: xcode9.2
