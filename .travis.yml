@@ -1,10 +1,10 @@
 language: cpp
-dist: xenial
 sudo: false
 matrix:
   include:
   - env: QT_VERSION=qt5
     os: linux
+    dist: xenial # Ubuntu 16.04 LTS
     compiler: gcc
     addons:
       apt:
@@ -17,6 +17,7 @@ matrix:
   - env: QT_VERSION=qt5
     os: linux
     compiler: clang
+    dist: xenial # Ubuntu 16.04 LTS
     addons:
       apt:
         packages:
@@ -30,10 +31,6 @@ matrix:
     compiler: gcc
   - env: QT_VERSION=qt5
     os: osx
-    osx_image: xcode8
-    compiler: gcc
-  - env: QT_VERSION=qt5
-    os: osx
     osx_image: xcode9.2
     compiler: clang
 before_install:
@@ -41,3 +38,4 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link --force qt; fi
 script: ./qt_make.sh
+
