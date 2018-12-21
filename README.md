@@ -2,6 +2,8 @@
 
 # Game Monitor
 
+![Screen Image](https://github.com/SatoshiShimada/game_monitor/wiki/figures/screen_image.png)
+
 The robot state viewer via robot communication.  
 It is for CIT Brains' robot "Accelite".  
 This application supports Linux, Mac OS and Windows.  
