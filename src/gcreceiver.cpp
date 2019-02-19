@@ -27,6 +27,12 @@ void GCReceiver::readPendingDatagrams(void)
 		}
 		game_state.setData(buf, datagrams.size());
 		emit remainingTimeChanged(game_state.getRemainingTime());
+		if(game_state.updatedScore1()) {
+			emit scoreChanged1(game_state.getScore1());
+		}
+		if(game_state.updatedScore2()) {
+			emit scoreChanged2(game_state.getScore2());
+		}
 		delete[] buf;
 	}
 }

@@ -181,6 +181,8 @@ private:
 	QWidget *window;
 	AspectRatioPixmapLabel *image;
 	QLabel *log_step;
+	QLCDNumber *time_display;
+	QLCDNumber *score_display;
 	QPixmap map;
 	QPixmap origin_map;
 	QSlider *log_slider;
@@ -208,6 +210,8 @@ private:
 	bool fRecording;
 	bool fViewSelfPosConf;
 	int updateMapTimerId;
+	int score_team1;
+	int score_team2;
 	unsigned int log_count;
 	const int max_robot_num;
 	int logo_pos_x, logo_pos_y;
@@ -248,6 +252,9 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
+	void setRemainingTime(int);
+	void setScore1(int);
+	void setScore2(int);
 	void selectRobot1(void);
 	void selectRobot2(void);
 	void selectRobot3(void);

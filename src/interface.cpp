@@ -23,7 +23,7 @@ static inline int distance(const int x1, const int y1, const int x2, const int y
 
 Q_DECLARE_METATYPE(QCameraInfo)
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), max_robot_num(6), log_speed(1), select_robot_num(-1), field_param(FieldParameter())
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), score_team1(0), score_team2(0), max_robot_num(6), log_speed(1), select_robot_num(-1), field_param(FieldParameter())
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -122,6 +122,12 @@ void Interface::createWindow(void)
 	log_step   = new QLabel;
 	log_slider = new QSlider(Qt::Horizontal);
 	log_slider->setRange(0, 0);
+	time_display = new QLCDNumber();
+	time_display->display(QString("10:00"));
+	time_display->setMinimumHeight(50);
+	score_display = new QLCDNumber();
+	score_display->display(QString("0 - 0"));
+	score_display->setMinimumHeight(50);
 	loadLogButton = new QPushButton("Load log file");
 	log1Button  = new QPushButton("x1");
 	log2Button  = new QPushButton("x2");
@@ -137,6 +143,8 @@ void Interface::createWindow(void)
 
 	viewGoalpostCheckBox->setChecked(true);
 	viewSelfPosConfCheckBox->setChecked(true);
+	checkLayout->addWidget(time_display);
+	checkLayout->addWidget(score_display);
 	checkLayout->addWidget(reverse);
 	checkLayout->addWidget(viewGoalpostCheckBox);
 	checkLayout->addWidget(viewSelfPosConfCheckBox);
@@ -299,6 +307,8 @@ void Interface::connection(void)
 	connect(capture, SIGNAL(updateRecordTimeSignal(QString)), this, SLOT(showRecordTime(QString)));
 	connect(capture, SIGNAL(updateRecordButtonMessage(QString)), this, SLOT(setRecordButtonText(QString)));
 	connect(gc_thread, SIGNAL(remainingTimeChanged(int)), this, SLOT(setRemainingTime(int)));
+	connect(gc_thread, SIGNAL(scoreChanged1(int)), this, SLOT(setScore1(int)));
+	connect(gc_thread, SIGNAL(scoreChanged2(int)), this, SLOT(setScore2(int)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
@@ -422,6 +432,37 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 		(int)positions[num].goal_pole[0].x, (int)positions[num].goal_pole[0].y,
 		(int)positions[num].goal_pole[1].x, (int)positions[num].goal_pole[1].y,
 		(const char *)comm_info.command, (int)comm_info.cf_own, (int)comm_info.cf_ball);
+}
+
+void Interface::setRemainingTime(int remaining_time)
+{
+	const int remain_minutes = remaining_time / 60;
+	const int remain_seconds = remaining_time % 60;
+	QString remain_minutes_str, remain_seconds_str;
+	remain_minutes_str.setNum(remain_minutes);
+	remain_seconds_str.setNum(remain_seconds);
+	QString time_str = remain_minutes_str + QString(":") + remain_seconds_str;
+	time_display->display(time_str);
+}
+
+void Interface::setScore1(int score1)
+{
+	score_team1 = score1;
+	QString score1_str, score2_str;
+	score1_str.setNum(score_team1);
+	score2_str.setNum(score_team2);
+	QString score_str = score1_str + QString(" - ") + score2_str;
+	score_display->display(score_str);
+}
+
+void Interface::setScore2(int score2)
+{
+	score_team2 = score2;
+	QString score1_str, score2_str;
+	score1_str.setNum(score_team1);
+	score2_str.setNum(score_team2);
+	QString score_str = score1_str + QString(" - ") + score2_str;
+	score_display->display(score_str);
 }
 
 void Interface::selectRobot1(void)

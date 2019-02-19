@@ -18,6 +18,8 @@ private:
 	GameState game_state;
 signals:
 	void remainingTimeChanged(int);
+	void scoreChanged1(int);
+	void scoreChanged2(int);
 private slots:
 	void readPendingDatagrams(void);
 };

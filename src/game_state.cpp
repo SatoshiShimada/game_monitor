@@ -1,6 +1,6 @@
 #include "game_state.h"
 
-GameState::GameState() : remaining_time(0)
+GameState::GameState() : remaining_time(0), score1(0), score2(0), f_update_score1(false), f_update_score2(false)
 {
 }
 
@@ -59,6 +59,17 @@ void GameState::decodeTeamInfo(const char *data)
 		constexpr int sizeof_robot_info = 4;
 		decodeRobotInfo(data + 260 + sizeof_robot_info + (sizeof_robot_info * i));
 	}
+
+	constexpr int TEAM_COLOR_BLUE = 0;
+	constexpr int TEAM_COLOR_RED = 1;
+
+	if(team_color == TEAM_COLOR_BLUE && score1 != score) {
+		f_update_score1 = true;
+		score1 = score;
+	} else if(team_color == TEAM_COLOR_RED && score2 != score) {
+		f_update_score2 = true;
+		score2 = score;
+	}
 }
 
 void GameState::decodeRobotInfo(const char *data)
@@ -72,5 +83,27 @@ void GameState::decodeRobotInfo(const char *data)
 int GameState::getRemainingTime(void)
 {
 	return remaining_time;
+}
+
+bool GameState::updatedScore1(void)
+{
+	return f_update_score1;
+}
+
+bool GameState::updatedScore2(void)
+{
+	return f_update_score2;
+}
+
+int GameState::getScore1(void)
+{
+	f_update_score1 = false;
+	return score1;
+}
+
+int GameState::getScore2(void)
+{
+	f_update_score2 = false;
+	return score2;
 }
 
