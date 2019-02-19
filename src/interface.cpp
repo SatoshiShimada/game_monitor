@@ -640,11 +640,11 @@ void Interface::drawTeamMarker(QPainter &painter, const int pos_x, const int pos
 	painter.drawText(pos_x, pos_y, QString("CIT Brains"));
 }
 
-void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int self_y, const double theta, int robot_id, const QColor color, const double self_conf)
+void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int self_y, const double theta, int robot_id, const QColor marker_color, const double self_conf)
 {
 	// set marker color according to robot role
 	const int robot_pen_size = settings->value("marker/pen_size").toInt();
-	painter.setPen(QPen(color, robot_pen_size));
+	painter.setPen(QPen(marker_color, robot_pen_size));
 
 	// draw robot marker
 	painter.drawPoint(self_x, self_y);
@@ -758,18 +758,8 @@ void Interface::updateMap(void)
 		select_robot_num = -1;
 	}
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
-	const int field_w = settings->value("field_image/width").toInt();
-	const int field_h = settings->value("field_image/height").toInt();
 	for(int i = 0; i < max_robot_num; i++) {
 		if(positions[i].enable_pos) {
-			int self_x = positions[i].pos.x;
-			int self_y = positions[i].pos.y;
-			double theta = positions[i].pos.th;
-			if(fReverse) {
-				self_x = field_w - self_x;
-				self_y = field_h - self_y;
-				theta = theta + M_PI;
-			}
 			const int elapsed = (local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec);
 			if(elapsed > time_limit) {
 				positions[i].enable_pos = false;
@@ -783,6 +773,21 @@ void Interface::updateMap(void)
 				robot[i].cf_ball_bar->setValue(0);
 				robot[i].time_bar->setValue(0);
 				continue;
+			}
+			robot[i].time_bar->setValue(elapsed);
+		}
+	}
+	const int field_w = settings->value("field_image/width").toInt();
+	const int field_h = settings->value("field_image/height").toInt();
+	for(int i = 0; i < max_robot_num; i++) {
+		if(positions[i].enable_pos) {
+			int self_x = positions[i].pos.x;
+			int self_y = positions[i].pos.y;
+			double theta = positions[i].pos.th;
+			if(fReverse) {
+				self_x = field_w - self_x;
+				self_y = field_h - self_y;
+				theta = theta + M_PI;
 			}
 			const int robot_id = i + 1;
 			const QColor color = getColor(positions[i].color);
@@ -827,7 +832,6 @@ void Interface::updateMap(void)
 					}
 				}
 			}
-			robot[i].time_bar->setValue(elapsed);
 		}
 	}
 	image->setPixmap(map);
