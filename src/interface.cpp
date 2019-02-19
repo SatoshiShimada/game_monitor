@@ -124,11 +124,11 @@ void Interface::initializeConfig(void)
 	settings->setValue("field_size/x", settings->value("field_size/x", field_param.field_length * 10));
 	settings->setValue("field_size/y", settings->value("field_size/y", field_param.field_width * 10));
 	// marker configurations
-	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 3));
+	settings->setValue("marker/pen_size", settings->value("marker/pen_size", 3));
+	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 15));
 	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 6));
 	settings->setValue("marker/goal_pole_size", settings->value("marker/goal_pole_size", 5));
-	settings->setValue("marker/length", settings->value("marker/length", 24));
-	settings->setValue("marker/rear_length", settings->value("marker/rear_length", 10));
+	settings->setValue("marker/direction_marker_length", settings->value("marker/direction_marker_length", 30));
 	settings->setValue("marker/font_offset", settings->value("marker/font_offset", 10));
 	settings->setValue("marker/time_up_limit", settings->value("marker/time_up_limit", 30));
 	// using UDP communication port offset
@@ -726,35 +726,23 @@ void Interface::updateMap(void)
 				robot[i].time_bar->setValue(0);
 				continue;
 			}
-			//paint.setBrush(Qt::red);
-			/*
-			 * self-position maker color:
-			 *  Attacker: Red
-			 *  Other   : Black
-			 */
-			const int robot_marker_size = settings->value("marker/robot_size").toInt();
+			// set marker color according to robot role
 			QColor color = getColor(positions[i].color);
-			paint.setPen(QPen(color, robot_marker_size));
-			/* draw robot position */
+			const int robot_pen_size = settings->value("marker/pen_size").toInt();
+			paint.setPen(QPen(color, robot_pen_size));
+			// draw robot marker
 			paint.drawPoint(self_x, self_y);
-			/* calclate robot theta */
-			const int half_length = settings->value("marker/length").toInt() / 2;
-			const int half_rear_length = settings->value("marker/rear_length").toInt() / 2;
-			const int front_x = (int)(self_x + half_length * cos(theta));
-			const int front_y = (int)(self_y + half_length * sin(theta));
-			const int rear_x = (int)(self_x + half_length * cos(theta + M_PI));
-			const int rear_y = (int)(self_y + half_length * sin(theta + M_PI));
-			const int rear_left_x = (int)(rear_x + half_rear_length * cos(theta + M_PI / 2));
-			const int rear_left_y = (int)(rear_y + half_rear_length * sin(theta + M_PI / 2));
-			const int rear_right_x = (int)(rear_x + half_rear_length * cos(theta - M_PI / 2));
-			const int rear_right_y = (int)(rear_y + half_rear_length * sin(theta - M_PI / 2));
-			paint.drawLine(front_x, front_y, rear_left_x, rear_left_y);
-			paint.drawLine(front_x, front_y, rear_right_x, rear_right_y);
-			paint.drawLine(rear_left_x, rear_left_y, rear_right_x, rear_right_y);
+			const int robot_marker_radius = settings->value("marker/robot_size").toInt();
+			paint.drawEllipse(self_x - robot_marker_radius, self_y - robot_marker_radius, robot_marker_radius * 2, robot_marker_radius * 2);
+			const int robot_marker_direction_length = settings->value("marker/direction_marker_length").toInt();
+			const int direction_x = self_x + robot_marker_direction_length * std::cos(theta - M_PI / 2);
+			const int direction_y = self_y + robot_marker_direction_length * std::sin(theta - M_PI / 2);
+			paint.drawLine(self_x, self_y, direction_x, direction_y);
 			sprintf(buf, "%d", i + 1);
 			const int font_offset = settings->value("marker/font_offset").toInt();
 			paint.drawText(QPoint(self_x - font_offset, self_y - font_offset), buf);
 			if(select_robot_num == i) {
+				// highlight selected robot marker
 				QPen pen = paint.pen();
 				const int pen_size = 2;
 				int circle_size;
@@ -778,7 +766,7 @@ void Interface::updateMap(void)
 					ball_x = field_w - ball_x;
 					ball_y = field_h - ball_y;
 				}
-				/* draw ball position as orange */
+				// draw ball position as orange
 				const int ball_marker_size = settings->value("marker/ball_size").toInt();
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), ball_marker_size));
 				paint.drawPoint(ball_x, ball_y);
