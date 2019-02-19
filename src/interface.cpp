@@ -23,7 +23,7 @@ static inline int distance(const int x1, const int y1, const int x2, const int y
 
 Q_DECLARE_METATYPE(QCameraInfo)
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), max_robot_num(6), log_speed(1), select_robot_num(-1), field_param(FieldParameter())
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), max_robot_num(6), log_speed(1), select_robot_num(-1), field_param(FieldParameter())
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -114,6 +114,7 @@ void Interface::createWindow(void)
 	window     = new QWidget;
 	reverse    = new QCheckBox("Reverse field");
 	viewGoalpostCheckBox = new QCheckBox("View Goal post");
+	viewSelfPosConfCheckBox = new QCheckBox("View Self Pos Confidence");
 	image      = new AspectRatioPixmapLabel;
 	log_step   = new QLabel;
 	log_slider = new QSlider(Qt::Horizontal);
@@ -132,8 +133,10 @@ void Interface::createWindow(void)
 		idLayout.push_back(new QGridLayout);
 
 	viewGoalpostCheckBox->setChecked(true);
+	viewSelfPosConfCheckBox->setChecked(true);
 	checkLayout->addWidget(reverse);
 	checkLayout->addWidget(viewGoalpostCheckBox);
+	checkLayout->addWidget(viewSelfPosConfCheckBox);
 	checkLayout->addWidget(loadLogButton);
 	checkLayout->addWidget(recordButton);
 
@@ -276,6 +279,7 @@ void Interface::connection(void)
 	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
 	connect(viewGoalpostCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewGoalpost(int)));
+	connect(viewSelfPosConfCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewSelfPosConf(int)));
 	connect(loadLogButton, SIGNAL(clicked()), this, SLOT(loadLogFile()));
 	connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
 	connect(robotState[1], SIGNAL(clicked(void)), this, SLOT(selectRobot2(void)));
@@ -700,7 +704,7 @@ void Interface::updateMap(void)
 			const int font_offset_y = settings->value("marker/font_offset_y").toInt();
 			paint.drawText(QPoint(self_x - font_offset_x, self_y - font_offset_y), buf);
 			// draw self position confidence
-			{
+			if(fViewSelfPosConf) {
 				constexpr int bar_width = 80;
 				constexpr int bar_height = 6;
 				const int bar_left = self_x - bar_width / 2;
@@ -839,6 +843,16 @@ void Interface::viewGoalpost(int state)
 		fViewGoalpost = true;
 	} else {
 		fViewGoalpost = false;
+	}
+	updateMap();
+}
+
+void Interface::viewSelfPosConf(int state)
+{
+	if(state == Qt::Checked) {
+		fViewSelfPosConf = true;
+	} else {
+		fViewSelfPosConf = false;
 	}
 	updateMap();
 }

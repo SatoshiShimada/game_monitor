@@ -170,6 +170,7 @@ private:
 	QStatusBar *statusBar;
 	QCheckBox *reverse;
 	QCheckBox *viewGoalpostCheckBox;
+	QCheckBox *viewSelfPosConfCheckBox;
 	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
 	QPushButton *recordButton;
@@ -203,6 +204,7 @@ private:
 	bool fViewGoalpost;
 	bool fPauseLog;
 	bool fRecording;
+	bool fViewSelfPosConf;
 	int updateMapTimerId;
 	unsigned int log_count;
 	const int max_robot_num;
@@ -247,6 +249,7 @@ private slots:
 	void selectRobot6(void);
 	void reverseField(int);
 	void viewGoalpost(int);
+	void viewSelfPosConf(int);
 	void loadLogFile(void);
 	void updateLog(void);
 	void logSpeed1(void);
