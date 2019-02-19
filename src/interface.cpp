@@ -725,8 +725,8 @@ void Interface::updateMap(void)
 			paint.drawText(QPoint(self_x - font_offset_x, self_y - font_offset_y), buf);
 			// draw self position confidence
 			{
-				const int bar_width = 80;
-				const int bar_height = 6;
+				constexpr int bar_width = 80;
+				constexpr int bar_height = 6;
 				const int bar_left = self_x - bar_width / 2;
 				const int bar_top = self_y + 25;
 				QPainterPath path_frame, path_conf;
@@ -735,7 +735,7 @@ void Interface::updateMap(void)
 				const auto conf = positions[i].self_conf;
 				const int conf_width = static_cast<int>(conf / 100.0 * bar_width);
 				QPen pen = paint.pen();
-				const int pen_size = 1;
+				constexpr int pen_size = 1;
 				paint.setPen(QPen(QColor(0, 0, 0), pen_size));
 				paint.setRenderHint(QPainter::NonCosmeticDefaultPen);
 				paint.drawRect(bar_left, bar_top, bar_width, bar_height);
@@ -782,8 +782,12 @@ void Interface::updateMap(void)
 				const int ball_marker_size = settings->value("marker/ball_size").toInt();
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), ball_marker_size));
 				paint.drawPoint(ball_x, ball_y);
-				sprintf(buf, "%d", i + 1);
-				paint.drawText(QPoint(ball_x - font_offset_x, ball_y - font_offset_y), buf);
+				constexpr int ball_near_threshold = 50; // Do no draw robot number if the ball is nearby from robot.
+				const int distance_ball_and_robot = std::sqrt((ball_x - self_x) * (ball_x - self_x) + (ball_y - self_y) * (ball_y - self_y));
+				if(distance_ball_and_robot > ball_near_threshold) {
+					sprintf(buf, "%d", i + 1);
+					paint.drawText(QPoint(ball_x - font_offset_x, ball_y - font_offset_y), buf);
+				}
 				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 1));
 				paint.drawLine(self_x, self_y, ball_x, ball_y);
 			}
