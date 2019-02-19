@@ -26,12 +26,12 @@
 #include <QProgressBar>
 #include <QFileDialog>
 #include <QPixmap>
-#include <QResizeEvent>
 
 #include "udp_thread.h"
 #include "log_writer.h"
 #include "pos_types.h"
 #include "capture.h"
+#include "aspect_ratio_pixmap_label.h"
 
 /*
  * Field parameters.
@@ -156,21 +156,6 @@ private:
 	}
 signals:
 	void clicked(void);
-};
-
-class AspectRatioPixmapLabel : public QLabel
-{
-	Q_OBJECT
-public:
-	AspectRatioPixmapLabel(QWidget *parent = 0);
-	virtual int heightForWidth(int width) const;
-	virtual QSize sizeHint() const;
-	QPixmap scaledPixmap() const;
-public slots:
-	void setPixmap(const QPixmap &);
-	void resizeEvent(QResizeEvent *);
-private:
-	QPixmap pix;
 };
 
 class Interface : public QMainWindow
