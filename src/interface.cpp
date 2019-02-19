@@ -67,12 +67,8 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 
 	settings = new QSettings("./config.ini", QSettings::IniFormat);
 	initializeConfig();
-	const int fw = settings->value("field_image/width").toInt();
-	const int lw = settings->value("team_logo/width").toInt();
-	const int fh = settings->value("field_image/height").toInt();
-	const int lh = settings->value("team_logo/height").toInt();
-	logo_pos_x = fw / 2 + fw / 4 - lw / 2;
-	logo_pos_y = fh / 2 - lh / 2;
+	logo_pos_x = field_param.field_length / 2 + field_param.field_length / 4;
+	logo_pos_y = field_param.border_strip_width / 2;
 
 	/* Run receive thread */
 	const int base_udp_port = settings->value("network/port").toInt();
@@ -84,9 +80,7 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 	connection();
 
 	updateMapTimerId = startTimer(1000); /* timer by 1000msec */
-	const QString field_image_name = settings->value("field_image/name").toString();
-	const QString team_logo_image_name = settings->value("team_logo/name").toString();
-	loadImage(field_image_name, team_logo_image_name);
+	drawField();
 
 	this->setWindowTitle("Humanoid League Game Monitor");
 }
@@ -125,8 +119,6 @@ void Interface::initializeConfig(void)
 	/* 740x540 pixel: field image size */
 	settings->setValue("field_image/width" , settings->value("field_image/width", 740));
 	settings->setValue("field_image/height", settings->value("field_image/height", 540));
-	/* Team logo image file */
-	settings->setValue("team_logo/name", settings->value("team_logo/name", "figures/citbrains_logo.png"));
 	/* Team logo image size */
 	settings->setValue("team_logo/width", settings->value("team_logo/width", "200"));
 	settings->setValue("team_logo/height", settings->value("team_logo/height", "200"));
@@ -237,16 +229,8 @@ void Interface::createWindow(void)
 	setCentralWidget(window);
 }
 
-void Interface::loadImage(QString field_image_name, QString team_logo_image_name)
+void Interface::drawField()
 {
-	/*
-	QImage field_image_buf(field_image_name);
-	if(field_image_buf.isNull()) {
-		std::cerr << "Error: couldn\'t open image file" << std::endl;
-		return;
-	}
-	origin_map = QPixmap::fromImage(field_image_buf);
-	*/
 	origin_map = QPixmap(field_param.border_strip_width * 2 + field_param.field_length, field_param.border_strip_width * 2 + field_param.field_width);
 	origin_map.fill(QColor(0, 0, 0));
 	QPainter p;
@@ -255,7 +239,7 @@ void Interface::loadImage(QString field_image_name, QString team_logo_image_name
 	pen.setColor(QColor(255, 255, 255));
 	pen.setWidth(10);
 	p.setPen(pen);
-	{
+	{ // draw field lines, center circle and penalty marks
 		const int field_left = field_param.border_strip_width;
 		const int field_right = field_param.border_strip_width + field_param.field_length;
 		const int field_top = field_param.border_strip_width;
@@ -296,25 +280,6 @@ void Interface::loadImage(QString field_image_name, QString team_logo_image_name
 	p.end();
 	map = origin_map;
 	image->setPixmap(map);
-
-	QImage logo_image_buf(team_logo_image_name);
-	if(logo_image_buf.isNull()) {
-		std::cerr << "Error: couldn\'t open image file" << std::endl;
-		return;
-	}
-	team_logo_map = QPixmap::fromImage(logo_image_buf);
-}
-
-void Interface::loadImage(const char *image_filename)
-{
-	QImage image_buf(image_filename);
-	if(image_buf.isNull()) {
-		std::cerr << "Error: couldn\'t open image file" << std::endl;
-		return;
-	}
-	origin_map = QPixmap::fromImage(image_buf);
-	map = origin_map;
-	image->setPixmap(QPixmap::fromImage(image_buf));
 }
 
 void Interface::dragEnterEvent(QDragEnterEvent *e)
@@ -699,7 +664,13 @@ void Interface::updateMap(void)
 	/* Create new image for erase previous position marker */
 	map = origin_map;
 	QPainter paint(&map);
-	paint.drawPixmap(logo_pos_x, logo_pos_y, team_logo_map);
+	{ // draw team marker
+		paint.setPen(QPen(QColor(0xff, 0xff, 0xff)));
+		QFont font = paint.font();
+		font.setPointSize(32);
+		paint.setFont(font);
+		paint.drawText(logo_pos_x, logo_pos_y, QString("CIT Brains"));
+	}
 
 	const int elapsed_time = (local_time->tm_min - last_select_time.tm_min) * 60 + (local_time->tm_sec - last_select_time.tm_sec);
 	if(elapsed_time >= 1) {
@@ -872,14 +843,12 @@ void Interface::timerEvent(QTimerEvent *e)
 
 void Interface::reverseField(int state)
 {
-	const int fw = settings->value("field_image/width").toInt();
-	const int lw = settings->value("team_logo/width").toInt();
 	if(state == Qt::Checked) {
 		fReverse = true;
-		logo_pos_x = fw / 4 - lw / 2;
+		logo_pos_x = field_param.field_length / 2 - field_param.field_length / 4;
 	} else {
 		fReverse = false;
-		logo_pos_x = fw / 2 + fw / 4 - lw / 2;
+		logo_pos_x = field_param.field_length / 2 + field_param.field_length / 4;
 	}
 	updateMap();
 }

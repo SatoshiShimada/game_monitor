@@ -193,7 +193,6 @@ private:
 	QLabel *log_step;
 	QPixmap map;
 	QPixmap origin_map;
-	QPixmap team_logo_map;
 	QSlider *log_slider;
 	QGridLayout *mainLayout;
 	QHBoxLayout *checkLayout;
@@ -240,8 +239,7 @@ private:
 public:
 	Interface();
 	~Interface();
-	void loadImage(const char *);
-	void loadImage(QString, QString);
+	void drawField(void);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
 	void decodeUdp(struct comm_info_T, Robot *, int num);
