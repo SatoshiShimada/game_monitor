@@ -124,7 +124,7 @@ public:
 	QProgressBar *time_bar;
 };
 
-class LogData {
+class LogDataRobotComm {
 public:
 	char time_str[100];
 	int id;
@@ -143,6 +143,19 @@ public:
 	int cf_own;
 	int cf_ball;
 	char msg[100];
+};
+
+class LogData
+{
+public:
+	LogData() : type(0), score1(0), score2(0), remaining_time(0) { }
+	~LogData() { }
+	int type;
+	LogDataRobotComm robot_comm;
+	int score1;
+	int score2;
+	int remaining_time;
+	char time_str[100];
 };
 
 class ClickWidget : public QWidget

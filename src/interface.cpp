@@ -426,6 +426,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	updateMap();
 	// Voltage
 	double voltage = (comm_info.voltage << 3) / 100.0;
+	log_writer.setEnable(false);
 	log_writer.write(num + 1, color_str.toStdString().c_str(), (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y,
@@ -441,8 +442,13 @@ void Interface::setRemainingTime(int remaining_time)
 	QString remain_minutes_str, remain_seconds_str;
 	remain_minutes_str.setNum(remain_minutes);
 	remain_seconds_str.setNum(remain_seconds);
-	QString time_str = remain_minutes_str + QString(":") + remain_seconds_str;
+	QString time_str;
+	if(remain_seconds < 10)
+		time_str = remain_minutes_str + QString(": ") + remain_seconds_str;
+	else
+		time_str = remain_minutes_str + QString(":") + remain_seconds_str;
 	time_display->display(time_str);
+	log_writer.writeTime(remaining_time);
 }
 
 void Interface::setScore1(int score1)
@@ -453,6 +459,8 @@ void Interface::setScore1(int score1)
 	score2_str.setNum(score_team2);
 	QString score_str = score1_str + QString(" - ") + score2_str;
 	score_display->display(score_str);
+	constexpr int team_no = 0;
+	log_writer.writeScore(team_no, score1);
 }
 
 void Interface::setScore2(int score2)
@@ -463,6 +471,8 @@ void Interface::setScore2(int score2)
 	score2_str.setNum(score_team2);
 	QString score_str = score1_str + QString(" - ") + score2_str;
 	score_display->display(score_str);
+	constexpr int team_no = 1;
+	log_writer.writeScore(team_no, score2);
 }
 
 void Interface::selectRobot1(void)
@@ -522,46 +532,75 @@ Pos Interface::globalPosToImagePos(Pos gpos)
 void Interface::setParamFromFile(std::vector<std::string> lines)
 {
 	for(auto line : lines) {
-		LogData buf;
+		LogDataRobotComm buf;
 		QString qstr = QString(line.c_str());
 		QStringList list = qstr.split(QChar(','));
 
 		int size = list.size();
-		if(size < 1) continue;
-		strcpy(buf.time_str, list.at(0).toStdString().c_str());
-		if(size < 2) continue;
-		buf.id = list.at(1).toInt();
-		if(size < 3) continue;
-		strcpy(buf.color_str, list.at(2).toStdString().c_str());
-		if(size < 4) continue;
-		buf.fps = list.at(3).toInt();
-		if(size < 5) continue;
-		buf.voltage = list.at(4).toDouble();
-		if(size < 6) continue;
-		buf.x = list.at(5).toInt();
-		if(size < 7) continue;
-		buf.y = list.at(6).toInt();
-		if(size < 8) continue;
-		buf.theta = list.at(7).toDouble();
-		if(size < 9) continue;
-		buf.ball_x = list.at(8).toInt();
-		if(size < 10) continue;
-		buf.ball_y = list.at(9).toInt();
-		if(size < 11) continue;
-		buf.goal_pole_x1 = list.at(10).toInt();
-		if(size < 12) continue;
-		buf.goal_pole_y1 = list.at(11).toInt();
-		if(size < 13) continue;
-		buf.goal_pole_x2 = list.at(12).toInt();
-		if(size < 14) continue;
-		buf.goal_pole_y2 = list.at(13).toInt();
-		if(size < 15) continue;
-		buf.cf_own = list.at(14).toInt();
-		if(size < 16) continue;
-		buf.cf_ball = list.at(15).toInt();
-		if(size < 17) continue;
-		strcpy(buf.msg, list.at(16).toStdString().c_str());
-		log_data.push_back(buf);
+		if(size == 17) {
+			if(size < 1) continue;
+			strcpy(buf.time_str, list.at(0).toStdString().c_str());
+			if(size < 2) continue;
+			buf.id = list.at(1).toInt();
+			if(size < 3) continue;
+			strcpy(buf.color_str, list.at(2).toStdString().c_str());
+			if(size < 4) continue;
+			buf.fps = list.at(3).toInt();
+			if(size < 5) continue;
+			buf.voltage = list.at(4).toDouble();
+			if(size < 6) continue;
+			buf.x = list.at(5).toInt();
+			if(size < 7) continue;
+			buf.y = list.at(6).toInt();
+			if(size < 8) continue;
+			buf.theta = list.at(7).toDouble();
+			if(size < 9) continue;
+			buf.ball_x = list.at(8).toInt();
+			if(size < 10) continue;
+			buf.ball_y = list.at(9).toInt();
+			if(size < 11) continue;
+			buf.goal_pole_x1 = list.at(10).toInt();
+			if(size < 12) continue;
+			buf.goal_pole_y1 = list.at(11).toInt();
+			if(size < 13) continue;
+			buf.goal_pole_x2 = list.at(12).toInt();
+			if(size < 14) continue;
+			buf.goal_pole_y2 = list.at(13).toInt();
+			if(size < 15) continue;
+			buf.cf_own = list.at(14).toInt();
+			if(size < 16) continue;
+			buf.cf_ball = list.at(15).toInt();
+			if(size < 17) continue;
+			strcpy(buf.msg, list.at(16).toStdString().c_str());
+			LogData ldata;
+			ldata.type = 0;
+			ldata.robot_comm = buf;
+			strcpy(ldata.time_str, list.at(0).toStdString().c_str());
+			log_data.push_back(ldata);
+		} else if(size == 2) {
+			// remaining time
+			LogData ldata;
+			ldata.type = 3;
+			strcpy(ldata.time_str, list.at(0).toStdString().c_str());
+			ldata.remaining_time = list.at(1).toInt();
+			log_data.push_back(ldata);
+		} else if(size == 3) {
+			// score
+			LogData ldata;
+			ldata.type = 3;
+			strcpy(ldata.time_str, list.at(0).toStdString().c_str());
+			int team_no = list.at(1).toInt();
+			if(team_no == 0) {
+				ldata.type = 1;
+				ldata.score1 = list.at(2).toInt();
+			} else if(team_no == 0) {
+				ldata.type = 2;
+				ldata.score2 = list.at(2).toInt();
+			} else {
+				continue;
+			}
+			log_data.push_back(ldata);
+		}
 	}
 
 	if(log_data.size() == 0) return;
@@ -570,6 +609,7 @@ void Interface::setParamFromFile(std::vector<std::string> lines)
 	QString before = QString(log_data[log_count++].time_str);
 	QString after = QString(log_data[log_count].time_str);
 	int interval = getInterval(before, after) / log_speed;
+	if(interval < 0) interval = 0;
 	QTimer::singleShot(interval, this, SLOT(updateLog()));
 }
 
@@ -598,6 +638,7 @@ void Interface::updateLog(void)
 	QString before = QString(log_data[log_count++].time_str);
 	QString after = QString(log_data[log_count].time_str);
 	int interval = getInterval(before, after) / log_speed;
+	if(interval < 0) interval = 0;
 	QTimer::singleShot(interval, this, SLOT(updateLog()));
 }
 
@@ -613,66 +654,81 @@ void Interface::changeLogPosition(void)
 	updateLog();
 }
 
-void Interface::setData(LogData data)
+void Interface::setData(LogData log_data)
 {
-	int num = data.id - 1;
-	Robot *robot_data = &robot[num];
+	if(log_data.type == 3) {
+		// time
+		setRemainingTime(log_data.remaining_time);
+		return;
+	} else if(log_data.type == 1) {
+		// score
+		setScore1(log_data.score1);
+		return;
+	} else if(log_data.type == 2) {
+		setScore2(log_data.score2);
+		return;
+	} else if(log_data.type == 0) {
+		LogDataRobotComm data = log_data.robot_comm;
 
-	// ID and Color
-	robot_data->name->setText(data.color_str);
-	// Self-position confidence
-	robot_data->cf_own->setNum(data.cf_own);
-	robot_data->cf_own_bar->setValue(data.cf_own);
-	// Ball position confidence
-	robot_data->cf_ball->setNum(data.cf_ball);
-	robot_data->cf_ball_bar->setValue(data.cf_ball);
-	// elapsed time
-	robot_data->time_bar->setValue(0);
-	// Role and message
-	char *msg = data.msg;
-	if(strstr((const char *)msg, "Attacker")) {
-		// Red
-		robotState[num]->setPalette(pal_red);
-		strcpy(positions[num].color, "red");
-	} else if(strstr((const char *)msg, "Neutral")) {
-		// Green
-		robotState[num]->setPalette(pal_green);
-		strcpy(positions[num].color, "green");
-	} else if(strstr((const char *)msg, "Defender")) {
-		// Blue
-		robotState[num]->setPalette(pal_blue);
-		strcpy(positions[num].color, "blue");
-	} else if(strstr((const char *)msg, "Keeper")) {
-		// Orange
-		robotState[num]->setPalette(pal_orange);
-		strcpy(positions[num].color, "orange");
-	} else {
-		// Black
-		robotState[num]->setPalette(pal_state_bgcolor);
-		strcpy(positions[num].color, "black");
+		int num = data.id - 1;
+		Robot *robot_data = &robot[num];
+
+		// ID and Color
+		robot_data->name->setText(data.color_str);
+		// Self-position confidence
+		robot_data->cf_own->setNum(data.cf_own);
+		robot_data->cf_own_bar->setValue(data.cf_own);
+		// Ball position confidence
+		robot_data->cf_ball->setNum(data.cf_ball);
+		robot_data->cf_ball_bar->setValue(data.cf_ball);
+		// elapsed time
+		robot_data->time_bar->setValue(0);
+		// Role and message
+		char *msg = data.msg;
+		if(strstr((const char *)msg, "Attacker")) {
+			// Red
+			robotState[num]->setPalette(pal_red);
+			strcpy(positions[num].color, "red");
+		} else if(strstr((const char *)msg, "Neutral")) {
+			// Green
+			robotState[num]->setPalette(pal_green);
+			strcpy(positions[num].color, "green");
+		} else if(strstr((const char *)msg, "Defender")) {
+			// Blue
+			robotState[num]->setPalette(pal_blue);
+			strcpy(positions[num].color, "blue");
+		} else if(strstr((const char *)msg, "Keeper")) {
+			// Orange
+			robotState[num]->setPalette(pal_orange);
+			strcpy(positions[num].color, "orange");
+		} else {
+			// Black
+			robotState[num]->setPalette(pal_state_bgcolor);
+			strcpy(positions[num].color, "black");
+		}
+		robot_data->string->setText((char *)msg);
+
+		time_t timer;
+		timer = time(NULL);
+		positions[num].lastReceiveTime = *localtime(&timer);
+		positions[num].enable_pos  = true;
+		positions[num].enable_ball = true;
+		positions[num].enable_goal_pole[0] = true;
+		positions[num].enable_goal_pole[1] = true;
+
+		positions[num].pos.x = data.x;
+		positions[num].pos.y = data.y;
+		positions[num].pos.th = data.theta;
+		positions[num].ball.x = data.ball_x;
+		positions[num].ball.y = data.ball_y;
+		positions[num].goal_pole[0].x = data.goal_pole_x1;
+		positions[num].goal_pole[0].y = data.goal_pole_y1;
+		positions[num].goal_pole[1].x = data.goal_pole_x2;
+		positions[num].goal_pole[1].y = data.goal_pole_y2;
+		positions[num].self_conf = data.cf_own;
+
+		updateMap();
 	}
-	robot_data->string->setText((char *)msg);
-
-	time_t timer;
-	timer = time(NULL);
-	positions[num].lastReceiveTime = *localtime(&timer);
-	positions[num].enable_pos  = true;
-	positions[num].enable_ball = true;
-	positions[num].enable_goal_pole[0] = true;
-	positions[num].enable_goal_pole[1] = true;
-
-	positions[num].pos.x = data.x;
-	positions[num].pos.y = data.y;
-	positions[num].pos.th = data.theta;
-	positions[num].ball.x = data.ball_x;
-	positions[num].ball.y = data.ball_y;
-	positions[num].goal_pole[0].x = data.goal_pole_x1;
-	positions[num].goal_pole[0].y = data.goal_pole_y1;
-	positions[num].goal_pole[1].x = data.goal_pole_x2;
-	positions[num].goal_pole[1].y = data.goal_pole_y2;
-	positions[num].self_conf = data.cf_own;
-
-	updateMap();
 }
 
 void Interface::drawTeamMarker(QPainter &painter, const int pos_x, const int pos_y)
@@ -953,6 +1009,7 @@ void Interface::loadLogFile(void)
 	}
 	setParamFromFile(lines);
 	log_slider->setMaximum(lines.size()-1);
+	log_writer.setEnable(false);
 }
 
 void Interface::logSpeed1(void)
