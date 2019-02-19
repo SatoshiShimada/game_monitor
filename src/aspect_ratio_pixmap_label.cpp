@@ -2,7 +2,9 @@
 
 AspectRatioPixmapLabel::AspectRatioPixmapLabel(QWidget *parent) : QLabel(parent)
 {
-	this->setMinimumSize(1, 1);
+	constexpr int minimum_width = 740;
+	constexpr int minimum_height = 540;
+	this->setMinimumSize(minimum_width, minimum_height);
 	setScaledContents(false);
 }
 
