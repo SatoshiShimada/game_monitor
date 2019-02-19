@@ -1,5 +1,5 @@
-#ifndef _INTERFACE_H_
-#define _INTERFACE_H_
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
 #include <vector>
 #include <string>
@@ -275,5 +275,5 @@ private slots:
 	void setRecordButtonText(QString);
 };
 
-#endif // _INTERFACE_H_
+#endif // INTERFACE_H
 

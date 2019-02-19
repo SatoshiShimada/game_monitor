@@ -1,5 +1,5 @@
-#ifndef _UDP_THREAD_H_
-#define _UDP_THREAD_H_
+#ifndef UDP_THREAD_H
+#define UDP_THREAD_H
 
 #include <QtGui>
 #include <QUdpSocket>
@@ -58,5 +58,5 @@ signals:
 
 bool getCommInfoObject(unsigned char *, Object *);
 
-#endif // _UDP_THREAD_H_
+#endif // UDP_THREAD_H
 
