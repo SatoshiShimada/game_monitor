@@ -32,6 +32,7 @@
 #include "pos_types.h"
 #include "capture.h"
 #include "aspect_ratio_pixmap_label.h"
+#include "gcreceiver.h"
 
 /*
  * Field parameters.
@@ -166,6 +167,7 @@ private:
 	Capture *capture;
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
+	GCReceiver *gc_thread;
 	QMenu *videoMenu;
 	QStatusBar *statusBar;
 	QCheckBox *reverse;

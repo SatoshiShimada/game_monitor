@@ -46,6 +46,9 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 	for(int i = 0; i < max_robot_num; i++)
 		th.push_back(new UdpServer(base_udp_port + i));
 
+	constexpr int gc_receive_port = 3838;
+	gc_thread = new GCReceiver(gc_receive_port);
+
 	createWindow();
 	createMenus();
 	connection();
@@ -295,6 +298,7 @@ void Interface::connection(void)
 	connect(recordButton, SIGNAL(clicked(void)), this, SLOT(captureButtonSlot(void)));
 	connect(capture, SIGNAL(updateRecordTimeSignal(QString)), this, SLOT(showRecordTime(QString)));
 	connect(capture, SIGNAL(updateRecordButtonMessage(QString)), this, SLOT(setRecordButtonText(QString)));
+	connect(gc_thread, SIGNAL(remainingTimeChanged(int)), this, SLOT(setRemainingTime(int)));
 }
 
 void Interface::decodeData1(struct comm_info_T comm_info)
