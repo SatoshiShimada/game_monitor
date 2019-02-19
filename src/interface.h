@@ -33,6 +33,68 @@
 #include "pos_types.h"
 #include "capture.h"
 
+/*
+ * Field parameters.
+ * See Law 1 of rule book(2018) at http://www.robocuphumanoid.org/wp-content/uploads/RCHL-2018-Rules-Proposal_changesMarked_final.pdf
+ */
+class FieldParameter
+{
+public:
+	FieldParameter() :
+		field_length(9.0),
+		field_width(6.0),
+		goal_depth(0.6),
+		goal_width(2.6),
+		goal_height(1.8),
+		goal_area_length(1.0),
+		goal_area_width(5.0),
+		penalty_mark_distance(2.1),
+		center_circle_diameter(1.5),
+		border_strip_width(0.7)
+	{
+	}
+	~FieldParameter() {};
+	const double field_length;
+	const double field_width;
+	const double goal_depth;
+	const double goal_width;
+	const double goal_height;
+	const double goal_area_length;
+	const double goal_area_width;
+	const double penalty_mark_distance;
+	const double center_circle_diameter;
+	const double border_strip_width;
+};
+
+class FieldParameterInt
+{
+public:
+	FieldParameterInt(FieldParameter param) :
+		field_length(static_cast<int>(param.field_length * 100)),
+		field_width(static_cast<int>(param.field_width * 100)),
+		goal_depth(static_cast<int>(param.goal_depth * 100)),
+		goal_width(static_cast<int>(param.goal_width * 100)),
+		goal_height(static_cast<int>(param.goal_height * 100)),
+		goal_area_length(static_cast<int>(param.goal_area_length * 100)),
+		goal_area_width(static_cast<int>(param.goal_area_width * 100)),
+		penalty_mark_distance(static_cast<int>(param.penalty_mark_distance * 100)),
+		center_circle_diameter(static_cast<int>(param.center_circle_diameter * 100)),
+		border_strip_width(static_cast<int>(param.border_strip_width * 100))
+	{
+	}
+	~FieldParameterInt() {};
+	const int field_length;
+	const int field_width;
+	const int goal_depth;
+	const int goal_width;
+	const int goal_height;
+	const int goal_area_length;
+	const int goal_area_width;
+	const int penalty_mark_distance;
+	const int center_circle_diameter;
+	const int border_strip_width;
+};
+
 class PositionMarker {
 public:
 	PositionMarker() : self_conf(0.0), colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
@@ -162,6 +224,7 @@ private:
 	int log_speed;
 	int select_robot_num;
 	struct tm last_select_time;
+	FieldParameterInt field_param;
 	void initializeConfig(void);
 	void createWindow(void);
 	void connection(void);

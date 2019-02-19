@@ -52,7 +52,7 @@ void AspectRatioPixmapLabel::resizeEvent(QResizeEvent *e)
 		QLabel::setPixmap(scaledPixmap());
 }
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), max_robot_num(6), log_speed(1), select_robot_num(-1), field_param(FieldParameter())
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -239,12 +239,61 @@ void Interface::createWindow(void)
 
 void Interface::loadImage(QString field_image_name, QString team_logo_image_name)
 {
+	/*
 	QImage field_image_buf(field_image_name);
 	if(field_image_buf.isNull()) {
 		std::cerr << "Error: couldn\'t open image file" << std::endl;
 		return;
 	}
 	origin_map = QPixmap::fromImage(field_image_buf);
+	*/
+	origin_map = QPixmap(field_param.border_strip_width * 2 + field_param.field_length, field_param.border_strip_width * 2 + field_param.field_width);
+	origin_map.fill(QColor(0, 0, 0));
+	QPainter p;
+	p.begin(&origin_map);
+	QPen pen;
+	pen.setColor(QColor(255, 255, 255));
+	pen.setWidth(10);
+	p.setPen(pen);
+	{
+		const int field_left = field_param.border_strip_width;
+		const int field_right = field_param.border_strip_width + field_param.field_length;
+		const int field_top = field_param.border_strip_width;
+		const int field_bottom = field_param.border_strip_width + field_param.field_width;
+		p.drawLine(field_left, field_top, field_right, field_top);
+		p.drawLine(field_left, field_top, field_left, field_bottom);
+		p.drawLine(field_right, field_bottom, field_left, field_bottom);
+		p.drawLine(field_right, field_top, field_right, field_bottom);
+		const int center_line_pos = field_left + field_param.field_length / 2;
+		p.drawLine(center_line_pos, field_top, center_line_pos, field_bottom);
+		const int left_goal_x = field_left - field_param.goal_depth;
+		const int right_goal_x = field_right + field_param.goal_depth;
+		const int goal_top = field_param.field_width / 2 - field_param.goal_width / 2 + field_top;
+		const int goal_bottom = goal_top + field_param.goal_width;
+		p.drawLine(left_goal_x, goal_top, left_goal_x, goal_bottom);
+		p.drawLine(left_goal_x, goal_top, field_left, goal_top);
+		p.drawLine(left_goal_x, goal_bottom, field_left, goal_bottom);
+		p.drawLine(right_goal_x, goal_top, right_goal_x, goal_bottom);
+		p.drawLine(right_goal_x, goal_top, field_right, goal_top);
+		p.drawLine(right_goal_x, goal_bottom, field_right, goal_bottom);
+		const int left_goal_area_x = field_left + field_param.goal_area_length;
+		const int right_goal_area_x = field_right - field_param.goal_area_length;
+		const int goal_area_top = field_param.field_width / 2 - field_param.goal_area_width / 2 + field_top;
+		const int goal_area_bottom = goal_area_top + field_param.goal_area_width;
+		p.drawLine(left_goal_area_x, goal_area_top, left_goal_area_x, goal_area_bottom);
+		p.drawLine(left_goal_area_x, goal_area_top, field_left, goal_area_top);
+		p.drawLine(left_goal_area_x, goal_area_bottom, field_left, goal_area_bottom);
+		p.drawLine(right_goal_area_x, goal_area_top, right_goal_area_x, goal_area_bottom);
+		p.drawLine(right_goal_area_x, goal_area_top, field_right, goal_area_top);
+		p.drawLine(right_goal_area_x, goal_area_bottom, field_right, goal_area_bottom);
+		const int center_of_field_y = field_top + field_param.field_width / 2;
+		const int &dia = field_param.center_circle_diameter;
+		const int radius = dia / 2; // radius of center circle
+		p.drawEllipse(center_line_pos - radius, center_of_field_y - radius, dia, dia);
+		p.drawPoint(field_left + field_param.penalty_mark_distance, center_of_field_y);
+		p.drawPoint(field_right - field_param.penalty_mark_distance, center_of_field_y);
+	}
+	p.end();
 	map = origin_map;
 	image->setPixmap(map);
 
