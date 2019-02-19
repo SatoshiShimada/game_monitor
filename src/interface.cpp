@@ -15,6 +15,43 @@
 
 Q_DECLARE_METATYPE(QCameraInfo)
 
+AspectRatioPixmapLabel::AspectRatioPixmapLabel(QWidget *parent) : QLabel(parent)
+{
+	this->setMinimumSize(1, 1);
+	setScaledContents(false);
+}
+
+void AspectRatioPixmapLabel::setPixmap(const QPixmap &p)
+{
+	pix = p;
+	QLabel::setPixmap(scaledPixmap());
+}
+
+int AspectRatioPixmapLabel::heightForWidth(int width) const
+{
+	if(this->height())
+		return pix.isNull();
+	else
+		return (static_cast<qreal>(pix.height()) * width) / pix.width();
+}
+
+QSize AspectRatioPixmapLabel::sizeHint() const
+{
+	int w = this->width();
+	return QSize(w, heightForWidth(w));
+}
+
+QPixmap AspectRatioPixmapLabel::scaledPixmap() const
+{
+	return pix.scaled(this->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+}
+
+void AspectRatioPixmapLabel::resizeEvent(QResizeEvent *e)
+{
+	if(!pix.isNull())
+		QLabel::setPixmap(scaledPixmap());
+}
+
 Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), max_robot_num(6), log_speed(1), select_robot_num(-1)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
@@ -113,7 +150,7 @@ void Interface::createWindow(void)
 	window     = new QWidget;
 	reverse    = new QCheckBox("Reverse field");
 	viewGoalpostCheckBox = new QCheckBox("View Goal post");
-	image      = new QLabel;
+	image      = new AspectRatioPixmapLabel;
 	log_step   = new QLabel;
 	log_slider = new QSlider(Qt::Horizontal);
 	log_slider->setRange(0, 0);

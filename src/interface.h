@@ -25,6 +25,8 @@
 #include <QGridLayout>
 #include <QProgressBar>
 #include <QFileDialog>
+#include <QPixmap>
+#include <QResizeEvent>
 
 #include "udp_thread.h"
 #include "log_writer.h"
@@ -92,6 +94,21 @@ signals:
 	void clicked(void);
 };
 
+class AspectRatioPixmapLabel : public QLabel
+{
+	Q_OBJECT
+public:
+	AspectRatioPixmapLabel(QWidget *parent = 0);
+	virtual int heightForWidth(int width) const;
+	virtual QSize sizeHint() const;
+	QPixmap scaledPixmap() const;
+public slots:
+	void setPixmap(const QPixmap &);
+	void resizeEvent(QResizeEvent *);
+private:
+	QPixmap pix;
+};
+
 class Interface : public QMainWindow
 {
 	Q_OBJECT
@@ -110,7 +127,7 @@ private:
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
-	QLabel *image;
+	AspectRatioPixmapLabel *image;
 	QLabel *log_step;
 	QPixmap map;
 	QPixmap origin_map;
