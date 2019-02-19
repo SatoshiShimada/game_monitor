@@ -59,10 +59,10 @@ int LogWriter::stopRecord(void)
 	return 0;
 }
 
-int LogWriter::write(int id, char *color, int fps, double voltage,
+int LogWriter::write(int id, const char *color, int fps, double voltage,
 	int posx, int posy, float posth, int ballx, int bally,
 	int goal_pole_x1, int goal_pole_y1, int goal_pole_x2, int goal_pole_y2,
-	char *str, int cf_own, int cf_ball)
+	const char *str, int cf_own, int cf_ball)
 {
 	time_t timer;
 	struct tm *local_time;

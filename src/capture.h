@@ -1,5 +1,5 @@
-#ifndef _CAPTURE_H_
-#define _CAPTURE_H_
+#ifndef CAPTURE_H
+#define CAPTURE_H
 
 #include <QCamera>
 #include <QCameraImageCapture>
@@ -51,5 +51,5 @@ private:
 	bool m_applicationExiting;
 };
 
-#endif // _CAPTURE_H_
+#endif // CAPTURE_H
 

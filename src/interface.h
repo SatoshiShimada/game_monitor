@@ -1,5 +1,5 @@
-#ifndef _INTERFACE_H_
-#define _INTERFACE_H_
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
 #include <vector>
 #include <string>
@@ -25,11 +25,77 @@
 #include <QGridLayout>
 #include <QProgressBar>
 #include <QFileDialog>
+#include <QPixmap>
 
 #include "udp_thread.h"
 #include "log_writer.h"
 #include "pos_types.h"
 #include "capture.h"
+#include "aspect_ratio_pixmap_label.h"
+
+/*
+ * Field parameters.
+ * See Law 1 of rule book(2018) at http://www.robocuphumanoid.org/wp-content/uploads/RCHL-2018-Rules-Proposal_changesMarked_final.pdf
+ */
+class FieldParameter
+{
+	// unit: meter
+public:
+	FieldParameter() :
+		field_length(9.0),
+		field_width(6.0),
+		goal_depth(0.6),
+		goal_width(2.6),
+		goal_height(1.8),
+		goal_area_length(1.0),
+		goal_area_width(5.0),
+		penalty_mark_distance(2.1),
+		center_circle_diameter(1.5),
+		border_strip_width(0.7)
+	{
+	}
+	~FieldParameter() {};
+	const double field_length;
+	const double field_width;
+	const double goal_depth;
+	const double goal_width;
+	const double goal_height;
+	const double goal_area_length;
+	const double goal_area_width;
+	const double penalty_mark_distance;
+	const double center_circle_diameter;
+	const double border_strip_width;
+};
+
+class FieldParameterInt
+{
+	// unit: centimeter
+public:
+	FieldParameterInt(FieldParameter param) :
+		field_length(static_cast<int>(param.field_length * 100)),
+		field_width(static_cast<int>(param.field_width * 100)),
+		goal_depth(static_cast<int>(param.goal_depth * 100)),
+		goal_width(static_cast<int>(param.goal_width * 100)),
+		goal_height(static_cast<int>(param.goal_height * 100)),
+		goal_area_length(static_cast<int>(param.goal_area_length * 100)),
+		goal_area_width(static_cast<int>(param.goal_area_width * 100)),
+		penalty_mark_distance(static_cast<int>(param.penalty_mark_distance * 100)),
+		center_circle_diameter(static_cast<int>(param.center_circle_diameter * 100)),
+		border_strip_width(static_cast<int>(param.border_strip_width * 100))
+	{
+	}
+	~FieldParameterInt() {};
+	const int field_length;
+	const int field_width;
+	const int goal_depth;
+	const int goal_width;
+	const int goal_height;
+	const int goal_area_length;
+	const int goal_area_width;
+	const int penalty_mark_distance;
+	const int center_circle_diameter;
+	const int border_strip_width;
+};
 
 class PositionMarker {
 public:
@@ -104,17 +170,17 @@ private:
 	QStatusBar *statusBar;
 	QCheckBox *reverse;
 	QCheckBox *viewGoalpostCheckBox;
+	QCheckBox *viewSelfPosConfCheckBox;
 	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
 	QPushButton *recordButton;
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
-	QLabel *image;
+	AspectRatioPixmapLabel *image;
 	QLabel *log_step;
 	QPixmap map;
 	QPixmap origin_map;
-	QPixmap team_logo_map;
 	QSlider *log_slider;
 	QGridLayout *mainLayout;
 	QHBoxLayout *checkLayout;
@@ -138,6 +204,7 @@ private:
 	bool fViewGoalpost;
 	bool fPauseLog;
 	bool fRecording;
+	bool fViewSelfPosConf;
 	int updateMapTimerId;
 	unsigned int log_count;
 	const int max_robot_num;
@@ -145,6 +212,7 @@ private:
 	int log_speed;
 	int select_robot_num;
 	struct tm last_select_time;
+	FieldParameterInt field_param;
 	void initializeConfig(void);
 	void createWindow(void);
 	void connection(void);
@@ -160,8 +228,7 @@ private:
 public:
 	Interface();
 	~Interface();
-	void loadImage(const char *);
-	void loadImage(QString, QString);
+	void drawField(void);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
 	void decodeUdp(struct comm_info_T, Robot *, int num);
@@ -182,6 +249,7 @@ private slots:
 	void selectRobot6(void);
 	void reverseField(int);
 	void viewGoalpost(int);
+	void viewSelfPosConf(int);
 	void loadLogFile(void);
 	void updateLog(void);
 	void logSpeed1(void);
@@ -195,5 +263,5 @@ private slots:
 	void setRecordButtonText(QString);
 };
 
-#endif // _INTERFACE_H_
+#endif // INTERFACE_H
 

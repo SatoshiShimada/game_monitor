@@ -1,5 +1,5 @@
-#ifndef _POS_TYPES_H_
-#define _POS_TYPES_H_
+#ifndef POS_TYPES_H
+#define POS_TYPES_H
 
 enum {
 	NONE = 0x00,
@@ -12,7 +12,7 @@ enum {
 class Pos
 {
 public:
-	Pos() : x(0), y(0), th(0) {}
+	Pos() : x(0.0), y(0.0), th(0.0) {}
 	Pos(float ix, float iy, float ith) :
 		x(ix), y(iy), th(ith) {}
 	Pos(double ix, double iy, double ith) :
@@ -30,5 +30,5 @@ public:
 	int type;
 };
 
-#endif // _POS_TYPES_H_
+#endif // POS_TYPES_H
 

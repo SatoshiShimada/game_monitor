@@ -1,5 +1,5 @@
-#ifndef _LOG_H_
-#define _LOG_H_
+#ifndef LOG_H
+#define LOG_H
 
 class LogWriter {
 public:
@@ -7,7 +7,7 @@ public:
 	~LogWriter();
 	int startRecord(const char *);
 	int stopRecord(void);
-	int write(int, char *, int, double, int, int, float, int, int, int, int, int, int, char *, int, int);
+	int write(int, const char *, int, double, int, int, float, int, int, int, int, int, int, const char *, int, int);
 	int separate(void);
 	void setEnable(bool = true);
 private:
@@ -19,5 +19,5 @@ private:
 	bool enable;
 };
 
-#endif // _LOG_H_
+#endif // LOG_H
 
