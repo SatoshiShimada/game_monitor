@@ -336,7 +336,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	id    = (int)(comm_info.id & 0x7F);
 	positions[num].colornum = color;
 
-	//* record time of receive data
+	// record time of receive data
 	time_t timer;
 	struct tm *local_time;
 	timer = time(NULL);
@@ -410,7 +410,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 		}
 	}
 	updateMap();
-	/* Voltage */
+	// Voltage
 	double voltage = (comm_info.voltage << 3) / 100.0;
 	log_writer.write(num + 1, color_str.toStdString().c_str(), (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
@@ -634,7 +634,8 @@ void Interface::drawTeamMarker(QPainter &painter, const int pos_x, const int pos
 {
 	painter.setPen(QPen(Qt::white));
 	QFont font = painter.font();
-	font.setPointSize(32);
+	constexpr int team_marker_font_size = 32;
+	font.setPointSize(team_marker_font_size);
 	painter.setFont(font);
 	painter.drawText(pos_x, pos_y, QString("CIT Brains"));
 }
@@ -655,11 +656,10 @@ void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int s
 	painter.drawLine(self_x, self_y, direction_x, direction_y);
 
 	// draw robot number
-	char buf[100];
-	sprintf(buf, "%d", robot_id);
+	QString id_str = QString::number(robot_id);
 	const int font_offset_x = settings->value("marker/font_offset_x").toInt();
 	const int font_offset_y = settings->value("marker/font_offset_y").toInt();
-	painter.drawText(QPoint(self_x - font_offset_x, self_y - font_offset_y), buf);
+	painter.drawText(QPoint(self_x - font_offset_x, self_y - font_offset_y), id_str);
 
 	// draw self position confidence
 	if(fViewSelfPosConf) {
@@ -701,11 +701,10 @@ void Interface::drawBallMarker(QPainter &painter, const int ball_x, const int ba
 	painter.drawPoint(ball_x, ball_y);
 	constexpr int ball_near_threshold = 50; // Do not draw robot number if the ball is near the robot.
 	if(distance_ball_and_robot > ball_near_threshold) {
-		char buf[100];
-		sprintf(buf, "%d", owner_id);
+		QString id_str = QString::number(owner_id);
 		const int font_offset_x = settings->value("marker/font_offset_x").toInt();
 		const int font_offset_y = settings->value("marker/font_offset_y").toInt();
-		painter.drawText(QPoint(ball_x - font_offset_x, ball_y - font_offset_y), buf);
+		painter.drawText(QPoint(ball_x - font_offset_x, ball_y - font_offset_y), id_str);
 	}
 	painter.setPen(QPen(orange, 1));
 	painter.drawLine(self_x, self_y, ball_x, ball_y);
