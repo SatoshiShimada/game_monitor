@@ -13,6 +13,13 @@
 #include "pos_types.h"
 #include "interface.h"
 
+static inline int distance(const int x1, const int y1, const int x2, const int y2)
+{
+	const int x = x1 - x2;
+	const int y = y1 - y2;
+	return std::sqrt(x * x + y * y);
+}
+
 Q_DECLARE_METATYPE(QCameraInfo)
 
 AspectRatioPixmapLabel::AspectRatioPixmapLabel(QWidget *parent) : QLabel(parent)
@@ -70,7 +77,7 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 	logo_pos_x = field_param.field_length / 2 + field_param.field_length / 4;
 	logo_pos_y = field_param.border_strip_width / 2;
 
-	/* Run receive thread */
+	// Run receive thread
 	const int base_udp_port = settings->value("network/port").toInt();
 	for(int i = 0; i < max_robot_num; i++)
 		th.push_back(new UdpServer(base_udp_port + i));
@@ -79,7 +86,7 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 	createMenus();
 	connection();
 
-	updateMapTimerId = startTimer(1000); /* timer by 1000msec */
+	updateMapTimerId = startTimer(1000); // timer by 1000msec
 	drawField();
 
 	this->setWindowTitle("Humanoid League Game Monitor");
@@ -123,6 +130,7 @@ void Interface::initializeConfig(void)
 	// In this program, field dimensions are defined in centimeters.
 	settings->setValue("field_size/x", settings->value("field_size/x", field_param.field_length * 10));
 	settings->setValue("field_size/y", settings->value("field_size/y", field_param.field_width * 10));
+	settings->setValue("field_size/line_width", settings->value("field_size/line_width", 5));
 	// marker configurations
 	settings->setValue("marker/pen_size", settings->value("marker/pen_size", 3));
 	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 15));
@@ -231,52 +239,52 @@ void Interface::createWindow(void)
 
 void Interface::drawField()
 {
-	origin_map = QPixmap(field_param.border_strip_width * 2 + field_param.field_length, field_param.border_strip_width * 2 + field_param.field_width);
-	origin_map.fill(QColor(0, 0, 0));
+	const int field_w = settings->value("field_image/width").toInt();
+	const int field_h = settings->value("field_image/height").toInt();
+	origin_map = QPixmap(field_w, field_h);
+	origin_map.fill(Qt::black);
 	QPainter p;
 	p.begin(&origin_map);
-	QPen pen;
-	pen.setColor(QColor(255, 255, 255));
-	pen.setWidth(10);
+	const int line_width = settings->value("field_size/line_width").toInt();
+	QPen pen(Qt::white, line_width);
 	p.setPen(pen);
-	{ // draw field lines, center circle and penalty marks
-		const int field_left = field_param.border_strip_width;
-		const int field_right = field_param.border_strip_width + field_param.field_length;
-		const int field_top = field_param.border_strip_width;
-		const int field_bottom = field_param.border_strip_width + field_param.field_width;
-		p.drawLine(field_left, field_top, field_right, field_top);
-		p.drawLine(field_left, field_top, field_left, field_bottom);
-		p.drawLine(field_right, field_bottom, field_left, field_bottom);
-		p.drawLine(field_right, field_top, field_right, field_bottom);
-		const int center_line_pos = field_left + field_param.field_length / 2;
-		p.drawLine(center_line_pos, field_top, center_line_pos, field_bottom);
-		const int left_goal_x = field_left - field_param.goal_depth;
-		const int right_goal_x = field_right + field_param.goal_depth;
-		const int goal_top = field_param.field_width / 2 - field_param.goal_width / 2 + field_top;
-		const int goal_bottom = goal_top + field_param.goal_width;
-		p.drawLine(left_goal_x, goal_top, left_goal_x, goal_bottom);
-		p.drawLine(left_goal_x, goal_top, field_left, goal_top);
-		p.drawLine(left_goal_x, goal_bottom, field_left, goal_bottom);
-		p.drawLine(right_goal_x, goal_top, right_goal_x, goal_bottom);
-		p.drawLine(right_goal_x, goal_top, field_right, goal_top);
-		p.drawLine(right_goal_x, goal_bottom, field_right, goal_bottom);
-		const int left_goal_area_x = field_left + field_param.goal_area_length;
-		const int right_goal_area_x = field_right - field_param.goal_area_length;
-		const int goal_area_top = field_param.field_width / 2 - field_param.goal_area_width / 2 + field_top;
-		const int goal_area_bottom = goal_area_top + field_param.goal_area_width;
-		p.drawLine(left_goal_area_x, goal_area_top, left_goal_area_x, goal_area_bottom);
-		p.drawLine(left_goal_area_x, goal_area_top, field_left, goal_area_top);
-		p.drawLine(left_goal_area_x, goal_area_bottom, field_left, goal_area_bottom);
-		p.drawLine(right_goal_area_x, goal_area_top, right_goal_area_x, goal_area_bottom);
-		p.drawLine(right_goal_area_x, goal_area_top, field_right, goal_area_top);
-		p.drawLine(right_goal_area_x, goal_area_bottom, field_right, goal_area_bottom);
-		const int center_of_field_y = field_top + field_param.field_width / 2;
-		const int &dia = field_param.center_circle_diameter;
-		const int radius = dia / 2; // radius of center circle
-		p.drawEllipse(center_line_pos - radius, center_of_field_y - radius, dia, dia);
-		p.drawPoint(field_left + field_param.penalty_mark_distance, center_of_field_y);
-		p.drawPoint(field_right - field_param.penalty_mark_distance, center_of_field_y);
-	}
+	// draw field lines, center circle and penalty marks
+	const int field_left = field_param.border_strip_width;
+	const int field_right = field_param.border_strip_width + field_param.field_length;
+	const int field_top = field_param.border_strip_width;
+	const int field_bottom = field_param.border_strip_width + field_param.field_width;
+	p.drawLine(field_left, field_top, field_right, field_top);
+	p.drawLine(field_left, field_top, field_left, field_bottom);
+	p.drawLine(field_right, field_bottom, field_left, field_bottom);
+	p.drawLine(field_right, field_top, field_right, field_bottom);
+	const int center_line_pos = field_left + field_param.field_length / 2;
+	p.drawLine(center_line_pos, field_top, center_line_pos, field_bottom);
+	const int left_goal_x = field_left - field_param.goal_depth;
+	const int right_goal_x = field_right + field_param.goal_depth;
+	const int goal_top = field_param.field_width / 2 - field_param.goal_width / 2 + field_top;
+	const int goal_bottom = goal_top + field_param.goal_width;
+	p.drawLine(left_goal_x, goal_top, left_goal_x, goal_bottom);
+	p.drawLine(left_goal_x, goal_top, field_left, goal_top);
+	p.drawLine(left_goal_x, goal_bottom, field_left, goal_bottom);
+	p.drawLine(right_goal_x, goal_top, right_goal_x, goal_bottom);
+	p.drawLine(right_goal_x, goal_top, field_right, goal_top);
+	p.drawLine(right_goal_x, goal_bottom, field_right, goal_bottom);
+	const int left_goal_area_x = field_left + field_param.goal_area_length;
+	const int right_goal_area_x = field_right - field_param.goal_area_length;
+	const int goal_area_top = field_param.field_width / 2 - field_param.goal_area_width / 2 + field_top;
+	const int goal_area_bottom = goal_area_top + field_param.goal_area_width;
+	p.drawLine(left_goal_area_x, goal_area_top, left_goal_area_x, goal_area_bottom);
+	p.drawLine(left_goal_area_x, goal_area_top, field_left, goal_area_top);
+	p.drawLine(left_goal_area_x, goal_area_bottom, field_left, goal_area_bottom);
+	p.drawLine(right_goal_area_x, goal_area_top, right_goal_area_x, goal_area_bottom);
+	p.drawLine(right_goal_area_x, goal_area_top, field_right, goal_area_top);
+	p.drawLine(right_goal_area_x, goal_area_bottom, field_right, goal_area_bottom);
+	const int center_of_field_y = field_top + field_param.field_width / 2;
+	const int &dia = field_param.center_circle_diameter;
+	const int radius = dia / 2; // radius of center circle
+	p.drawEllipse(center_line_pos - radius, center_of_field_y - radius, dia, dia);
+	p.drawPoint(field_left + field_param.penalty_mark_distance, center_of_field_y);
+	p.drawPoint(field_right - field_param.penalty_mark_distance, center_of_field_y);
 	p.end();
 	map = origin_map;
 	image->setPixmap(map);
@@ -353,52 +361,56 @@ void Interface::decodeData6(struct comm_info_T comm_info)
 
 void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int num)
 {
-	char color_str[100];
 	int color, id;
 
-	/* MAGENTA, CYAN */
+	// MAGENTA, CYAN
 	color = (int)(comm_info.id & 0x80) >> 7;
 	id    = (int)(comm_info.id & 0x7F);
 	positions[num].colornum = color;
 
-	/* record time of receive data */
+	//* record time of receive data
 	time_t timer;
 	struct tm *local_time;
 	timer = time(NULL);
 	local_time = localtime(&timer);
 	positions[num].lastReceiveTime = *local_time;
 
-	/* ID and Color */
-	sprintf(color_str, "%s %d", ((color == MAGENTA) ? "MAGENTA" : "CYAN"), id);
+	// ID and Color
+	QString color_str;
+	if(color == MAGENTA)
+		color_str = QString("MAGENTA");
+	else
+		color_str = QString("CYAN");
+	color_str = color_str + QString(" ") + QString::number(id);
 	robot_data->name->setText(color_str);
-	/* Self-position confidence */
+	// Self-position confidence
 	robot_data->cf_own->setNum(comm_info.cf_own);
 	robot_data->cf_own_bar->setValue(comm_info.cf_own);
 	positions[num].self_conf = comm_info.cf_own;
-	/* Ball position confidence */
+	// Ball position confidence
 	robot_data->cf_ball->setNum(comm_info.cf_ball);
 	robot_data->cf_ball_bar->setValue(comm_info.cf_ball);
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
 	robot_data->time_bar->setValue(time_limit);
-	/* Role and message */
+	// Role and message
 	if(strstr((const char *)comm_info.command, "Attacker")) {
-		/* Red */
+		// Red
 		robotState[num]->setPalette(pal_red);
 		strcpy(positions[num].color, "red");
 	} else if(strstr((const char *)comm_info.command, "Neutral")) {
-		/* Green */
+		// Green
 		robotState[num]->setPalette(pal_green);
 		strcpy(positions[num].color, "green");
 	} else if(strstr((const char *)comm_info.command, "Defender")) {
-		/* Blue */
+		// Blue
 		robotState[num]->setPalette(pal_blue);
 		strcpy(positions[num].color, "blue");
 	} else if(strstr((const char *)comm_info.command, "Keeper")) {
-		/* Orange */
+		// Orange
 		robotState[num]->setPalette(pal_orange);
 		strcpy(positions[num].color, "orange");
 	} else {
-		/* Black */
+		// Black
 		robotState[num]->setPalette(pal_state_bgcolor);
 		strcpy(positions[num].color, "black");
 	}
@@ -432,12 +444,12 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	updateMap();
 	/* Voltage */
 	double voltage = (comm_info.voltage << 3) / 100.0;
-	log_writer.write(num + 1, color_str, (int)comm_info.fps, (double)voltage,
+	log_writer.write(num + 1, color_str.toStdString().c_str(), (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y,
 		(int)positions[num].goal_pole[0].x, (int)positions[num].goal_pole[0].y,
 		(int)positions[num].goal_pole[1].x, (int)positions[num].goal_pole[1].y,
-		(char *)comm_info.command, (int)comm_info.cf_own, (int)comm_info.cf_ball);
+		(const char *)comm_info.command, (int)comm_info.cf_own, (int)comm_info.cf_ball);
 }
 
 void Interface::selectRobot1(void)
@@ -593,36 +605,36 @@ void Interface::setData(LogData data)
 	int num = data.id - 1;
 	Robot *robot_data = &robot[num];
 
-	/* ID and Color */
+	// ID and Color
 	robot_data->name->setText(data.color_str);
-	/* Self-position confidence */
+	// Self-position confidence
 	robot_data->cf_own->setNum(data.cf_own);
 	robot_data->cf_own_bar->setValue(data.cf_own);
-	/* Ball position confidence */
+	// Ball position confidence
 	robot_data->cf_ball->setNum(data.cf_ball);
 	robot_data->cf_ball_bar->setValue(data.cf_ball);
-	/* elapsed time */
+	// elapsed time
 	robot_data->time_bar->setValue(0);
-	/* Role and message */
+	// Role and message
 	char *msg = data.msg;
 	if(strstr((const char *)msg, "Attacker")) {
-		/* Red */
+		// Red
 		robotState[num]->setPalette(pal_red);
 		strcpy(positions[num].color, "red");
 	} else if(strstr((const char *)msg, "Neutral")) {
-		/* Green */
+		// Green
 		robotState[num]->setPalette(pal_green);
 		strcpy(positions[num].color, "green");
 	} else if(strstr((const char *)msg, "Defender")) {
-		/* Blue */
+		// Blue
 		robotState[num]->setPalette(pal_blue);
 		strcpy(positions[num].color, "blue");
 	} else if(strstr((const char *)msg, "Keeper")) {
-		/* Orange */
+		// Orange
 		robotState[num]->setPalette(pal_orange);
 		strcpy(positions[num].color, "orange");
 	} else {
-		/* Black */
+		// Black
 		robotState[num]->setPalette(pal_state_bgcolor);
 		strcpy(positions[num].color, "black");
 	}
@@ -780,15 +792,16 @@ void Interface::updateMap(void)
 				}
 				// draw ball position as orange
 				const int ball_marker_size = settings->value("marker/ball_size").toInt();
-				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), ball_marker_size));
+				QColor orange(0xFF, 0xA5, 0x00);
+				paint.setPen(QPen(orange, ball_marker_size));
 				paint.drawPoint(ball_x, ball_y);
-				constexpr int ball_near_threshold = 50; // Do no draw robot number if the ball is nearby from robot.
-				const int distance_ball_and_robot = std::sqrt((ball_x - self_x) * (ball_x - self_x) + (ball_y - self_y) * (ball_y - self_y));
+				constexpr int ball_near_threshold = 50; // Do not draw robot number if the ball is near the robot.
+				const int distance_ball_and_robot = distance(ball_x, ball_y, self_x, self_y);
 				if(distance_ball_and_robot > ball_near_threshold) {
 					sprintf(buf, "%d", i + 1);
 					paint.drawText(QPoint(ball_x - font_offset_x, ball_y - font_offset_y), buf);
 				}
-				paint.setPen(QPen(QColor(0xFF, 0xA5, 0x00), 1));
+				paint.setPen(QPen(orange, 1));
 				paint.drawLine(self_x, self_y, ball_x, ball_y);
 			}
 			// draw goal posts
