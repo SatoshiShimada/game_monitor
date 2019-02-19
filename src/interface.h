@@ -224,6 +224,11 @@ private:
 	QColor getColor(const char *);
 	void selectRobot(int);
 	void createMenus(void);
+	void drawTeamMarker(QPainter &, const int, const int);
+	void drawRobotMarker(QPainter &, const int, const int, const double, const int, const QColor, const double);
+	void drawBallMarker(QPainter &, const int, const int, const int, const int, const int, const int);
+	void drawGoalPostMarker(QPainter &, const int, const int, const int, const int);
+	void drawHighlightCircle(QPainter &, const int, const int);
 
 public:
 	Interface();

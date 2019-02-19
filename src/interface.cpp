@@ -630,9 +630,114 @@ void Interface::setData(LogData data)
 	updateMap();
 }
 
+void Interface::drawTeamMarker(QPainter &painter, const int pos_x, const int pos_y)
+{
+	painter.setPen(QPen(Qt::white));
+	QFont font = painter.font();
+	font.setPointSize(32);
+	painter.setFont(font);
+	painter.drawText(pos_x, pos_y, QString("CIT Brains"));
+}
+
+void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int self_y, const double theta, int robot_id, const QColor color, const double self_conf)
+{
+	// set marker color according to robot role
+	const int robot_pen_size = settings->value("marker/pen_size").toInt();
+	painter.setPen(QPen(color, robot_pen_size));
+
+	// draw robot marker
+	painter.drawPoint(self_x, self_y);
+	const int robot_marker_radius = settings->value("marker/robot_size").toInt();
+	painter.drawEllipse(self_x - robot_marker_radius, self_y - robot_marker_radius, robot_marker_radius * 2, robot_marker_radius * 2);
+	const int robot_marker_direction_length = settings->value("marker/direction_marker_length").toInt();
+	const int direction_x = self_x + robot_marker_direction_length * std::cos(theta - M_PI / 2);
+	const int direction_y = self_y + robot_marker_direction_length * std::sin(theta - M_PI / 2);
+	painter.drawLine(self_x, self_y, direction_x, direction_y);
+
+	// draw robot number
+	char buf[100];
+	sprintf(buf, "%d", robot_id);
+	const int font_offset_x = settings->value("marker/font_offset_x").toInt();
+	const int font_offset_y = settings->value("marker/font_offset_y").toInt();
+	painter.drawText(QPoint(self_x - font_offset_x, self_y - font_offset_y), buf);
+
+	// draw self position confidence
+	if(fViewSelfPosConf) {
+		constexpr int bar_width = 80;
+		constexpr int bar_height = 6;
+		const int bar_left = self_x - bar_width / 2;
+		const int bar_top = self_y + 25;
+		QPainterPath path_frame, path_conf;
+		path_frame.addRect(bar_left - 2, bar_top - 2, bar_width + 4, bar_height + 4);
+		painter.fillPath(path_frame, Qt::white);
+		const auto conf = self_conf;
+		const int conf_width = static_cast<int>(conf / 100.0 * bar_width);
+		QPen pen = painter.pen();
+		constexpr int pen_size = 1;
+		painter.setPen(QPen(QColor(0, 0, 0), pen_size));
+		painter.setRenderHint(QPainter::NonCosmeticDefaultPen);
+		painter.drawRect(bar_left, bar_top, bar_width, bar_height);
+		painter.setRenderHint(QPainter::Antialiasing);
+		painter.setPen(pen);
+		path_conf.addRect(bar_left, bar_top, conf_width, bar_height);
+		QColor color;
+		if(conf < 30) {
+			color = Qt::red;
+		} else if(conf < 70) {
+			color = QColor(0xFF, 0xA5, 0x00); // orange
+		} else {
+			color = Qt::green;
+		}
+		painter.fillPath(path_conf, color);
+	}
+}
+
+void Interface::drawBallMarker(QPainter &painter, const int ball_x, const int ball_y, const int owner_id, const int distance_ball_and_robot, const int self_x, const int self_y)
+{
+	// draw ball position as orange
+	const int ball_marker_size = settings->value("marker/ball_size").toInt();
+	QColor orange(0xFF, 0xA5, 0x00);
+	painter.setPen(QPen(orange, ball_marker_size));
+	painter.drawPoint(ball_x, ball_y);
+	constexpr int ball_near_threshold = 50; // Do not draw robot number if the ball is near the robot.
+	if(distance_ball_and_robot > ball_near_threshold) {
+		char buf[100];
+		sprintf(buf, "%d", owner_id);
+		const int font_offset_x = settings->value("marker/font_offset_x").toInt();
+		const int font_offset_y = settings->value("marker/font_offset_y").toInt();
+		painter.drawText(QPoint(ball_x - font_offset_x, ball_y - font_offset_y), buf);
+	}
+	painter.setPen(QPen(orange, 1));
+	painter.drawLine(self_x, self_y, ball_x, ball_y);
+}
+
+void Interface::drawGoalPostMarker(QPainter &painter, const int goal_x, const int goal_y, const int self_x, const int self_y)
+{
+	QColor goal_post_color = Qt::red;
+	const int goal_post_marker_size = settings->value("marker/goal_pole_size").toInt();
+	painter.setPen(QPen(goal_post_color, goal_post_marker_size));
+	painter.drawPoint(goal_x, goal_y);
+	painter.setPen(QPen(goal_post_color, 1));
+	painter.drawLine(self_x, self_y, goal_x, goal_y);
+}
+
+void Interface::drawHighlightCircle(QPainter &painter, const int center_x, const int center_y)
+{
+	QColor circle_color = Qt::red;
+	QPen pen = painter.pen();
+	const int pen_size = 2;
+	int circle_size;
+	painter.setPen(QPen(circle_color, pen_size));
+	circle_size = 200;
+	painter.drawEllipse(center_x - (circle_size / 2), center_y - (circle_size / 2), circle_size, circle_size);
+	painter.setPen(QPen(circle_color, pen_size));
+	circle_size = 100;
+	painter.drawEllipse(center_x - (circle_size / 2), center_y - (circle_size / 2), circle_size, circle_size);
+	painter.setPen(pen);
+}
+
 void Interface::updateMap(void)
 {
-	char buf[2048];
 	time_t timer;
 	struct tm *local_time;
 	timer = time(NULL);
@@ -642,13 +747,7 @@ void Interface::updateMap(void)
 	map = origin_map;
 	QPainter paint(&map);
 	paint.setRenderHint(QPainter::Antialiasing);
-	{ // draw team marker
-		paint.setPen(QPen(QColor(0xff, 0xff, 0xff)));
-		QFont font = paint.font();
-		font.setPointSize(32);
-		paint.setFont(font);
-		paint.drawText(logo_pos_x, logo_pos_y, QString("CIT Brains"));
-	}
+	drawTeamMarker(paint, logo_pos_x, logo_pos_y);
 
 	QFont font = paint.font();
 	const int font_size = settings->value("marker/font_size").toInt();
@@ -686,91 +785,29 @@ void Interface::updateMap(void)
 				robot[i].time_bar->setValue(0);
 				continue;
 			}
-			// set marker color according to robot role
-			QColor color = getColor(positions[i].color);
-			const int robot_pen_size = settings->value("marker/pen_size").toInt();
-			paint.setPen(QPen(color, robot_pen_size));
-			// draw robot marker
-			paint.drawPoint(self_x, self_y);
-			const int robot_marker_radius = settings->value("marker/robot_size").toInt();
-			paint.drawEllipse(self_x - robot_marker_radius, self_y - robot_marker_radius, robot_marker_radius * 2, robot_marker_radius * 2);
-			const int robot_marker_direction_length = settings->value("marker/direction_marker_length").toInt();
-			const int direction_x = self_x + robot_marker_direction_length * std::cos(theta - M_PI / 2);
-			const int direction_y = self_y + robot_marker_direction_length * std::sin(theta - M_PI / 2);
-			paint.drawLine(self_x, self_y, direction_x, direction_y);
-			// draw robot number
-			sprintf(buf, "%d", i + 1);
-			const int font_offset_x = settings->value("marker/font_offset_x").toInt();
-			const int font_offset_y = settings->value("marker/font_offset_y").toInt();
-			paint.drawText(QPoint(self_x - font_offset_x, self_y - font_offset_y), buf);
-			// draw self position confidence
-			if(fViewSelfPosConf) {
-				constexpr int bar_width = 80;
-				constexpr int bar_height = 6;
-				const int bar_left = self_x - bar_width / 2;
-				const int bar_top = self_y + 25;
-				QPainterPath path_frame, path_conf;
-				path_frame.addRect(bar_left - 2, bar_top - 2, bar_width + 4, bar_height + 4);
-				paint.fillPath(path_frame, Qt::white);
-				const auto conf = positions[i].self_conf;
-				const int conf_width = static_cast<int>(conf / 100.0 * bar_width);
-				QPen pen = paint.pen();
-				constexpr int pen_size = 1;
-				paint.setPen(QPen(QColor(0, 0, 0), pen_size));
-				paint.setRenderHint(QPainter::NonCosmeticDefaultPen);
-				paint.drawRect(bar_left, bar_top, bar_width, bar_height);
-				paint.setRenderHint(QPainter::Antialiasing);
-				paint.setPen(pen);
-				path_conf.addRect(bar_left, bar_top, conf_width, bar_height);
-				QColor color;
-				if(conf < 30) {
-					color = Qt::red;
-				} else if(conf < 70) {
-					color = QColor(0xFF, 0xA5, 0x00); // orange
-				} else {
-					color = Qt::green;
-				}
-				paint.fillPath(path_conf, color);
-			}
+			const int robot_id = i + 1;
+			const QColor color = getColor(positions[i].color);
+			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
+
 			// highlight selected robot marker
 			if(select_robot_num == i) {
-				QPen pen = paint.pen();
-				const int pen_size = 2;
-				int circle_size;
-				paint.setPen(QPen(QColor(0xff, 0x00, 0x00), pen_size));
-				circle_size = 200;
-				paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
-				paint.setPen(QPen(QColor(0xff, 0x40, 0x40), pen_size));
-				circle_size = 100;
-				paint.drawEllipse(self_x - (circle_size / 2), self_y - (circle_size / 2), circle_size, circle_size);
-				paint.setPen(pen);
+				drawHighlightCircle(paint, self_x, self_y);
 			}
-			// draw ball
 			if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
 				bool flag_reverse = false;
 				if((positions[i].colornum == 0 && fReverse) ||
-				   (positions[i].colornum == 1 && !fReverse)) {
+						(positions[i].colornum == 1 && !fReverse)) {
 					flag_reverse = true;
 				}
 				if(flag_reverse) {
 					ball_x = field_w - ball_x;
 					ball_y = field_h - ball_y;
 				}
-				// draw ball position as orange
-				const int ball_marker_size = settings->value("marker/ball_size").toInt();
-				QColor orange(0xFF, 0xA5, 0x00);
-				paint.setPen(QPen(orange, ball_marker_size));
-				paint.drawPoint(ball_x, ball_y);
-				constexpr int ball_near_threshold = 50; // Do not draw robot number if the ball is near the robot.
 				const int distance_ball_and_robot = distance(ball_x, ball_y, self_x, self_y);
-				if(distance_ball_and_robot > ball_near_threshold) {
-					sprintf(buf, "%d", i + 1);
-					paint.drawText(QPoint(ball_x - font_offset_x, ball_y - font_offset_y), buf);
-				}
-				paint.setPen(QPen(orange, 1));
-				paint.drawLine(self_x, self_y, ball_x, ball_y);
+				const int owner_id = i + 1;
+				drawBallMarker(paint, ball_x, ball_y, owner_id, distance_ball_and_robot, self_x, self_y);
 			}
 			// draw goal posts
 			if(fViewGoalpost) {
@@ -787,11 +824,7 @@ void Interface::updateMap(void)
 							goal_pole_x = field_w - goal_pole_x;
 							goal_pole_y = field_h - goal_pole_y;
 						}
-						const int goal_pole_marker_size = settings->value("marker/goal_pole_size").toInt();
-						paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), goal_pole_marker_size));
-						paint.drawPoint(goal_pole_x, goal_pole_y);
-						paint.setPen(QPen(QColor(0xFF, 0x00, 0x00), 1));
-						paint.drawLine(self_x, self_y, goal_pole_x, goal_pole_y);
+						drawGoalPostMarker(paint, goal_pole_x, goal_pole_y, self_x, self_y);
 					}
 				}
 			}
