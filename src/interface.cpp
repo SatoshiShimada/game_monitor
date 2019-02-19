@@ -114,18 +114,16 @@ void Interface::createMenus(void)
 
 void Interface::initializeConfig(void)
 {
-	/* Field image file */
-	settings->setValue("field_image/name", settings->value("field_image/name", "figures/hlfield.png"));
-	/* 740x540 pixel: field image size */
-	settings->setValue("field_image/width" , settings->value("field_image/width", 740));
-	settings->setValue("field_image/height", settings->value("field_image/height", 540));
-	/* Team logo image size */
-	settings->setValue("team_logo/width", settings->value("team_logo/width", "200"));
-	settings->setValue("team_logo/height", settings->value("team_logo/height", "200"));
-	/* field size 10000x7000 milli meter? (map size in robot used) */
-	settings->setValue("field_size/x", settings->value("field_size/x", 10000));
-	settings->setValue("field_size/y", settings->value("field_size/y", 7000));
-	/* marker */
+	const int field_w = field_param.border_strip_width * 2 + field_param.field_length;
+	const int field_h = field_param.border_strip_width * 2 + field_param.field_width;
+	// field figure size (pixel size of drawing area)
+	settings->setValue("field_image/width" , settings->value("field_image/width", field_w));
+	settings->setValue("field_image/height", settings->value("field_image/height", field_h));
+	// field size is 9000x6000 millimeters (See rule book of 2018)
+	// In this program, field dimensions are defined in centimeters.
+	settings->setValue("field_size/x", settings->value("field_size/x", field_param.field_length * 10));
+	settings->setValue("field_size/y", settings->value("field_size/y", field_param.field_width * 10));
+	// marker configurations
 	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 3));
 	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 6));
 	settings->setValue("marker/goal_pole_size", settings->value("marker/goal_pole_size", 5));
@@ -133,7 +131,7 @@ void Interface::initializeConfig(void)
 	settings->setValue("marker/rear_length", settings->value("marker/rear_length", 10));
 	settings->setValue("marker/font_offset", settings->value("marker/font_offset", 10));
 	settings->setValue("marker/time_up_limit", settings->value("marker/time_up_limit", 30));
-	/* using UDP communication port offset */
+	// using UDP communication port offset
 	settings->setValue("network/port", settings->value("network/port", 7110));
 }
 

@@ -39,6 +39,7 @@
  */
 class FieldParameter
 {
+	// unit: meter
 public:
 	FieldParameter() :
 		field_length(9.0),
@@ -68,6 +69,7 @@ public:
 
 class FieldParameterInt
 {
+	// unit: centimeter
 public:
 	FieldParameterInt(FieldParameter param) :
 		field_length(static_cast<int>(param.field_length * 100)),
