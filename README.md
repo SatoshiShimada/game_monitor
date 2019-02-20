@@ -2,7 +2,7 @@
 
 # Game Monitor
 
-![Screen Image](https://github.com/SatoshiShimada/game_monitor/wiki/figures/screen_image.png)
+![Screen Image](https://github.com/SatoshiShimada/game_monitor/wiki/figures/screen_image2.png)
 
 The robot state viewer via robot communication.  
 It is for CIT Brains' robot "Accelite".  
@@ -13,9 +13,6 @@ Please check Wiki for more information.
 ## Requirements
 
 * [Qt](https://www.qt.io/) (Version: 5.3 or greater)
-* gcc (only Linux)
-* XCode (only Mac OS)(Version: 9 or greater)
-* Visual Studio (only Windows)
 
 ## How to build
 
@@ -24,6 +21,7 @@ Please check Wiki for more information.
 1. Install libraries.
 
 ```shell
+git checkout ubuntu14.04
 apt install build-essential
 ```
 
