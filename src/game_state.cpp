@@ -23,7 +23,7 @@ void GameState::decodeData(const char *data)
 	if(!(data[0] == 'R' && data[1] == 'G' && data[2] == 'm' && data[3] == 'e')) {
 		return;
 	}
-	const int protcol_version = data[4] << 8 | data[5];
+	const int protcol_version = data[5] << 8 | data[4];
 	const int packet_number = data[6];
 	const int players_per_team = data[7];
 	const int game_type = data[8];
@@ -31,11 +31,11 @@ void GameState::decodeData(const char *data)
 	const int first_half = data[10];
 	const int kick_off_team = data[11];
 	const int secondary_state = data[12];
-	const int secondary_state_info = data[13] << 3 | data[14] << 2 | data[15] << 1 | data[16];
+	const int secondary_state_info = data[16] << 24 | data[15] << 16 | data[14] << 8 | data[13];
 	const int drop_in_team = data[17];
-	const int drop_in_time = data[18] << 8 | data[19];
-	const int secs_remaining = data[20] << 8 | data[21];
-	const int secondary_time = data[22] << 8 | data[23];
+	const int drop_in_time = data[19] << 8 | data[18];
+	const int secs_remaining = data[21] << 8 | data[20];
+	const int secondary_time = data[23] << 8 | data[22];
 
 	constexpr int PROTCOL_VERSION = 12;
 	if(protcol_version != PROTCOL_VERSION)
@@ -49,7 +49,7 @@ void GameState::decodeTeamInfo(const char *data)
 	const int team_color = data[1];
 	const int score = data[2];
 	const int penalty_shot = data[3];
-	const int single_shots = data[4] << 8 | data[5];
+	const int single_shots = data[5] << 8 | data[4];
 	const int coach_sequence = data[6];
 	const char *coach_message = data + 7;
 	constexpr int coach_message_size = 253;

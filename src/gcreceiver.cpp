@@ -1,4 +1,3 @@
-
 #include "gcreceiver.h"
 
 GCReceiver::GCReceiver(int port_num)
