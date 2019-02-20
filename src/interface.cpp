@@ -14,6 +14,34 @@
 #include "pos_types.h"
 #include "interface.h"
 
+FieldSpaceManager::FieldSpaceManager(const int field_w, const int field_h) : grid_num_x(20), grid_num_y(20), grid_map(grid_num_y, std::vector<int>(grid_num_x, EMPTY)), field_width(field_w), field_height(field_h)
+{
+}
+
+FieldSpaceManager::~FieldSpaceManager()
+{
+}
+
+void FieldSpaceManager::setObjectPos(const int x, const int y, const int w, const int h)
+{
+	const int step_x = field_width / grid_num_x;
+	const int step_y = field_height / grid_num_y;
+	for(int yi = (y - h / 2) % step_y; yi * step_y < (y + h / 2) && yi < grid_num_y; yi++) {
+		for(int xi = (x - w / 2) % step_x; xi * step_x < (x + w / 2) && xi < grid_num_x; xi++) {
+			grid_map[yi][xi] = EXIST;
+		}
+	}
+}
+
+void FieldSpaceManager::clear(void)
+{
+	for(int i = 0; i < grid_num_y; i++) {
+		for(int j = 0; j < grid_num_x; j++) {
+			grid_map[i][j] = EMPTY;
+		}
+	}
+}
+
 static inline int distance(const int x1, const int y1, const int x2, const int y2)
 {
 	const int x = x1 - x2;
@@ -23,7 +51,7 @@ static inline int distance(const int x1, const int y1, const int x2, const int y
 
 Q_DECLARE_METATYPE(QCameraInfo)
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), score_team1(0), score_team2(0), max_robot_num(6), log_speed(1), select_robot_num(-1), field_param(FieldParameter())
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), score_team1(0), score_team2(0), max_robot_num(6), log_speed(1), select_robot_num(-1), field_param(FieldParameter()), field_space(1040, 740)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -395,6 +423,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	// Ball position confidence
 	robot_data->cf_ball->setNum(comm_info.cf_ball);
 	robot_data->cf_ball_bar->setValue(comm_info.cf_ball);
+	positions[num].ball_conf = comm_info.cf_ball;
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
 	robot_data->time_bar->setValue(time_limit);
 	// Role and message
@@ -420,6 +449,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 		strcpy(positions[num].color, "black");
 	}
 	robot_data->string->setText((char *)comm_info.command);
+	positions[num].message = std::string((char *)comm_info.command);
 
 	positions[num].enable_pos = false;
 	positions[num].enable_ball = false;
@@ -729,7 +759,8 @@ void Interface::setData(LogData log_data)
 			robotState[num]->setPalette(pal_state_bgcolor);
 			strcpy(positions[num].color, "black");
 		}
-		robot_data->string->setText((char *)msg);
+		robot_data->string->setText(msg);
+		positions[num].message = std::string(msg);
 
 		time_t timer;
 		timer = time(NULL);
@@ -749,6 +780,7 @@ void Interface::setData(LogData log_data)
 		positions[num].goal_pole[1].x = data.goal_pole_x2;
 		positions[num].goal_pole[1].y = data.goal_pole_y2;
 		positions[num].self_conf = data.cf_own;
+		positions[num].ball_conf = data.cf_ball;
 
 		updateMap();
 	}
@@ -764,7 +796,7 @@ void Interface::drawTeamMarker(QPainter &painter, const int pos_x, const int pos
 	painter.drawText(pos_x, pos_y, QString("CIT Brains"));
 }
 
-void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int self_y, const double theta, int robot_id, const QColor marker_color, const double self_conf)
+void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int self_y, const double theta, const int robot_id, const QColor marker_color, const double self_conf)
 {
 	// set marker color according to robot role
 	const int robot_pen_size = settings->value("marker/pen_size").toInt();
@@ -805,6 +837,7 @@ void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int s
 		painter.setPen(pen);
 		path_conf.addRect(bar_left, bar_top, conf_width, bar_height);
 		QColor color;
+		// change color by self-position confidence (red, orange or green)
 		if(conf < 30) {
 			color = Qt::red;
 		} else if(conf < 70) {
@@ -814,6 +847,51 @@ void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int s
 		}
 		painter.fillPath(path_conf, color);
 	}
+}
+
+void Interface::drawRobotInformation(QPainter &painter, const int self_x, const int self_y, const double theta, const int robot_id, const QColor marker_color, const double self_conf, const double ball_conf, const std::string msg)
+{
+	//painter.setPen(QPen(marker_color, pen_size));
+
+	constexpr int frame_width = 200;
+	constexpr int frame_height = 80;
+	const int frame_x = self_x;
+	const int frame_y = self_y + 120;
+	const int frame_left = frame_x - frame_width / 2;
+	const int frame_top = frame_y - frame_height / 2;
+	constexpr int pen_size = 3;
+	painter.setPen(QPen(Qt::white, pen_size));
+	painter.drawLine(frame_x, frame_y, self_x, self_y);
+	QPainterPath path_frame;
+	path_frame.addRect(frame_left, frame_top, frame_width, frame_height);
+	const QColor frame_color(0xE6, 0xE6, 0xFA); // lavender
+	painter.fillPath(path_frame, frame_color);
+	const QColor frame_border_color(0x80, 0x00, 0x80); // purple
+	painter.setPen(QPen(frame_border_color, pen_size));
+	painter.drawRect(frame_left, frame_top, frame_width, frame_height);
+
+	painter.setPen(QPen(Qt::red));
+	QFont font = painter.font();
+	constexpr int font_size = 20;
+	font.setPointSize(font_size);
+	painter.setFont(font);
+	constexpr int font_offset_x = 12;
+	constexpr int font_offset_y = 25 + font_size / 2;
+	std::string s(msg); // message without role name
+	s.erase(s.begin(), s.begin() + s.find(" "));
+	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_y, QString(s.c_str()));
+
+	constexpr int bar_width = 8;
+	constexpr int bar_height = frame_height - 4;
+	QColor bar_color(0xFF, 0xA5, 0x00); // orange
+	painter.setPen(QPen(bar_color, 2));
+	painter.drawRect(frame_left + 2, frame_top + 2, bar_width, bar_height - 2);
+	QPainterPath path_bar;
+	const int bar_left = frame_left + 2;
+	const int bar_fill_height = static_cast<int>(ball_conf / 100.0 * bar_height);
+	const int bar_fill_top = frame_top + 2 + (bar_height - bar_fill_height);
+	path_bar.addRect(bar_left, bar_fill_top, bar_width, bar_fill_height);
+	painter.fillPath(path_bar, bar_color);
 }
 
 void Interface::drawBallMarker(QPainter &painter, const int ball_x, const int ball_y, const int owner_id, const int distance_ball_and_robot, const int self_x, const int self_y)
@@ -915,6 +993,7 @@ void Interface::updateMap(void)
 			}
 			const int robot_id = i + 1;
 			const QColor color = getColor(positions[i].color);
+			drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message);
 			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
 
 			// highlight selected robot marker

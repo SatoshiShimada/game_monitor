@@ -34,6 +34,23 @@
 #include "aspect_ratio_pixmap_label.h"
 #include "gcreceiver.h"
 
+class FieldSpaceManager
+{
+public:
+	FieldSpaceManager(const int, const int);
+	~FieldSpaceManager();
+	void setObjectPos(const int, const int, const int, const int);
+	void clear(void);
+private:
+	static constexpr int EXIST = 1;
+	static constexpr int EMPTY = 0;
+	const int grid_num_x;
+	const int grid_num_y;
+	std::vector<std::vector<int>> grid_map;
+	const int field_width;
+	const int field_height;
+};
+
 /*
  * Field parameters.
  * See Law 1 of rule book(2018) at http://www.robocuphumanoid.org/wp-content/uploads/RCHL-2018-Rules-Proposal_changesMarked_final.pdf
@@ -100,8 +117,9 @@ public:
 
 class PositionMarker {
 public:
-	PositionMarker() : self_conf(0.0), colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
+	PositionMarker() : self_conf(0.0), ball_conf(0.0), colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
 	double self_conf;
+	double ball_conf;
 	int colornum;
 	bool enable_pos;
 	bool enable_ball;
@@ -111,6 +129,7 @@ public:
 	Pos pos; /* self position */
 	Pos ball; /* ball position */
 	Pos goal_pole[2]; /* goal pole position */
+	std::string message;
 };
 
 class Robot {
@@ -235,6 +254,7 @@ private:
 	int select_robot_num;
 	struct tm last_select_time;
 	FieldParameterInt field_param;
+	FieldSpaceManager field_space;
 	void initializeConfig(void);
 	void createWindow(void);
 	void connection(void);
@@ -248,6 +268,7 @@ private:
 	void createMenus(void);
 	void drawTeamMarker(QPainter &, const int, const int);
 	void drawRobotMarker(QPainter &, const int, const int, const double, const int, const QColor, const double);
+	void drawRobotInformation(QPainter &, const int, const int, const double, const int, const QColor, const double, const double, const std::string);
 	void drawBallMarker(QPainter &, const int, const int, const int, const int, const int, const int);
 	void drawGoalPostMarker(QPainter &, const int, const int, const int, const int);
 	void drawHighlightCircle(QPainter &, const int, const int);
