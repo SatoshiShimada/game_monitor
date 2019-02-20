@@ -444,7 +444,7 @@ void Interface::setRemainingTime(int remaining_time)
 	remain_seconds_str.setNum(remain_seconds);
 	QString time_str;
 	if(remain_seconds < 10)
-		time_str = remain_minutes_str + QString(": ") + remain_seconds_str;
+		time_str = remain_minutes_str + QString(":0") + remain_seconds_str;
 	else
 		time_str = remain_minutes_str + QString(":") + remain_seconds_str;
 	time_display->display(time_str);
