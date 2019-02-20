@@ -148,6 +148,7 @@ void Interface::createWindow(void)
 	score_display->display(QString("0 - 0"));
 	score_display->setMinimumHeight(50);
 	log1Button  = new QPushButton("x1");
+	log1Button->setEnabled(false);
 	log2Button  = new QPushButton("x2");
 	log5Button  = new QPushButton("x5");
 	recordButton = new QPushButton("Record video");
@@ -1052,16 +1053,25 @@ void Interface::loadLogFile(void)
 void Interface::logSpeed1(void)
 {
 	log_speed = 1;
+	log1Button->setEnabled(false);
+	log2Button->setEnabled(true);
+	log5Button->setEnabled(true);
 }
 
 void Interface::logSpeed2(void)
 {
 	log_speed = 2;
+	log1Button->setEnabled(true);
+	log2Button->setEnabled(false);
+	log5Button->setEnabled(true);
 }
 
 void Interface::logSpeed5(void)
 {
 	log_speed = 5;
+	log1Button->setEnabled(true);
+	log2Button->setEnabled(true);
+	log5Button->setEnabled(false);
 }
 
 void Interface::captureButtonSlot(void)
