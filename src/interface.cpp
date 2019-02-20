@@ -73,6 +73,8 @@ void Interface::createMenus(void)
 
 	fileMenu->addAction(loadLogFileAction);
 
+	connect(loadLogFileAction, SIGNAL(triggered()), this, SLOT(loadLogFile(void)));
+
 	viewMenu = menuBar()->addMenu(tr("&View"));
 
 	viewGoalPostAction = new QAction(tr("&View Goal Posts"), 0);
@@ -308,7 +310,7 @@ void Interface::connection(void)
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
 	connect(viewGoalpostCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewGoalpost(int)));
 	connect(viewSelfPosConfCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewSelfPosConf(int)));
-	connect(loadLogButton, SIGNAL(clicked()), this, SLOT(loadLogFile()));
+	connect(loadLogButton, SIGNAL(clicked(void)), this, SLOT(loadLogFile(void)));
 	connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
 	connect(robotState[1], SIGNAL(clicked(void)), this, SLOT(selectRobot2(void)));
 	connect(robotState[2], SIGNAL(clicked(void)), this, SLOT(selectRobot3(void)));
