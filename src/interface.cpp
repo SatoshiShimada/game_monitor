@@ -333,31 +333,37 @@ void Interface::connection(void)
 void Interface::decodeData1(struct comm_info_T comm_info)
 {
 	decodeUdp(comm_info, &robot[0], 0);
+	statusBar->showMessage(QString("Receive data from Robot 1"));
 }
 
 void Interface::decodeData2(struct comm_info_T comm_info)
 {
 	decodeUdp(comm_info, &robot[1], 1);
+	statusBar->showMessage(QString("Receive data from Robot 2"));
 }
 
 void Interface::decodeData3(struct comm_info_T comm_info)
 {
 	decodeUdp(comm_info, &robot[2], 2);
+	statusBar->showMessage(QString("Receive data from Robot 3"));
 }
 
 void Interface::decodeData4(struct comm_info_T comm_info)
 {
 	decodeUdp(comm_info, &robot[3], 3);
+	statusBar->showMessage(QString("Receive data from Robot 4"));
 }
 
 void Interface::decodeData5(struct comm_info_T comm_info)
 {
 	decodeUdp(comm_info, &robot[4], 4);
+	statusBar->showMessage(QString("Receive data from Robot 5"));
 }
 
 void Interface::decodeData6(struct comm_info_T comm_info)
 {
 	decodeUdp(comm_info, &robot[5], 5);
+	statusBar->showMessage(QString("Receive data from Robot 6"));
 }
 
 void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int num)
@@ -1040,9 +1046,10 @@ void Interface::loadLogFile(void)
 	while(getline(ifs, line)) {
 		lines.push_back(line);
 	}
-	setParamFromFile(lines);
 	log_slider->setMaximum(lines.size()-1);
 	log_writer.setEnable(false);
+	statusBar->showMessage(QString("Playing game from log"));
+	setParamFromFile(lines);
 }
 
 void Interface::logSpeed1(void)
