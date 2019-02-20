@@ -181,7 +181,11 @@ private:
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
 	GCReceiver *gc_thread;
+	QMenu *fileMenu;
+	QMenu *viewMenu;
 	QMenu *videoMenu;
+	QAction *loadLogFileAction;
+	QAction *viewGoalPostAction;
 	QStatusBar *statusBar;
 	QCheckBox *reverse;
 	QCheckBox *viewGoalpostCheckBox;
@@ -276,6 +280,7 @@ private slots:
 	void selectRobot6(void);
 	void reverseField(int);
 	void viewGoalpost(int);
+	void viewGoalpost(bool);
 	void viewSelfPosConf(int);
 	void loadLogFile(void);
 	void updateLog(void);

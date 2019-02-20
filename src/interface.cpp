@@ -67,6 +67,23 @@ Interface::~Interface()
 
 void Interface::createMenus(void)
 {
+	fileMenu = menuBar()->addMenu(tr("&File"));
+
+	loadLogFileAction = new QAction(tr("&Load Log File"), 0);
+
+	fileMenu->addAction(loadLogFileAction);
+
+	viewMenu = menuBar()->addMenu(tr("&View"));
+
+	viewGoalPostAction = new QAction(tr("&View Goal Posts"), 0);
+	viewGoalPostAction->setCheckable(true);
+	viewGoalPostAction->setChecked(true);
+
+	viewMenu->addAction(viewGoalPostAction);
+	viewMenu->addSeparator();
+
+	connect(viewGoalPostAction, SIGNAL(toggled(bool)), this, SLOT(viewGoalpost(bool)));
+
 	videoMenu = menuBar()->addMenu(tr("&Cameras"));
 
 	QList<QCameraInfo> availableCameras = capture->getCameras();
@@ -978,8 +995,22 @@ void Interface::viewGoalpost(int state)
 {
 	if(state == Qt::Checked) {
 		fViewGoalpost = true;
+		viewGoalPostAction->setChecked(true);
 	} else {
 		fViewGoalpost = false;
+		viewGoalPostAction->setChecked(false);
+	}
+	updateMap();
+}
+
+void Interface::viewGoalpost(bool checked)
+{
+	if(checked) {
+		fViewGoalpost = true;
+		viewGoalpostCheckBox->setChecked(true);
+	} else {
+		fViewGoalpost = false;
+		viewGoalpostCheckBox->setChecked(false);
 	}
 	updateMap();
 }
