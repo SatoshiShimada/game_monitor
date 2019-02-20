@@ -88,6 +88,38 @@ int LogWriter::write(int id, const char *color, int fps, double voltage,
 	return 0;
 }
 
+void LogWriter::writeScore(const int team_no, const int score)
+{
+	time_t timer;
+	struct tm *local_time;
+
+	timer = time(NULL);
+	local_time = localtime(&timer);
+	if(enable && !opened)
+		openFileCurrentTime();
+	if(opened && enable) {
+		fprintf(fp, "%d:%d:%d,", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+		fprintf(fp, "%d,%d", team_no, score);
+		fprintf(fp, "\n");
+	}
+}
+
+void LogWriter::writeTime(const int remaining_time)
+{
+	time_t timer;
+	struct tm *local_time;
+
+	timer = time(NULL);
+	local_time = localtime(&timer);
+	if(enable && !opened)
+		openFileCurrentTime();
+	if(opened && enable) {
+		fprintf(fp, "%d:%d:%d,", local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
+		fprintf(fp, "%d", remaining_time);
+		fprintf(fp, "\n");
+	}
+}
+
 int LogWriter::separate(void)
 {
 	if(opened && enable) {

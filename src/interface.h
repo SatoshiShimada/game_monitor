@@ -32,6 +32,7 @@
 #include "pos_types.h"
 #include "capture.h"
 #include "aspect_ratio_pixmap_label.h"
+#include "gcreceiver.h"
 
 /*
  * Field parameters.
@@ -123,7 +124,7 @@ public:
 	QProgressBar *time_bar;
 };
 
-class LogData {
+class LogDataRobotComm {
 public:
 	char time_str[100];
 	int id;
@@ -142,6 +143,19 @@ public:
 	int cf_own;
 	int cf_ball;
 	char msg[100];
+};
+
+class LogData
+{
+public:
+	LogData() : type(0), score1(0), score2(0), remaining_time(0) { }
+	~LogData() { }
+	int type;
+	LogDataRobotComm robot_comm;
+	int score1;
+	int score2;
+	int remaining_time;
+	char time_str[100];
 };
 
 class ClickWidget : public QWidget
@@ -166,7 +180,12 @@ private:
 	Capture *capture;
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
+	GCReceiver *gc_thread;
+	QMenu *fileMenu;
+	QMenu *viewMenu;
 	QMenu *videoMenu;
+	QAction *loadLogFileAction;
+	QAction *viewGoalPostAction;
 	QStatusBar *statusBar;
 	QCheckBox *reverse;
 	QCheckBox *viewGoalpostCheckBox;
@@ -179,6 +198,8 @@ private:
 	QWidget *window;
 	AspectRatioPixmapLabel *image;
 	QLabel *log_step;
+	QLCDNumber *time_display;
+	QLCDNumber *score_display;
 	QPixmap map;
 	QPixmap origin_map;
 	QSlider *log_slider;
@@ -206,6 +227,8 @@ private:
 	bool fRecording;
 	bool fViewSelfPosConf;
 	int updateMapTimerId;
+	int score_team1;
+	int score_team2;
 	unsigned int log_count;
 	const int max_robot_num;
 	int logo_pos_x, logo_pos_y;
@@ -246,6 +269,9 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
+	void setRemainingTime(int);
+	void setScore1(int);
+	void setScore2(int);
 	void selectRobot1(void);
 	void selectRobot2(void);
 	void selectRobot3(void);
@@ -254,6 +280,7 @@ private slots:
 	void selectRobot6(void);
 	void reverseField(int);
 	void viewGoalpost(int);
+	void viewGoalpost(bool);
 	void viewSelfPosConf(int);
 	void loadLogFile(void);
 	void updateLog(void);
