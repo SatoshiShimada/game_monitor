@@ -33,23 +33,7 @@
 #include "capture.h"
 #include "aspect_ratio_pixmap_label.h"
 #include "gcreceiver.h"
-
-class FieldSpaceManager
-{
-public:
-	FieldSpaceManager(const int, const int);
-	~FieldSpaceManager();
-	void setObjectPos(const int, const int, const int, const int);
-	void clear(void);
-private:
-	static constexpr int EXIST = 1;
-	static constexpr int EMPTY = 0;
-	const int grid_num_x;
-	const int grid_num_y;
-	std::vector<std::vector<int>> grid_map;
-	const int field_width;
-	const int field_height;
-};
+#include "field_space_manager.h"
 
 /*
  * Field parameters.

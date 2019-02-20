@@ -14,34 +14,6 @@
 #include "pos_types.h"
 #include "interface.h"
 
-FieldSpaceManager::FieldSpaceManager(const int field_w, const int field_h) : grid_num_x(20), grid_num_y(20), grid_map(grid_num_y, std::vector<int>(grid_num_x, EMPTY)), field_width(field_w), field_height(field_h)
-{
-}
-
-FieldSpaceManager::~FieldSpaceManager()
-{
-}
-
-void FieldSpaceManager::setObjectPos(const int x, const int y, const int w, const int h)
-{
-	const int step_x = field_width / grid_num_x;
-	const int step_y = field_height / grid_num_y;
-	for(int yi = (y - h / 2) % step_y; yi * step_y < (y + h / 2) && yi < grid_num_y; yi++) {
-		for(int xi = (x - w / 2) % step_x; xi * step_x < (x + w / 2) && xi < grid_num_x; xi++) {
-			grid_map[yi][xi] = EXIST;
-		}
-	}
-}
-
-void FieldSpaceManager::clear(void)
-{
-	for(int i = 0; i < grid_num_y; i++) {
-		for(int j = 0; j < grid_num_x; j++) {
-			grid_map[i][j] = EMPTY;
-		}
-	}
-}
-
 static inline int distance(const int x1, const int y1, const int x2, const int y2)
 {
 	const int x = x1 - x2;
@@ -855,8 +827,14 @@ void Interface::drawRobotInformation(QPainter &painter, const int self_x, const 
 
 	constexpr int frame_width = 200;
 	constexpr int frame_height = 80;
-	const int frame_x = self_x;
-	const int frame_y = self_y + 120;
+	//const int frame_x = self_x;
+	//const int frame_y = self_y + 120;
+	int frame_x, frame_y;
+	bool success = field_space.getEmptySpace(frame_x, frame_y, frame_width, frame_height, self_x, self_y);
+	if(!success) {
+		frame_x = self_x;
+		frame_y = self_y + 120;
+	}
 	const int frame_left = frame_x - frame_width / 2;
 	const int frame_top = frame_y - frame_height / 2;
 	constexpr int pen_size = 3;
@@ -945,6 +923,7 @@ void Interface::updateMap(void)
 	local_time = localtime(&timer);
 
 	// Create new image for erase previous position marker
+	field_space.clear();
 	map = origin_map;
 	QPainter paint(&map);
 	paint.setRenderHint(QPainter::Antialiasing);
@@ -962,6 +941,8 @@ void Interface::updateMap(void)
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
 	for(int i = 0; i < max_robot_num; i++) {
 		if(positions[i].enable_pos) {
+			field_space.setObjectPos(positions[i].pos.x, positions[i].pos.y, 200, 200);
+			field_space.setObjectPos(positions[i].ball.x, positions[i].ball.y, 50, 50);
 			const int elapsed = (local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec);
 			if(elapsed > time_limit) {
 				positions[i].enable_pos = false;
