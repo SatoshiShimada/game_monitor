@@ -190,7 +190,6 @@ private:
 	QCheckBox *reverse;
 	QCheckBox *viewGoalpostCheckBox;
 	QCheckBox *viewSelfPosConfCheckBox;
-	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
 	QPushButton *recordButton;
 	QSettings *settings;

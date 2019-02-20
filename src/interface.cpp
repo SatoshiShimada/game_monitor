@@ -147,7 +147,6 @@ void Interface::createWindow(void)
 	score_display = new QLCDNumber();
 	score_display->display(QString("0 - 0"));
 	score_display->setMinimumHeight(50);
-	loadLogButton = new QPushButton("Load log file");
 	log1Button  = new QPushButton("x1");
 	log2Button  = new QPushButton("x2");
 	log5Button  = new QPushButton("x5");
@@ -167,7 +166,6 @@ void Interface::createWindow(void)
 	checkLayout->addWidget(reverse);
 	checkLayout->addWidget(viewGoalpostCheckBox);
 	checkLayout->addWidget(viewSelfPosConfCheckBox);
-	checkLayout->addWidget(loadLogButton);
 	checkLayout->addWidget(recordButton);
 
 	logLayout->addWidget(log_step);
@@ -310,7 +308,6 @@ void Interface::connection(void)
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
 	connect(viewGoalpostCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewGoalpost(int)));
 	connect(viewSelfPosConfCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewSelfPosConf(int)));
-	connect(loadLogButton, SIGNAL(clicked(void)), this, SLOT(loadLogFile(void)));
 	connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
 	connect(robotState[1], SIGNAL(clicked(void)), this, SLOT(selectRobot2(void)));
 	connect(robotState[2], SIGNAL(clicked(void)), this, SLOT(selectRobot3(void)));
