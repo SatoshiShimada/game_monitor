@@ -206,7 +206,7 @@ private:
 	QPixmap origin_map;
 	QSlider *log_slider;
 	QGridLayout *mainLayout;
-	QHBoxLayout *checkLayout;
+	QVBoxLayout *checkLayout;
 	QGridLayout *labelLayout;
 	QHBoxLayout *logLayout;
 	QHBoxLayout *logSpeedButtonLayout;
@@ -263,7 +263,8 @@ public:
 	void drawField(void);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
-	void decodeUdp(struct comm_info_T, Robot *, int num);
+	//void decodeUdp(struct comm_info_T, Robot *, int num);
+	void decodeUdp(struct comm_info_T, int num);
 	void updateMap(void);
 
 private slots:

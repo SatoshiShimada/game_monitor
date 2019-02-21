@@ -153,7 +153,7 @@ void Interface::createWindow(void)
 	log5Button  = new QPushButton("x5");
 	recordButton = new QPushButton("Record video");
 	mainLayout  = new QGridLayout;
-	checkLayout = new QHBoxLayout;
+	checkLayout = new QVBoxLayout;
 	logLayout   = new QHBoxLayout;
 	logSpeedButtonLayout = new QHBoxLayout;
 	labelLayout = new QGridLayout;
@@ -183,6 +183,7 @@ void Interface::createWindow(void)
 	pal_black. setColor(QPalette::Window, QColor("#000000"));
 	pal_orange.setColor(QPalette::Window, QColor("#FFA540"));
 
+	/*
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
 	for(int i = 0; i < max_robot_num; i++) {
 		robotState.push_back(new ClickWidget());
@@ -222,12 +223,13 @@ void Interface::createWindow(void)
 		labelLayout->addWidget(robotState[i], k + 1, j + 1);
 		if(++j == 2) { k++; j = 0; }
 	}
+	*/
 
-	mainLayout->addLayout(checkLayout, 1, 1, 1, 2);
-	mainLayout->addWidget(image, 2, 1);
-	mainLayout->addLayout(labelLayout, 2, 2);
-	mainLayout->addLayout(logLayout, 3, 1);
-	mainLayout->addLayout(logSpeedButtonLayout, 3, 2);
+	mainLayout->addLayout(checkLayout, 1, 1);
+	mainLayout->addWidget(image, 1, 2);
+	//mainLayout->addLayout(labelLayout, 2, 2);
+	mainLayout->addLayout(logSpeedButtonLayout, 2, 1);
+	mainLayout->addLayout(logLayout, 2, 2);
 
 	window->setLayout(mainLayout);
 	setCentralWidget(window);
@@ -309,12 +311,12 @@ void Interface::connection(void)
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
 	connect(viewGoalpostCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewGoalpost(int)));
 	connect(viewSelfPosConfCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewSelfPosConf(int)));
-	connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
-	connect(robotState[1], SIGNAL(clicked(void)), this, SLOT(selectRobot2(void)));
-	connect(robotState[2], SIGNAL(clicked(void)), this, SLOT(selectRobot3(void)));
-	connect(robotState[3], SIGNAL(clicked(void)), this, SLOT(selectRobot4(void)));
-	connect(robotState[4], SIGNAL(clicked(void)), this, SLOT(selectRobot5(void)));
-	connect(robotState[5], SIGNAL(clicked(void)), this, SLOT(selectRobot6(void)));
+	//connect(robotState[0], SIGNAL(clicked(void)), this, SLOT(selectRobot1(void)));
+	//connect(robotState[1], SIGNAL(clicked(void)), this, SLOT(selectRobot2(void)));
+	//connect(robotState[2], SIGNAL(clicked(void)), this, SLOT(selectRobot3(void)));
+	//connect(robotState[3], SIGNAL(clicked(void)), this, SLOT(selectRobot4(void)));
+	//connect(robotState[4], SIGNAL(clicked(void)), this, SLOT(selectRobot5(void)));
+	//connect(robotState[5], SIGNAL(clicked(void)), this, SLOT(selectRobot6(void)));
 	connect(log1Button, SIGNAL(clicked(void)), this, SLOT(logSpeed1(void)));
 	connect(log2Button, SIGNAL(clicked(void)), this, SLOT(logSpeed2(void)));
 	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
@@ -330,41 +332,47 @@ void Interface::connection(void)
 
 void Interface::decodeData1(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[0], 0);
+	//decodeUdp(comm_info, &robot[0], 0);
+	decodeUdp(comm_info,  0);
 	statusBar->showMessage(QString("Receive data from Robot 1"));
 }
 
 void Interface::decodeData2(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[1], 1);
+	//decodeUdp(comm_info, &robot[1], 1);
+	decodeUdp(comm_info,  1);
 	statusBar->showMessage(QString("Receive data from Robot 2"));
 }
 
 void Interface::decodeData3(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[2], 2);
+	//decodeUdp(comm_info, &robot[2], 2);
+	decodeUdp(comm_info,  2);
 	statusBar->showMessage(QString("Receive data from Robot 3"));
 }
 
 void Interface::decodeData4(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[3], 3);
+	//decodeUdp(comm_info, &robot[3], 3);
+	decodeUdp(comm_info,  3);
 	statusBar->showMessage(QString("Receive data from Robot 4"));
 }
 
 void Interface::decodeData5(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[4], 4);
+	//decodeUdp(comm_info, &robot[4], 4);
+	decodeUdp(comm_info,  4);
 	statusBar->showMessage(QString("Receive data from Robot 5"));
 }
 
 void Interface::decodeData6(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info, &robot[5], 5);
+	//decodeUdp(comm_info, &robot[5], 5);
+	decodeUdp(comm_info,  5);
 	statusBar->showMessage(QString("Receive data from Robot 6"));
 }
 
-void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int num)
+void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 {
 	int color, id;
 
@@ -387,40 +395,40 @@ void Interface::decodeUdp(struct comm_info_T comm_info, Robot *robot_data, int n
 	else
 		color_str = QString("CYAN");
 	color_str = color_str + QString(" ") + QString::number(id);
-	robot_data->name->setText(color_str);
+	//robot_data->name->setText(color_str);
 	// Self-position confidence
-	robot_data->cf_own->setNum(comm_info.cf_own);
-	robot_data->cf_own_bar->setValue(comm_info.cf_own);
+	//robot_data->cf_own->setNum(comm_info.cf_own);
+	//robot_data->cf_own_bar->setValue(comm_info.cf_own);
 	positions[num].self_conf = comm_info.cf_own;
 	// Ball position confidence
-	robot_data->cf_ball->setNum(comm_info.cf_ball);
-	robot_data->cf_ball_bar->setValue(comm_info.cf_ball);
+	//robot_data->cf_ball->setNum(comm_info.cf_ball);
+	//robot_data->cf_ball_bar->setValue(comm_info.cf_ball);
 	positions[num].ball_conf = comm_info.cf_ball;
 	const int time_limit = settings->value("marker/time_up_limit").toInt();
-	robot_data->time_bar->setValue(time_limit);
+	//robot_data->time_bar->setValue(time_limit);
 	// Role and message
 	if(strstr((const char *)comm_info.command, "Attacker")) {
 		// Red
-		robotState[num]->setPalette(pal_red);
+		//robotState[num]->setPalette(pal_red);
 		strcpy(positions[num].color, "red");
 	} else if(strstr((const char *)comm_info.command, "Neutral")) {
 		// Green
-		robotState[num]->setPalette(pal_green);
+		//robotState[num]->setPalette(pal_green);
 		strcpy(positions[num].color, "green");
 	} else if(strstr((const char *)comm_info.command, "Defender")) {
 		// Blue
-		robotState[num]->setPalette(pal_blue);
+		//robotState[num]->setPalette(pal_blue);
 		strcpy(positions[num].color, "blue");
 	} else if(strstr((const char *)comm_info.command, "Keeper")) {
 		// Orange
-		robotState[num]->setPalette(pal_orange);
+		//robotState[num]->setPalette(pal_orange);
 		strcpy(positions[num].color, "orange");
 	} else {
 		// Black
-		robotState[num]->setPalette(pal_state_bgcolor);
+		//robotState[num]->setPalette(pal_state_bgcolor);
 		strcpy(positions[num].color, "black");
 	}
-	robot_data->string->setText((char *)comm_info.command);
+	//robot_data->string->setText((char *)comm_info.command);
 	positions[num].message = std::string((char *)comm_info.command);
 
 	positions[num].enable_pos = false;
@@ -696,42 +704,42 @@ void Interface::setData(LogData log_data)
 		LogDataRobotComm data = log_data.robot_comm;
 
 		int num = data.id - 1;
-		Robot *robot_data = &robot[num];
+		//Robot *robot_data = &robot[num];
 
 		// ID and Color
-		robot_data->name->setText(data.color_str);
+		//robot_data->name->setText(data.color_str);
 		// Self-position confidence
-		robot_data->cf_own->setNum(data.cf_own);
-		robot_data->cf_own_bar->setValue(data.cf_own);
+		//robot_data->cf_own->setNum(data.cf_own);
+		//robot_data->cf_own_bar->setValue(data.cf_own);
 		// Ball position confidence
-		robot_data->cf_ball->setNum(data.cf_ball);
-		robot_data->cf_ball_bar->setValue(data.cf_ball);
+		//robot_data->cf_ball->setNum(data.cf_ball);
+		//robot_data->cf_ball_bar->setValue(data.cf_ball);
 		// elapsed time
-		robot_data->time_bar->setValue(0);
+		//robot_data->time_bar->setValue(0);
 		// Role and message
 		char *msg = data.msg;
 		if(strstr((const char *)msg, "Attacker")) {
 			// Red
-			robotState[num]->setPalette(pal_red);
+			//robotState[num]->setPalette(pal_red);
 			strcpy(positions[num].color, "red");
 		} else if(strstr((const char *)msg, "Neutral")) {
 			// Green
-			robotState[num]->setPalette(pal_green);
+			//robotState[num]->setPalette(pal_green);
 			strcpy(positions[num].color, "green");
 		} else if(strstr((const char *)msg, "Defender")) {
 			// Blue
-			robotState[num]->setPalette(pal_blue);
+			//robotState[num]->setPalette(pal_blue);
 			strcpy(positions[num].color, "blue");
 		} else if(strstr((const char *)msg, "Keeper")) {
 			// Orange
-			robotState[num]->setPalette(pal_orange);
+			//robotState[num]->setPalette(pal_orange);
 			strcpy(positions[num].color, "orange");
 		} else {
 			// Black
-			robotState[num]->setPalette(pal_state_bgcolor);
+			//robotState[num]->setPalette(pal_state_bgcolor);
 			strcpy(positions[num].color, "black");
 		}
-		robot_data->string->setText(msg);
+		//robot_data->string->setText(msg);
 		positions[num].message = std::string(msg);
 
 		time_t timer;
@@ -947,6 +955,7 @@ void Interface::updateMap(void)
 			if(elapsed > time_limit) {
 				positions[i].enable_pos = false;
 				positions[i].enable_ball = false;
+				/*
 				robotState[i]->setPalette(pal_state_bgcolor);
 				robot[i].name->clear();
 				robot[i].string->clear();
@@ -955,9 +964,10 @@ void Interface::updateMap(void)
 				robot[i].cf_own_bar->setValue(0);
 				robot[i].cf_ball_bar->setValue(0);
 				robot[i].time_bar->setValue(0);
+				*/
 				continue;
 			}
-			robot[i].time_bar->setValue(elapsed);
+			//robot[i].time_bar->setValue(elapsed);
 		}
 	}
 	const int field_w = settings->value("field_image/width").toInt();
@@ -981,7 +991,8 @@ void Interface::updateMap(void)
 			if(select_robot_num == i) {
 				drawHighlightCircle(paint, self_x, self_y);
 			}
-			if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
+			//if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
+			if(positions[i].enable_ball && positions[i].ball_conf > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
 				bool flag_reverse = false;
