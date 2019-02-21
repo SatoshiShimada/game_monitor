@@ -101,9 +101,10 @@ public:
 
 class PositionMarker {
 public:
-	PositionMarker() : self_conf(0.0), ball_conf(0.0), colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
+	PositionMarker() : self_conf(0.0), ball_conf(0.0), voltage(0.0), colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
 	double self_conf;
 	double ball_conf;
+	double voltage;
 	int colornum;
 	bool enable_pos;
 	bool enable_ball;
@@ -219,7 +220,7 @@ private:
 	void createMenus(void);
 	void drawTeamMarker(QPainter &, const int, const int);
 	void drawRobotMarker(QPainter &, const int, const int, const double, const int, const QColor, const double);
-	void drawRobotInformation(QPainter &, const int, const int, const double, const int, const QColor, const double, const double, const std::string);
+	void drawRobotInformation(QPainter &, const int, const int, const double, const int, const QColor, const double, const double, const std::string, const double);
 	void drawBallMarker(QPainter &, const int, const int, const int, const int, const int, const int);
 	void drawGoalPostMarker(QPainter &, const int, const int, const int, const int);
 	void drawHighlightCircle(QPainter &, const int, const int);

@@ -388,7 +388,8 @@ void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 	}
 	updateMap();
 	// Voltage
-	double voltage = (comm_info.voltage << 3) / 100.0;
+	const double voltage = (comm_info.voltage << 3) / 100.0;
+	positions[num].voltage = voltage;
 	log_writer.setEnable(false);
 	log_writer.write(num + 1, color_str.toStdString().c_str(), (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
@@ -634,6 +635,7 @@ void Interface::setData(LogData log_data)
 		positions[num].goal_pole[1].y = data.goal_pole_y2;
 		positions[num].self_conf = data.cf_own;
 		positions[num].ball_conf = data.cf_ball;
+		positions[num].voltage = data.voltage;
 
 		updateMap();
 	}
@@ -702,14 +704,10 @@ void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int s
 	}
 }
 
-void Interface::drawRobotInformation(QPainter &painter, const int self_x, const int self_y, const double theta, const int robot_id, const QColor marker_color, const double self_conf, const double ball_conf, const std::string msg)
+void Interface::drawRobotInformation(QPainter &painter, const int self_x, const int self_y, const double theta, const int robot_id, const QColor marker_color, const double self_conf, const double ball_conf, const std::string msg, const double voltage)
 {
-	//painter.setPen(QPen(marker_color, pen_size));
-
 	constexpr int frame_width = 200;
 	constexpr int frame_height = 80;
-	//const int frame_x = self_x;
-	//const int frame_y = self_y + 120;
 	int frame_x, frame_y;
 	bool success = field_space.getEmptySpace(frame_x, frame_y, frame_width, frame_height, self_x, self_y);
 	if(!success) {
@@ -735,10 +733,13 @@ void Interface::drawRobotInformation(QPainter &painter, const int self_x, const 
 	font.setPointSize(font_size);
 	painter.setFont(font);
 	constexpr int font_offset_x = 12;
-	constexpr int font_offset_y = 25 + font_size / 2;
+	constexpr int font_offset_y = 20 + font_size / 2;
 	std::string s(msg); // message without role name
 	s.erase(s.begin(), s.begin() + s.find(" "));
 	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_y, QString(s.c_str()));
+	QString voltage_str = QString::number(voltage);
+	constexpr int font_offset_2y = 20 + font_size / 2 + font_size + 15;
+	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_2y, voltage_str);
 
 	constexpr int bar_width = 8;
 	constexpr int bar_height = frame_height - 4;
@@ -853,7 +854,7 @@ void Interface::updateMap(void)
 			}
 			const int robot_id = i + 1;
 			const QColor color = getColor(positions[i].color);
-			drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message);
+			drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].voltage);
 			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
 
 			//if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
