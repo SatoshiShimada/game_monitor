@@ -116,17 +116,6 @@ public:
 	std::string message;
 };
 
-class Robot {
-public:
-	QLabel *name;
-	QLabel *string;
-	QLabel *cf_own;
-	QLabel *cf_ball;
-	QProgressBar *cf_own_bar;
-	QProgressBar *cf_ball_bar;
-	QProgressBar *time_bar;
-};
-
 class LogDataRobotComm {
 public:
 	char time_str[100];
@@ -159,20 +148,6 @@ public:
 	int score2;
 	int remaining_time;
 	char time_str[100];
-};
-
-class ClickWidget : public QWidget
-{
-	Q_OBJECT
-private:
-	void mouseReleaseEvent(QMouseEvent *event) override
-	{
-		if(event->button() == Qt::LeftButton) {
-			emit clicked();
-		}
-	}
-signals:
-	void clicked(void);
 };
 
 class Interface : public QMainWindow
@@ -217,10 +192,6 @@ private:
 	QPalette pal_black;
 	QPalette pal_orange;
 	std::vector<PositionMarker> positions;
-	std::vector<Robot> robot;
-	std::vector<QLabel *> idLabel;
-	std::vector<ClickWidget *>robotState;
-	std::vector<QGridLayout *>idLayout;
 	std::vector<LogData> log_data;
 	bool fLogging;
 	bool fReverse;
@@ -235,8 +206,6 @@ private:
 	const int max_robot_num;
 	int logo_pos_x, logo_pos_y;
 	int log_speed;
-	int select_robot_num;
-	struct tm last_select_time;
 	FieldParameterInt field_param;
 	FieldSpaceManager field_space;
 	void initializeConfig(void);
@@ -248,7 +217,6 @@ private:
 	void setParamFromFile(std::vector<std::string>);
 	void setData(LogData);
 	QColor getColor(const char *);
-	void selectRobot(int);
 	void createMenus(void);
 	void drawTeamMarker(QPainter &, const int, const int);
 	void drawRobotMarker(QPainter &, const int, const int, const double, const int, const QColor, const double);
@@ -263,7 +231,6 @@ public:
 	void drawField(void);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
-	//void decodeUdp(struct comm_info_T, Robot *, int num);
 	void decodeUdp(struct comm_info_T, int num);
 	void updateMap(void);
 
@@ -277,12 +244,6 @@ private slots:
 	void setRemainingTime(int);
 	void setScore1(int);
 	void setScore2(int);
-	void selectRobot1(void);
-	void selectRobot2(void);
-	void selectRobot3(void);
-	void selectRobot4(void);
-	void selectRobot5(void);
-	void selectRobot6(void);
 	void reverseField(int);
 	void viewGoalpost(int);
 	void viewGoalpost(bool);
