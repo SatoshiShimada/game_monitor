@@ -12,8 +12,8 @@ public:
 	void clear(void);
 	bool getEmptySpace(int &, int &, const int, const int, const int = 0, const int = 0);
 private:
-	static constexpr int EXIST = 1;
-	static constexpr int EMPTY = 0;
+	const int EXIST;
+	const int EMPTY;
 	const int grid_num_x;
 	const int grid_num_y;
 	std::vector<std::vector<int>> grid_map;

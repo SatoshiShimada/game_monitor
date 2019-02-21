@@ -10,7 +10,7 @@ static inline int distance(const int x1, const int y1, const int x2, const int y
 	return std::sqrt(x * x + y * y);
 }
 
-FieldSpaceManager::FieldSpaceManager(const int field_w, const int field_h) : grid_num_x(20), grid_num_y(20), grid_map(grid_num_y, std::vector<int>(grid_num_x, EMPTY)), field_width(field_w), field_height(field_h)
+FieldSpaceManager::FieldSpaceManager(const int field_w, const int field_h) : EXIST(1), EMPTY(0), grid_num_x(20), grid_num_y(20), grid_map(grid_num_y, std::vector<int>(grid_num_x, EMPTY)), field_width(field_w), field_height(field_h)
 {
 }
 
