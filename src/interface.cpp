@@ -280,37 +280,37 @@ void Interface::connection(void)
 
 void Interface::decodeData1(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info,  0);
+	decodeUdp(comm_info, 0);
 	statusBar->showMessage(QString("Receive data from Robot 1"));
 }
 
 void Interface::decodeData2(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info,  1);
+	decodeUdp(comm_info, 1);
 	statusBar->showMessage(QString("Receive data from Robot 2"));
 }
 
 void Interface::decodeData3(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info,  2);
+	decodeUdp(comm_info, 2);
 	statusBar->showMessage(QString("Receive data from Robot 3"));
 }
 
 void Interface::decodeData4(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info,  3);
+	decodeUdp(comm_info, 3);
 	statusBar->showMessage(QString("Receive data from Robot 4"));
 }
 
 void Interface::decodeData5(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info,  4);
+	decodeUdp(comm_info, 4);
 	statusBar->showMessage(QString("Receive data from Robot 5"));
 }
 
 void Interface::decodeData6(struct comm_info_T comm_info)
 {
-	decodeUdp(comm_info,  5);
+	decodeUdp(comm_info, 5);
 	statusBar->showMessage(QString("Receive data from Robot 6"));
 }
 
@@ -825,19 +825,8 @@ void Interface::updateMap(void)
 			if(elapsed > time_limit) {
 				positions[i].enable_pos = false;
 				positions[i].enable_ball = false;
-				/*
-				robotState[i]->setPalette(pal_state_bgcolor);
-				robot[i].name->clear();
-				robot[i].string->clear();
-				robot[i].cf_own->clear();
-				robot[i].cf_ball->clear();
-				robot[i].cf_own_bar->setValue(0);
-				robot[i].cf_ball_bar->setValue(0);
-				robot[i].time_bar->setValue(0);
-				*/
 				continue;
 			}
-			//robot[i].time_bar->setValue(elapsed);
 		}
 	}
 	const int field_w = settings->value("field_image/width").toInt();
@@ -857,7 +846,6 @@ void Interface::updateMap(void)
 			drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].voltage);
 			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
 
-			//if(positions[i].enable_ball && robot[i].cf_ball->text().toInt() > 0) {
 			if(positions[i].enable_ball && positions[i].ball_conf > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
