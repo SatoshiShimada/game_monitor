@@ -390,6 +390,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 	// Voltage
 	const double voltage = (comm_info.voltage << 3) / 100.0;
 	positions[num].voltage = voltage;
+	positions[num].temperature = comm_info.temperature;
 	log_writer.setEnable(false);
 	log_writer.write(num + 1, color_str.toStdString().c_str(), (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
@@ -636,6 +637,7 @@ void Interface::setData(LogData log_data)
 		positions[num].self_conf = data.cf_own;
 		positions[num].ball_conf = data.cf_ball;
 		positions[num].voltage = data.voltage;
+		positions[num].temperature = data.temperature;
 
 		updateMap();
 	}
@@ -704,7 +706,7 @@ void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int s
 	}
 }
 
-void Interface::drawRobotInformation(QPainter &painter, const int self_x, const int self_y, const double theta, const int robot_id, const QColor marker_color, const double self_conf, const double ball_conf, const std::string msg, const double voltage)
+void Interface::drawRobotInformation(QPainter &painter, const int self_x, const int self_y, const double theta, const int robot_id, const QColor marker_color, const double self_conf, const double ball_conf, const std::string msg, const double voltage, const double temperature)
 {
 	constexpr int frame_width = 200;
 	constexpr int frame_height = 80;
@@ -737,7 +739,7 @@ void Interface::drawRobotInformation(QPainter &painter, const int self_x, const 
 	std::string s(msg); // message without role name
 	s.erase(s.begin(), s.begin() + s.find(" "));
 	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_y, QString(s.c_str()));
-	QString voltage_str = QString::number(voltage);
+	QString voltage_str = QString::number(voltage) + "[V] / " + QString::number(temperature) + "[C]";
 	constexpr int font_offset_2y = 20 + font_size / 2 + font_size + 15;
 	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_2y, voltage_str);
 
@@ -843,7 +845,7 @@ void Interface::updateMap(void)
 			}
 			const int robot_id = i + 1;
 			const QColor color = getColor(positions[i].color);
-			drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].voltage);
+			drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].voltage, positions[i].temperature);
 			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
 
 			if(positions[i].enable_ball && positions[i].ball_conf > 0) {
