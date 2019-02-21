@@ -182,7 +182,6 @@ private:
 	QSlider *log_slider;
 	QGridLayout *mainLayout;
 	QVBoxLayout *checkLayout;
-	QGridLayout *labelLayout;
 	QHBoxLayout *logLayout;
 	QHBoxLayout *logSpeedButtonLayout;
 	QPalette pal_state_bgcolor;

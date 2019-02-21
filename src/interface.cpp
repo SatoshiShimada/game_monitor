@@ -156,7 +156,6 @@ void Interface::createWindow(void)
 	checkLayout = new QVBoxLayout;
 	logLayout   = new QHBoxLayout;
 	logSpeedButtonLayout = new QHBoxLayout;
-	labelLayout = new QGridLayout;
 
 	viewGoalpostCheckBox->setChecked(true);
 	viewSelfPosConfCheckBox->setChecked(true);
