@@ -41,6 +41,14 @@ static constexpr int STATE_READY = 1;
 static constexpr int STATE_SET = 2;
 static constexpr int STATE_PLAYING = 3;
 static constexpr int STATE_FINISHED = 4;
+
+static const int LOG_TYPE_ROBOTINFO = 0;
+static const int LOG_TYPE_SCORE1 = 1;
+static const int LOG_TYPE_SCORE2 = 2;
+static const int LOG_TYPE_REMAININGTIME = 3;
+static const int LOG_TYPE_SECONDARYTIME = 4;
+static const int LOG_TYPE_GAMESTATE = 5;
+
 /*
  * Field parameters.
  * See Law 1 of rule book(2018) at http://www.robocuphumanoid.org/wp-content/uploads/RCHL-2018-Rules-Proposal_changesMarked_final.pdf
@@ -150,13 +158,15 @@ public:
 class LogData
 {
 public:
-	LogData() : type(0), score1(0), score2(0), remaining_time(0) { }
+	LogData() : type(0), score1(0), score2(0), remaining_time(0), secondary_time(0), game_state(0) { }
 	~LogData() { }
 	int type;
 	LogDataRobotComm robot_comm;
 	int score1;
 	int score2;
 	int remaining_time;
+	int secondary_time;
+	int game_state;
 	char time_str[100];
 };
 

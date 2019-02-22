@@ -7,7 +7,7 @@ public:
 	GameState();
 	~GameState();
 	void setData(const char *data, const unsigned int data_len);
-	unsigned int getGameState(void);
+	int getGameState(void);
 	unsigned int getRemainingTime(void);
 	unsigned int getSecondaryTime(void);
 	bool updatedScore1(void);
@@ -18,7 +18,7 @@ private:
 	void decodeData(const char *data);
 	void decodeTeamInfo(const char *data);
 	void decodeRobotInfo(const char *data);
-	unsigned int m_game_state;
+	int m_game_state;
 	unsigned int m_remaining_time;
 	unsigned int m_secondary_time;
 	unsigned int m_score1;

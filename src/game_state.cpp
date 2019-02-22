@@ -27,7 +27,7 @@ void GameState::decodeData(const char *data)
 	const unsigned int packet_number = data[6];
 	const unsigned int players_per_team = data[7];
 	const unsigned int game_type = data[8];
-	const unsigned int state = data[9];
+	const   signed int state = data[9];
 	const unsigned int first_half = data[10];
 	const unsigned int kick_off_team = data[11];
 	const unsigned int secondary_state = data[12];
@@ -82,7 +82,7 @@ void GameState::decodeRobotInfo(const char *data)
 	const unsigned int red_card_count = data[3];
 }
 
-unsigned int GameState::getGameState(void)
+int GameState::getGameState(void)
 {
 	return m_game_state;
 }

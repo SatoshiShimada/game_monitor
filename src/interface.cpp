@@ -436,7 +436,7 @@ void Interface::setGameState(int game_state)
 		state_str = "Impossible";
 	}
 	label_game_state_display->setText(state_str);
-	//log_writer.writeTime(remaining_time);
+	log_writer.writeGameState(game_state);
 }
 
 void Interface::setRemainingTime(int remaining_time)
@@ -452,7 +452,7 @@ void Interface::setRemainingTime(int remaining_time)
 	else
 		time_str = remain_minutes_str + QString(":") + remain_seconds_str;
 	time_display->display(time_str);
-	log_writer.writeTime(remaining_time);
+	log_writer.writeRemainingTime(remaining_time);
 }
 
 void Interface::setSecondaryTime(int secondary_time)
@@ -468,7 +468,7 @@ void Interface::setSecondaryTime(int secondary_time)
 	else
 		time_str = secondary_minutes_str + QString(":") + secondary_seconds_str;
 	secondary_time_display->display(time_str);
-	//log_writer.writeTime(secondary_time);
+	log_writer.writeSecondaryTime(secondary_time);
 }
 
 void Interface::setScore1(int score1)
@@ -512,75 +512,150 @@ Pos Interface::globalPosToImagePos(Pos gpos)
 
 void Interface::setParamFromFile(std::vector<std::string> lines)
 {
-	for(auto line : lines) {
-		LogDataRobotComm buf;
-		QString qstr = QString(line.c_str());
-		QStringList list = qstr.split(QChar(','));
+	int version = 10;
+	if(lines[0].find("Game Monitor") == std::string::npos) {
+		version = 10; // version: 1.0
+	} else {
+		version = 20; // version: 2.0
+	}
+	if(version == 10) {
+		for(auto line : lines) {
+			LogDataRobotComm buf;
+			QString qstr = QString(line.c_str());
+			QStringList list = qstr.split(QChar(','));
 
-		int size = list.size();
-		if(size == 17) {
-			if(size < 1) continue;
-			strcpy(buf.time_str, list.at(0).toStdString().c_str());
-			if(size < 2) continue;
-			buf.id = list.at(1).toInt();
-			if(size < 3) continue;
-			strcpy(buf.color_str, list.at(2).toStdString().c_str());
-			if(size < 4) continue;
-			buf.fps = list.at(3).toInt();
-			if(size < 5) continue;
-			buf.voltage = list.at(4).toDouble();
-			if(size < 6) continue;
-			buf.x = list.at(5).toInt();
-			if(size < 7) continue;
-			buf.y = list.at(6).toInt();
-			if(size < 8) continue;
-			buf.theta = list.at(7).toDouble();
-			if(size < 9) continue;
-			buf.ball_x = list.at(8).toInt();
-			if(size < 10) continue;
-			buf.ball_y = list.at(9).toInt();
-			if(size < 11) continue;
-			buf.goal_pole_x1 = list.at(10).toInt();
-			if(size < 12) continue;
-			buf.goal_pole_y1 = list.at(11).toInt();
-			if(size < 13) continue;
-			buf.goal_pole_x2 = list.at(12).toInt();
-			if(size < 14) continue;
-			buf.goal_pole_y2 = list.at(13).toInt();
-			if(size < 15) continue;
-			buf.cf_own = list.at(14).toInt();
-			if(size < 16) continue;
-			buf.cf_ball = list.at(15).toInt();
-			if(size < 17) continue;
-			strcpy(buf.msg, list.at(16).toStdString().c_str());
-			LogData ldata;
-			ldata.type = 0;
-			ldata.robot_comm = buf;
-			strcpy(ldata.time_str, list.at(0).toStdString().c_str());
-			log_data.push_back(ldata);
-		} else if(size == 2) {
-			// remaining time
-			LogData ldata;
-			ldata.type = 3;
-			strcpy(ldata.time_str, list.at(0).toStdString().c_str());
-			ldata.remaining_time = list.at(1).toInt();
-			log_data.push_back(ldata);
-		} else if(size == 3) {
-			// score
-			LogData ldata;
-			ldata.type = 3;
-			strcpy(ldata.time_str, list.at(0).toStdString().c_str());
-			int team_no = list.at(1).toInt();
-			if(team_no == 0) {
-				ldata.type = 1;
-				ldata.score1 = list.at(2).toInt();
-			} else if(team_no == 0) {
-				ldata.type = 2;
-				ldata.score2 = list.at(2).toInt();
+			int size = list.size();
+			if(size == 17) {
+				if(size < 1) continue;
+				strcpy(buf.time_str, list.at(0).toStdString().c_str());
+				if(size < 2) continue;
+				buf.id = list.at(1).toInt();
+				if(size < 3) continue;
+				strcpy(buf.color_str, list.at(2).toStdString().c_str());
+				if(size < 4) continue;
+				buf.fps = list.at(3).toInt();
+				if(size < 5) continue;
+				buf.voltage = list.at(4).toDouble();
+				if(size < 6) continue;
+				buf.x = list.at(5).toInt();
+				if(size < 7) continue;
+				buf.y = list.at(6).toInt();
+				if(size < 8) continue;
+				buf.theta = list.at(7).toDouble();
+				if(size < 9) continue;
+				buf.ball_x = list.at(8).toInt();
+				if(size < 10) continue;
+				buf.ball_y = list.at(9).toInt();
+				if(size < 11) continue;
+				buf.goal_pole_x1 = list.at(10).toInt();
+				if(size < 12) continue;
+				buf.goal_pole_y1 = list.at(11).toInt();
+				if(size < 13) continue;
+				buf.goal_pole_x2 = list.at(12).toInt();
+				if(size < 14) continue;
+				buf.goal_pole_y2 = list.at(13).toInt();
+				if(size < 15) continue;
+				buf.cf_own = list.at(14).toInt();
+				if(size < 16) continue;
+				buf.cf_ball = list.at(15).toInt();
+				if(size < 17) continue;
+				strcpy(buf.msg, list.at(16).toStdString().c_str());
+				LogData ldata;
+				ldata.type = 0;
+				ldata.robot_comm = buf;
+				strcpy(ldata.time_str, list.at(0).toStdString().c_str());
+				log_data.push_back(ldata);
+			} else if(size == 2) {
+				// remaining time
+				LogData ldata;
+				ldata.type = 3;
+				strcpy(ldata.time_str, list.at(0).toStdString().c_str());
+				ldata.remaining_time = list.at(1).toInt();
+				log_data.push_back(ldata);
+			} else if(size == 3) {
+				// score
+				LogData ldata;
+				ldata.type = 3;
+				strcpy(ldata.time_str, list.at(0).toStdString().c_str());
+				int team_no = list.at(1).toInt();
+				if(team_no == 0) {
+					ldata.type = 1;
+					ldata.score1 = list.at(2).toInt();
+				} else if(team_no == 0) {
+					ldata.type = 2;
+					ldata.score2 = list.at(2).toInt();
+				} else {
+					continue;
+				}
+				log_data.push_back(ldata);
+			}
+		}
+	} else if(version == 20) {
+		for(auto line : lines) {
+			LogDataRobotComm buf;
+			QString qstr = QString(line.c_str());
+			QStringList list = qstr.split(QChar(','));
+
+			int size = list.size();
+			if(size == 1) continue;
+			if(list[0] == "RobotInfo" && size == 18) {
+				strcpy(buf.time_str, list.at(1).toStdString().c_str());
+				buf.id = list.at(2).toInt();
+				strcpy(buf.color_str, list.at(3).toStdString().c_str());
+				buf.fps = list.at(4).toInt();
+				buf.voltage = list.at(5).toDouble();
+				buf.x = list.at(6).toInt();
+				buf.y = list.at(7).toInt();
+				buf.theta = list.at(8).toDouble();
+				buf.ball_x = list.at(9).toInt();
+				buf.ball_y = list.at(10).toInt();
+				buf.goal_pole_x1 = list.at(11).toInt();
+				buf.goal_pole_y1 = list.at(12).toInt();
+				buf.goal_pole_x2 = list.at(13).toInt();
+				buf.goal_pole_y2 = list.at(14).toInt();
+				buf.cf_own = list.at(15).toInt();
+				buf.cf_ball = list.at(16).toInt();
+				strcpy(buf.msg, list.at(17).toStdString().c_str());
+				LogData ldata;
+				ldata.type = LOG_TYPE_ROBOTINFO;
+				ldata.robot_comm = buf;
+				strcpy(ldata.time_str, list.at(0).toStdString().c_str());
+				log_data.push_back(ldata);
+			} else if(list[0] == "Score" && size == 4) {
+				LogData ldata;
+				strcpy(ldata.time_str, list.at(1).toStdString().c_str());
+				int team_no = list.at(2).toInt();
+				if(team_no == 0) {
+					ldata.type = LOG_TYPE_SCORE1;
+					ldata.score1 = list.at(3).toInt();
+				} else if(team_no == 1) {
+					ldata.type = LOG_TYPE_SCORE2;
+					ldata.score2 = list.at(3).toInt();
+				} else {
+					continue;
+				}
+				log_data.push_back(ldata);
+			} else if(list[0] == "RemainingTime" && size == 3) {
+				LogData ldata;
+				ldata.type = LOG_TYPE_REMAININGTIME;
+				strcpy(ldata.time_str, list.at(1).toStdString().c_str());
+				ldata.remaining_time = list.at(2).toInt();
+				log_data.push_back(ldata);
+			} else if(list[0] == "SecondaryTime" && size == 3) {
+				LogData ldata;
+				ldata.type = LOG_TYPE_SECONDARYTIME;
+				strcpy(ldata.time_str, list.at(1).toStdString().c_str());
+				ldata.secondary_time = list.at(2).toInt();
+				log_data.push_back(ldata);
+			} else if(list[0] == "GameState" && size == 3) {
+				LogData ldata;
+				ldata.type = LOG_TYPE_GAMESTATE;
+				strcpy(ldata.time_str, list.at(1).toStdString().c_str());
+				ldata.game_state = list.at(2).toInt();
+				log_data.push_back(ldata);
 			} else {
 				continue;
 			}
-			log_data.push_back(ldata);
 		}
 	}
 
