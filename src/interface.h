@@ -240,6 +240,8 @@ private:
 	Pos globalPosToImagePos(Pos);
 	void timerEvent(QTimerEvent *);
 	void setParamFromFile(std::vector<std::string>);
+	void setParamFromFileV1(std::vector<std::string>);
+	void setParamFromFileV2(std::vector<std::string>);
 	void setData(LogData);
 	QColor getColor(const char *);
 	void createMenus(void);
