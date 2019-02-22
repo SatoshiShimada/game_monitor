@@ -70,10 +70,13 @@ void Interface::createMenus(void)
 	fileMenu = menuBar()->addMenu(tr("&File"));
 
 	loadLogFileAction = new QAction(tr("&Load Log File"), 0);
+	settingsAction = new QAction(tr("&Settings"), 0);
 
 	fileMenu->addAction(loadLogFileAction);
+	fileMenu->addAction(settingsAction);
 
 	connect(loadLogFileAction, SIGNAL(triggered()), this, SLOT(loadLogFile(void)));
+	connect(settingsAction, SIGNAL(triggered()), this, SLOT(openSettingWindow(void)));
 
 	viewMenu = menuBar()->addMenu(tr("&View"));
 
@@ -1179,5 +1182,21 @@ void Interface::showRecordTime(QString message)
 void Interface::setRecordButtonText(QString text)
 {
 	recordButton->setText(text);
+}
+
+void Interface::gameStateFontSizeChanged(int value)
+{
+	QFont font = label_game_state_display->font();
+	font.setPointSize(value);
+	label_game_state_display->setFont(font);
+}
+
+void Interface::openSettingWindow(void)
+{
+	statusBar->showMessage(QString("setting"));
+	SettingDialog dialog(this);
+	connect(&dialog, SIGNAL(fontSizeChanged(int)), this, SLOT(gameStateFontSizeChanged(int)));
+	dialog.show();
+	dialog.exec();
 }
 

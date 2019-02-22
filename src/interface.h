@@ -26,6 +26,7 @@
 #include <QProgressBar>
 #include <QFileDialog>
 #include <QPixmap>
+#include <QDialog>
 
 #include "udp_thread.h"
 #include "log_writer.h"
@@ -34,6 +35,44 @@
 #include "aspect_ratio_pixmap_label.h"
 #include "gcreceiver.h"
 #include "field_space_manager.h"
+
+class SettingDialog : public QDialog
+{
+	Q_OBJECT
+public:
+	SettingDialog(QWidget *parent = 0) : QDialog(parent)
+	{
+		buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+		connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+		connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+		button = new QPushButton("Apply");
+		font_size_slider = new QSlider(Qt::Horizontal);
+		font_size_slider->setRange(1, 128);
+		connect(font_size_slider, SIGNAL(valueChanged(int)), this, SLOT(fontSizeValueChanged(int)));
+
+		slider_layout = new QGridLayout;
+		slider_layout->addWidget(font_size_slider, 1, 1);
+		main_layout = new QVBoxLayout;
+		main_layout->addLayout(slider_layout);
+		main_layout->addWidget(button);
+		main_layout->addWidget(buttonBox);
+		setLayout(main_layout);
+	}
+signals:
+	void fontSizeChanged(int);
+private:
+	QSlider *font_size_slider;
+	QPushButton *button;
+	QGridLayout *slider_layout;
+	QVBoxLayout *main_layout;
+	QDialogButtonBox *buttonBox;
+private slots:
+	void fontSizeValueChanged(int value)
+	{
+		emit fontSizeChanged(value);
+	}
+};
 
 static constexpr int STATE_IMPOSSIBLE = -1;
 static constexpr int STATE_INITIAL = 0;
@@ -183,6 +222,7 @@ private:
 	QMenu *viewMenu;
 	QMenu *videoMenu;
 	QAction *loadLogFileAction;
+	QAction *settingsAction;
 	QAction *viewGoalPostAction;
 	QStatusBar *statusBar;
 	QCheckBox *reverse;
@@ -288,6 +328,8 @@ private slots:
 	void updateCameraDevice(QAction *);
 	void showRecordTime(QString);
 	void setRecordButtonText(QString);
+	void openSettingWindow(void);
+	void gameStateFontSizeChanged(int);
 };
 
 #endif // INTERFACE_H
