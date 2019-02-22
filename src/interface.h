@@ -179,7 +179,13 @@ private:
 	QWidget *window;
 	AspectRatioPixmapLabel *image;
 	QLabel *log_step;
+	QLabel *label_remaining_time;
+	QLabel *label_secondary_time;
+	QLabel *label_game_state;
+	QLabel *label_game_state_display;
+	QLabel *label_score;
 	QLCDNumber *time_display;
+	QLCDNumber *secondary_time_display;
 	QLCDNumber *score_display;
 	QPixmap map;
 	QPixmap origin_map;
