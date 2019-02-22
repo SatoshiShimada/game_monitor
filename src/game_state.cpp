@@ -8,8 +8,9 @@ GameState::~GameState()
 {
 }
 
-void GameState::setData(const char *data, const unsigned int data_len)
+void GameState::setData(const char *in_data, const unsigned int data_len)
 {
+	const unsigned char *data = reinterpret_cast<const unsigned char *>(in_data);
 	constexpr unsigned int packet_size = 640;
 	if(data_len != packet_size)
 		return;
@@ -18,7 +19,7 @@ void GameState::setData(const char *data, const unsigned int data_len)
 	decodeTeamInfo(data + 24 + 308);
 }
 
-void GameState::decodeData(const char *data)
+void GameState::decodeData(const unsigned char *data)
 {
 	if(!(data[0] == 'R' && data[1] == 'G' && data[2] == 'm' && data[3] == 'e')) {
 		return;
@@ -33,9 +34,9 @@ void GameState::decodeData(const char *data)
 	const unsigned int secondary_state = data[12];
 	const unsigned int secondary_state_info = data[16] << 24 | data[15] << 16 | data[14] << 8 | data[13];
 	const unsigned int drop_in_team = data[17];
-	const unsigned int drop_in_time = data[19] << 8 | data[18];
-	const unsigned int secs_remaining = data[21] << 8 | data[20];
-	const unsigned int secondary_time = data[23] << 8 | data[22];
+	const   signed int drop_in_time = static_cast<signed short>(data[19] << 8 | data[18]);
+	const   signed int secs_remaining = static_cast<signed short>(data[21] << 8 | data[20]);
+	const   signed int secondary_time = static_cast<signed short>(data[23] << 8 | data[22]);
 
 	constexpr unsigned int PROTCOL_VERSION = 12;
 	if(protcol_version != PROTCOL_VERSION)
@@ -45,7 +46,7 @@ void GameState::decodeData(const char *data)
 	m_secondary_time = secondary_time;
 }
 
-void GameState::decodeTeamInfo(const char *data)
+void GameState::decodeTeamInfo(const unsigned char *data)
 {
 	const unsigned int team_number = data[0];
 	const unsigned int team_color = data[1];
@@ -53,7 +54,7 @@ void GameState::decodeTeamInfo(const char *data)
 	const unsigned int penalty_shot = data[3];
 	const unsigned int single_shots = data[5] << 8 | data[4];
 	const unsigned int coach_sequence = data[6];
-	const char *coach_message = data + 7;
+	const unsigned char *coach_message = data + 7;
 	constexpr unsigned int coach_message_size = 253;
 	decodeRobotInfo(data + 7 + coach_message_size);
 	constexpr unsigned int max_players = 11;
@@ -74,7 +75,7 @@ void GameState::decodeTeamInfo(const char *data)
 	}
 }
 
-void GameState::decodeRobotInfo(const char *data)
+void GameState::decodeRobotInfo(const unsigned char *data)
 {
 	const unsigned int penalty = data[0];
 	const unsigned int secs_till_unpenalised = data[1];
@@ -87,12 +88,12 @@ int GameState::getGameState(void)
 	return m_game_state;
 }
 
-unsigned int GameState::getRemainingTime(void)
+int GameState::getRemainingTime(void)
 {
 	return m_remaining_time;
 }
 
-unsigned int GameState::getSecondaryTime(void)
+int GameState::getSecondaryTime(void)
 {
 	return m_secondary_time;
 }

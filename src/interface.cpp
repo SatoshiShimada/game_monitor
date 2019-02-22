@@ -441,32 +441,46 @@ void Interface::setGameState(int game_state)
 
 void Interface::setRemainingTime(int remaining_time)
 {
+	bool f_negative_number = false;
+	if(remaining_time < 0) {
+		remaining_time = -remaining_time;
+		f_negative_number = true;
+	}
 	const int remain_minutes = remaining_time / 60;
 	const int remain_seconds = remaining_time % 60;
 	QString remain_minutes_str, remain_seconds_str;
 	remain_minutes_str.setNum(remain_minutes);
 	remain_seconds_str.setNum(remain_seconds);
 	QString time_str;
+	if(f_negative_number)
+		time_str = "-";
 	if(remain_seconds < 10)
-		time_str = remain_minutes_str + QString(":0") + remain_seconds_str;
+		time_str = time_str + remain_minutes_str + QString(":0") + remain_seconds_str;
 	else
-		time_str = remain_minutes_str + QString(":") + remain_seconds_str;
+		time_str = time_str + remain_minutes_str + QString(":") + remain_seconds_str;
 	time_display->display(time_str);
 	log_writer.writeRemainingTime(remaining_time);
 }
 
 void Interface::setSecondaryTime(int secondary_time)
 {
+	bool f_negative_number = false;
+	if(secondary_time < 0) {
+		secondary_time = -secondary_time;
+		f_negative_number = true;
+	}
 	const int secondary_minutes = secondary_time / 60;
 	const int secondary_seconds = secondary_time % 60;
 	QString secondary_minutes_str, secondary_seconds_str;
 	secondary_minutes_str.setNum(secondary_minutes);
 	secondary_seconds_str.setNum(secondary_seconds);
 	QString time_str;
+	if(f_negative_number)
+		time_str = "-";
 	if(secondary_seconds < 10)
-		time_str = secondary_minutes_str + QString(":0") + secondary_seconds_str;
+		time_str = time_str + secondary_minutes_str + QString(":0") + secondary_seconds_str;
 	else
-		time_str = secondary_minutes_str + QString(":") + secondary_seconds_str;
+		time_str = time_str + secondary_minutes_str + QString(":") + secondary_seconds_str;
 	secondary_time_display->display(time_str);
 	log_writer.writeSecondaryTime(secondary_time);
 }
