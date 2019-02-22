@@ -1,6 +1,6 @@
 #include "game_state.h"
 
-GameState::GameState() : remaining_time(0), score1(0), score2(0), f_update_score1(false), f_update_score2(false)
+GameState::GameState() : m_game_state(0), m_remaining_time(0), m_secondary_time(0), m_score1(0), m_score2(0), f_update_score1(false), f_update_score2(false)
 {
 }
 
@@ -40,7 +40,9 @@ void GameState::decodeData(const char *data)
 	constexpr unsigned int PROTCOL_VERSION = 12;
 	if(protcol_version != PROTCOL_VERSION)
 		return;
-	remaining_time = secs_remaining;
+	m_game_state = state;
+	m_remaining_time = secs_remaining;
+	m_secondary_time = secondary_time;
 }
 
 void GameState::decodeTeamInfo(const char *data)
@@ -63,12 +65,12 @@ void GameState::decodeTeamInfo(const char *data)
 	constexpr unsigned int TEAM_COLOR_BLUE = 0;
 	constexpr unsigned int TEAM_COLOR_RED = 1;
 
-	if(team_color == TEAM_COLOR_BLUE && score1 != score) {
+	if(team_color == TEAM_COLOR_BLUE && m_score1 != score) {
 		f_update_score1 = true;
-		score1 = score;
-	} else if(team_color == TEAM_COLOR_RED && score2 != score) {
+		m_score1 = score;
+	} else if(team_color == TEAM_COLOR_RED && m_score2 != score) {
 		f_update_score2 = true;
-		score2 = score;
+		m_score2 = score;
 	}
 }
 
@@ -80,9 +82,19 @@ void GameState::decodeRobotInfo(const char *data)
 	const unsigned int red_card_count = data[3];
 }
 
+unsigned int GameState::getGameState(void)
+{
+	return m_game_state;
+}
+
 unsigned int GameState::getRemainingTime(void)
 {
-	return remaining_time;
+	return m_remaining_time;
+}
+
+unsigned int GameState::getSecondaryTime(void)
+{
+	return m_secondary_time;
 }
 
 bool GameState::updatedScore1(void)
@@ -98,12 +110,12 @@ bool GameState::updatedScore2(void)
 unsigned int GameState::getScore1(void)
 {
 	f_update_score1 = false;
-	return score1;
+	return m_score1;
 }
 
 unsigned int GameState::getScore2(void)
 {
 	f_update_score2 = false;
-	return score2;
+	return m_score2;
 }
 

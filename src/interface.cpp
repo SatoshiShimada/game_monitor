@@ -290,7 +290,9 @@ void Interface::connection(void)
 	connect(recordButton, SIGNAL(clicked(void)), this, SLOT(captureButtonSlot(void)));
 	connect(capture, SIGNAL(updateRecordTimeSignal(QString)), this, SLOT(showRecordTime(QString)));
 	connect(capture, SIGNAL(updateRecordButtonMessage(QString)), this, SLOT(setRecordButtonText(QString)));
+	connect(gc_thread, SIGNAL(gameStateChanged(int)), this, SLOT(setGameState(int)));
 	connect(gc_thread, SIGNAL(remainingTimeChanged(int)), this, SLOT(setRemainingTime(int)));
+	connect(gc_thread, SIGNAL(secondaryTimeChanged(int)), this, SLOT(setSecondaryTime(int)));
 	connect(gc_thread, SIGNAL(scoreChanged1(int)), this, SLOT(setScore1(int)));
 	connect(gc_thread, SIGNAL(scoreChanged2(int)), this, SLOT(setScore2(int)));
 }
@@ -417,6 +419,26 @@ void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 		(const char *)comm_info.command, (int)comm_info.cf_own, (int)comm_info.cf_ball);
 }
 
+void Interface::setGameState(int game_state)
+{
+	QString state_str;
+	if(game_state == STATE_INITIAL) {
+		state_str = "Initial";
+	} else if(game_state == STATE_READY) {
+		state_str = "Ready";
+	} else if(game_state == STATE_SET) {
+		state_str = "Set";
+	} else if(game_state == STATE_PLAYING) {
+		state_str = "Playing";
+	} else if(game_state == STATE_FINISHED) {
+		state_str = "Finished";
+	} else {
+		state_str = "Impossible";
+	}
+	label_game_state_display->setText(state_str);
+	//log_writer.writeTime(remaining_time);
+}
+
 void Interface::setRemainingTime(int remaining_time)
 {
 	const int remain_minutes = remaining_time / 60;
@@ -431,6 +453,22 @@ void Interface::setRemainingTime(int remaining_time)
 		time_str = remain_minutes_str + QString(":") + remain_seconds_str;
 	time_display->display(time_str);
 	log_writer.writeTime(remaining_time);
+}
+
+void Interface::setSecondaryTime(int secondary_time)
+{
+	const int secondary_minutes = secondary_time / 60;
+	const int secondary_seconds = secondary_time % 60;
+	QString secondary_minutes_str, secondary_seconds_str;
+	secondary_minutes_str.setNum(secondary_minutes);
+	secondary_seconds_str.setNum(secondary_seconds);
+	QString time_str;
+	if(secondary_seconds < 10)
+		time_str = secondary_minutes_str + QString(":0") + secondary_seconds_str;
+	else
+		time_str = secondary_minutes_str + QString(":") + secondary_seconds_str;
+	secondary_time_display->display(time_str);
+	//log_writer.writeTime(secondary_time);
 }
 
 void Interface::setScore1(int score1)

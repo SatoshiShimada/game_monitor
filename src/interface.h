@@ -35,6 +35,12 @@
 #include "gcreceiver.h"
 #include "field_space_manager.h"
 
+static constexpr int STATE_IMPOSSIBLE = -1;
+static constexpr int STATE_INITIAL = 0;
+static constexpr int STATE_READY = 1;
+static constexpr int STATE_SET = 2;
+static constexpr int STATE_PLAYING = 3;
+static constexpr int STATE_FINISHED = 4;
 /*
  * Field parameters.
  * See Law 1 of rule book(2018) at http://www.robocuphumanoid.org/wp-content/uploads/RCHL-2018-Rules-Proposal_changesMarked_final.pdf
@@ -250,7 +256,9 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
+	void setGameState(int);
 	void setRemainingTime(int);
+	void setSecondaryTime(int);
 	void setScore1(int);
 	void setScore2(int);
 	void reverseField(int);

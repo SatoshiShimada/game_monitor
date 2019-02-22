@@ -15,9 +15,11 @@ public:
 	~GCReceiver();
 private:
 	QUdpSocket *udpSocket;
-	GameState game_state;
+	GameState gc_data;
 signals:
+	void gameStateChanged(int);
 	void remainingTimeChanged(int);
+	void secondaryTimeChanged(int);
 	void scoreChanged1(int);
 	void scoreChanged2(int);
 private slots:

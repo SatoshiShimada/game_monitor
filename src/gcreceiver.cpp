@@ -24,13 +24,15 @@ void GCReceiver::readPendingDatagrams(void)
 		for(size_t i = 0; (i < (size_t)datagrams.size()); i++) {
 			buf[i] = p[i];
 		}
-		game_state.setData(buf, datagrams.size());
-		emit remainingTimeChanged(game_state.getRemainingTime());
-		if(game_state.updatedScore1()) {
-			emit scoreChanged1(game_state.getScore1());
+		gc_data.setData(buf, datagrams.size());
+		emit gameStateChanged(gc_data.getGameState());
+		emit remainingTimeChanged(gc_data.getRemainingTime());
+		emit secondaryTimeChanged(gc_data.getSecondaryTime());
+		if(gc_data.updatedScore1()) {
+			emit scoreChanged1(gc_data.getScore1());
 		}
-		if(game_state.updatedScore2()) {
-			emit scoreChanged2(game_state.getScore2());
+		if(gc_data.updatedScore2()) {
+			emit scoreChanged2(gc_data.getScore2());
 		}
 		delete[] buf;
 	}
