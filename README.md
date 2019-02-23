@@ -63,7 +63,8 @@ apt install qt5-default qtmultimedia5-dev
 
 ```
 brew update -all
-brew install qt
+brew install qt5
+export PATH="/usr/local/Cellar/qt/5.12.0/bin:$PATH"
 ```
 
 2. Build application.
