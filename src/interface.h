@@ -37,6 +37,7 @@
 #include "aspect_ratio_pixmap_label.h"
 #include "gcreceiver.h"
 #include "field_space_manager.h"
+#include "setting_dialog.h"
 
 static constexpr int STATE_IMPOSSIBLE = -1;
 static constexpr int STATE_INITIAL = 0;
@@ -185,6 +186,7 @@ private:
 	QMenu *viewMenu;
 	QMenu *videoMenu;
 	QAction *loadLogFileAction;
+	QAction *settingsAction;
 	QAction *viewGoalPostAction;
 	QStatusBar *statusBar;
 	QCheckBox *reverse;
@@ -290,6 +292,9 @@ private slots:
 	void updateCameraDevice(QAction *);
 	void showRecordTime(QString);
 	void setRecordButtonText(QString);
+	void openSettingWindow(void);
+	void gameStateFontSizeChanged(int);
+	void displaySizeChanged(int);
 };
 
 #endif // INTERFACE_H
