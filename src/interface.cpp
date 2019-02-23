@@ -6,10 +6,9 @@
 #include <string>
 #include <cstring>
 #include <ctime>
+#include <QLCDNumber>
 
 #include <QtGui>
-#include <QCameraInfo>
-#include <QMediaMetaData>
 
 #include "pos_types.h"
 #include "interface.h"
@@ -21,16 +20,12 @@ static inline int distance(const int x1, const int y1, const int x2, const int y
 	return std::sqrt(x * x + y * y);
 }
 
-Q_DECLARE_METATYPE(QCameraInfo)
-
 Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), score_team1(0), score_team2(0), max_robot_num(6), log_speed(1), field_param(FieldParameter()), field_space(1040, 740)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
 	log_writer.setEnable();
 	positions = std::vector<PositionMarker>(max_robot_num);
-
-	capture = new Capture;
 
 	statusBar = new QStatusBar;
 	statusBar->showMessage(QString("GameMonitor: Ready"));
@@ -61,8 +56,6 @@ Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fP
 
 Interface::~Interface()
 {
-	if(fRecording)
-		capture->stop();
 }
 
 void Interface::createMenus(void)
@@ -85,24 +78,6 @@ void Interface::createMenus(void)
 	viewMenu->addSeparator();
 
 	connect(viewGoalPostAction, SIGNAL(toggled(bool)), this, SLOT(viewGoalpost(bool)));
-
-	videoMenu = menuBar()->addMenu(tr("&Cameras"));
-
-	QList<QCameraInfo> availableCameras = capture->getCameras();
-	QActionGroup *videoDevicesGroup = new QActionGroup(this);
-	videoDevicesGroup->setExclusive(true);
-	QAction *noVideoDeviceAction = new QAction(tr("&No Camera"), videoDevicesGroup);
-	videoMenu->addAction(noVideoDeviceAction);
-	videoMenu->addSeparator();
-	for (const QCameraInfo &cameraInfo : availableCameras) {
-		QAction *videoDeviceAction = new QAction(cameraInfo.description(), videoDevicesGroup);
-		videoDeviceAction->setCheckable(true);
-		videoDeviceAction->setData(QVariant::fromValue(cameraInfo));
-		if (cameraInfo == QCameraInfo::defaultCamera())
-			videoDeviceAction->setChecked(true);
-		videoMenu->addAction(videoDeviceAction);
-	}
-	connect(videoDevicesGroup, SIGNAL(triggered(QAction *)), this, SLOT(updateCameraDevice(QAction *)));
 }
 
 void Interface::initializeConfig(void)
@@ -287,10 +262,6 @@ void Interface::connection(void)
 	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
 	connect(log_slider, SIGNAL(sliderPressed(void)), this, SLOT(pausePlayingLog(void)));
 	connect(log_slider, SIGNAL(sliderReleased(void)), this, SLOT(changeLogPosition(void)));
-	connect(recordButton, SIGNAL(clicked(void)), this, SLOT(captureButtonSlot(void)));
-	connect(capture, SIGNAL(updateRecordTimeSignal(QString)), this, SLOT(showRecordTime(QString)));
-	connect(capture, SIGNAL(updateRecordButtonMessage(QString)), this, SLOT(setRecordButtonText(QString)));
-	connect(gc_thread, SIGNAL(gameStateChanged(int)), this, SLOT(setGameState(int)));
 	connect(gc_thread, SIGNAL(remainingTimeChanged(int)), this, SLOT(setRemainingTime(int)));
 	connect(gc_thread, SIGNAL(secondaryTimeChanged(int)), this, SLOT(setSecondaryTime(int)));
 	connect(gc_thread, SIGNAL(scoreChanged1(int)), this, SLOT(setScore1(int)));
@@ -819,9 +790,9 @@ void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int s
 	// draw self position confidence
 	if(fViewSelfPosConf) {
 		constexpr int bar_width = 80;
-		constexpr int bar_height = 6;
+		constexpr int bar_height = 12;
 		const int bar_left = self_x - bar_width / 2;
-		const int bar_top = self_y + 25;
+		const int bar_top = self_y + 35;
 		QPainterPath path_frame, path_conf;
 		path_frame.addRect(bar_left - 2, bar_top - 2, bar_width + 4, bar_height + 4);
 		painter.fillPath(path_frame, Qt::white);
@@ -1145,30 +1116,10 @@ void Interface::logSpeed5(void)
 
 void Interface::captureButtonSlot(void)
 {
-	if(fRecording) {
-		fRecording = false;
-		log_writer.stopRecord();
-		capture->stop();
-		setRecordButtonText(QString("Record video"));
-	} else {
-		fRecording = true;
-		time_t timer;
-		struct tm *local_time;
-		char filename[1024];
-		const char *video_output_path = "videos/";
-		timer = time(NULL);
-		local_time = localtime(&timer);
-		sprintf(filename, "%s%d-%d-%d-%d-%d.mov", video_output_path, local_time->tm_year+1900, local_time->tm_mon+1, local_time->tm_mday, local_time->tm_hour, local_time->tm_min);
-		capture->setFilename(QString(filename));
-		log_writer.startRecord(filename);
-		capture->record();
-		setRecordButtonText(QString("Stop recording"));
-	}
 }
 
 void Interface::updateCameraDevice(QAction *action)
 {
-	capture->setCamera(qvariant_cast<QCameraInfo>(action->data()));
 }
 
 void Interface::showRecordTime(QString message)
