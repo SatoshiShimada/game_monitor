@@ -20,7 +20,7 @@ static inline int distance(const int x1, const int y1, const int x2, const int y
 	return std::sqrt(x * x + y * y);
 }
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(true), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), score_team1(0), score_team2(0), max_robot_num(6), log_speed(1), field_param(FieldParameter()), field_space(1040, 740)
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(false), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), score_team1(0), score_team2(0), max_robot_num(6), log_speed(1), field_param(FieldParameter()), field_space(1040, 740)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -74,8 +74,8 @@ void Interface::createMenus(void)
 	viewMenu = menuBar()->addMenu(tr("&View"));
 
 	viewGoalPostAction = new QAction(tr("&View Goal Posts"), 0);
-	viewGoalPostAction->setCheckable(true);
-	viewGoalPostAction->setChecked(true);
+	viewGoalPostAction->setCheckable(false);
+	viewGoalPostAction->setChecked(false);
 
 	viewMenu->addAction(viewGoalPostAction);
 	viewMenu->addSeparator();
@@ -840,7 +840,7 @@ void Interface::drawRobotInformation(QPainter &painter, const int self_x, const 
 	const int frame_left = frame_x - frame_width / 2;
 	const int frame_top = frame_y - frame_height / 2;
 	constexpr int pen_size = 3;
-	painter.setPen(QPen(Qt::white, pen_size));
+	painter.setPen(QPen(Qt::red, pen_size));
 	painter.drawLine(frame_x, frame_y, self_x, self_y);
 	QPainterPath path_frame;
 	path_frame.addRect(frame_left, frame_top, frame_width, frame_height);
