@@ -130,6 +130,9 @@ void Interface::initializeConfig(void)
 	settings->setValue("marker/font_offset_x", settings->value("marker/font_offset_x", 8));
 	settings->setValue("marker/font_offset_y", settings->value("marker/font_offset_y", 24));
 	settings->setValue("marker/time_up_limit", settings->value("marker/time_up_limit", 5));
+	// size setting
+	settings->setValue("size/font_size", settings->value("size/font_size", 48));
+	settings->setValue("size/display_minimum_height", settings->value("size/display_minimum_height", 50));
 	// using UDP communication port offset
 	settings->setValue("network/port", settings->value("network/port", 7110));
 }
@@ -148,19 +151,21 @@ void Interface::createWindow(void)
 	label_score = new QLabel("Score (Blue - Red)");
 	label_game_state_display = new QLabel("Initial");
 	QFont font = label_game_state_display->font();
-	font.setPointSize(48);
+	const int font_size = settings->value("size/font_size").toInt();
+	font.setPointSize(font_size);
 	label_game_state_display->setFont(font);
 	log_slider = new QSlider(Qt::Horizontal);
 	log_slider->setRange(0, 0);
 	time_display = new QLCDNumber();
 	time_display->display(QString("10:00"));
-	time_display->setMinimumHeight(50);
+	const int display_minimum_height = settings->value("size/display_minimum_height").toInt();
+	time_display->setMinimumHeight(display_minimum_height);
 	secondary_time_display = new QLCDNumber;
 	secondary_time_display->display(QString(" 0:00"));
-	secondary_time_display->setMinimumHeight(50);
+	secondary_time_display->setMinimumHeight(display_minimum_height);
 	score_display = new QLCDNumber();
 	score_display->display(QString("0 - 0"));
-	score_display->setMinimumHeight(50);
+	score_display->setMinimumHeight(display_minimum_height);
 	log1Button = new QPushButton("x1");
 	log1Button->setEnabled(false);
 	log2Button = new QPushButton("x2");
@@ -1189,6 +1194,7 @@ void Interface::gameStateFontSizeChanged(int value)
 	QFont font = label_game_state_display->font();
 	font.setPointSize(value);
 	label_game_state_display->setFont(font);
+	settings->setValue("size/font_size", value);
 }
 
 void Interface::displaySizeChanged(int value)
@@ -1196,13 +1202,16 @@ void Interface::displaySizeChanged(int value)
 	time_display->setMinimumHeight(value);
 	secondary_time_display->setMinimumHeight(value);
 	score_display->setMinimumHeight(value);
+	settings->setValue("size/display_minimum_height", value);
 }
 
 void Interface::openSettingWindow(void)
 {
 	statusBar->showMessage(QString("setting"));
 	SettingDialog dialog(this);
-	dialog.setDefaultParameters(48);
+	const int font_size = settings->value("size/font_size").toInt();
+	const int display_minimum_height = settings->value("size/display_minimum_height").toInt();
+	dialog.setDefaultParameters(font_size, display_minimum_height);
 	connect(&dialog, SIGNAL(fontSizeChanged(int)), this, SLOT(gameStateFontSizeChanged(int)));
 	connect(&dialog, SIGNAL(displaySizeChanged(int)), this, SLOT(displaySizeChanged(int)));
 	dialog.show();

@@ -30,9 +30,10 @@ SettingDialog::SettingDialog(QWidget *parent) : QDialog(parent)
 	setMinimumSize(640, 480);
 }
 
-void SettingDialog::setDefaultParameters(const int game_state_font_size)
+void SettingDialog::setDefaultParameters(const int game_state_font_size, const int display_minimum_height)
 {
 	font_size_slider->setValue(game_state_font_size);
+	display_size_slider->setValue(display_minimum_height);
 }
 
 void SettingDialog::fontSizeValueChanged(int value)

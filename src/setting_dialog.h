@@ -14,7 +14,7 @@ class SettingDialog : public QDialog
 	Q_OBJECT
 public:
 	SettingDialog(QWidget *parent = 0);
-	void setDefaultParameters(const int game_state_font_size);
+	void setDefaultParameters(const int game_state_font_size, const int);
 signals:
 	void fontSizeChanged(int);
 	void displaySizeChanged(int);
