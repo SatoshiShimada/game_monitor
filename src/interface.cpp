@@ -785,8 +785,8 @@ void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int s
 	const int robot_marker_radius = settings->value("marker/robot_size").toInt();
 	painter.drawEllipse(self_x - robot_marker_radius, self_y - robot_marker_radius, robot_marker_radius * 2, robot_marker_radius * 2);
 	const int robot_marker_direction_length = settings->value("marker/direction_marker_length").toInt();
-	const int direction_x = self_x + robot_marker_direction_length * std::cos(theta - M_PI / 2);
-	const int direction_y = self_y + robot_marker_direction_length * std::sin(theta - M_PI / 2);
+	const int direction_x = self_x + robot_marker_direction_length * std::cos(theta);
+	const int direction_y = self_y + robot_marker_direction_length * std::sin(theta);
 	painter.drawLine(self_x, self_y, direction_x, direction_y);
 
 	// draw robot number
@@ -939,11 +939,28 @@ void Interface::updateMap(void)
 	font.setPointSize(font_size);
 	paint.setFont(font);
 
-	const int time_limit = settings->value("marker/time_up_limit").toInt();
+	const int field_w = settings->value("field_image/width").toInt();
+	const int field_h = settings->value("field_image/height").toInt();
 	for(int i = 0; i < max_robot_num; i++) {
 		if(positions[i].enable_pos) {
-			field_space.setObjectPos(positions[i].pos.x, positions[i].pos.y, 200, 200);
-			field_space.setObjectPos(positions[i].ball.x, positions[i].ball.y, 50, 50);
+			bool flag_reverse = false;
+			if((positions[i].colornum == 0 && fReverse) ||
+					(positions[i].colornum == 1 && !fReverse)) {
+				flag_reverse = true;
+			}
+			int self_x = positions[i].pos.x;
+			int self_y = positions[i].pos.y;
+			int ball_x = positions[i].ball.x;
+			int ball_y = positions[i].ball.y;
+			if(flag_reverse) {
+				self_x = field_w - self_x;
+				self_y = field_h - self_y;
+				ball_x = field_w - ball_x;
+				ball_y = field_h - ball_y;
+			}
+			field_space.setObjectPos(self_x, self_y, 200, 200);
+			field_space.setObjectPos(ball_x, ball_y, 50, 50);
+			const int time_limit = settings->value("marker/time_up_limit").toInt();
 			const int elapsed = (local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec);
 			if(elapsed > time_limit) {
 				positions[i].enable_pos = false;
@@ -952,14 +969,17 @@ void Interface::updateMap(void)
 			}
 		}
 	}
-	const int field_w = settings->value("field_image/width").toInt();
-	const int field_h = settings->value("field_image/height").toInt();
 	for(int i = 0; i < max_robot_num; i++) {
 		if(positions[i].enable_pos) {
 			int self_x = positions[i].pos.x;
 			int self_y = positions[i].pos.y;
 			double theta = positions[i].pos.th;
-			if(fReverse) {
+			bool flag_reverse = false;
+			if((positions[i].colornum == 0 && fReverse) ||
+					(positions[i].colornum == 1 && !fReverse)) {
+				flag_reverse = true;
+			}
+			if(flag_reverse) {
 				self_x = field_w - self_x;
 				self_y = field_h - self_y;
 				theta = theta + M_PI;
@@ -972,11 +992,6 @@ void Interface::updateMap(void)
 			if(positions[i].enable_ball && positions[i].ball_conf > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
-				bool flag_reverse = false;
-				if((positions[i].colornum == 0 && fReverse) ||
-						(positions[i].colornum == 1 && !fReverse)) {
-					flag_reverse = true;
-				}
 				if(flag_reverse) {
 					ball_x = field_w - ball_x;
 					ball_y = field_h - ball_y;
@@ -992,10 +1007,6 @@ void Interface::updateMap(void)
 						int goal_pole_x = positions[i].goal_pole[j].x;
 						int goal_pole_y = positions[i].goal_pole[j].y;
 						bool flag_reverse = false;
-						if((positions[i].colornum == 0 && fReverse) ||
-						   (positions[i].colornum == 1 && !fReverse)) {
-							flag_reverse = true;
-						}
 						if(flag_reverse) {
 							goal_pole_x = field_w - goal_pole_x;
 							goal_pole_y = field_h - goal_pole_y;
