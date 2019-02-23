@@ -47,23 +47,41 @@ public:
 		connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
 		button = new QPushButton("Apply");
+		font_size_label = new QLabel("font size of game state: ");
 		font_size_slider = new QSlider(Qt::Horizontal);
 		font_size_slider->setRange(1, 128);
 		connect(font_size_slider, SIGNAL(valueChanged(int)), this, SLOT(fontSizeValueChanged(int)));
+		display_size_label = new QLabel("display size: ");
+		display_size_slider = new QSlider(Qt::Horizontal);
+		display_size_slider->setRange(1, 300);
+		connect(display_size_slider, SIGNAL(valueChanged(int)), this, SLOT(displaySizeValueChanged(int)));
 
 		slider_layout = new QGridLayout;
-		slider_layout->addWidget(font_size_slider, 1, 1);
+		slider_layout->addWidget(font_size_label, 1, 1);
+		slider_layout->addWidget(font_size_slider, 1, 2);
+		slider_layout->addWidget(display_size_label, 2, 1);
+		slider_layout->addWidget(display_size_slider, 2, 2);
 		main_layout = new QVBoxLayout;
 		main_layout->addLayout(slider_layout);
 		main_layout->addWidget(button);
 		main_layout->addWidget(buttonBox);
 		setLayout(main_layout);
+
+		setMinimumSize(640, 480);
+	}
+	void setDefaultParameters(const int game_state_font_size)
+	{
+		font_size_slider->setValue(game_state_font_size);
 	}
 signals:
 	void fontSizeChanged(int);
+	void displaySizeChanged(int);
 private:
 	QSlider *font_size_slider;
+	QSlider *display_size_slider;
 	QPushButton *button;
+	QLabel *font_size_label;
+	QLabel *display_size_label;
 	QGridLayout *slider_layout;
 	QVBoxLayout *main_layout;
 	QDialogButtonBox *buttonBox;
@@ -71,6 +89,10 @@ private slots:
 	void fontSizeValueChanged(int value)
 	{
 		emit fontSizeChanged(value);
+	}
+	void displaySizeValueChanged(int value)
+	{
+		emit displaySizeChanged(value);
 	}
 };
 
@@ -330,6 +352,7 @@ private slots:
 	void setRecordButtonText(QString);
 	void openSettingWindow(void);
 	void gameStateFontSizeChanged(int);
+	void displaySizeChanged(int);
 };
 
 #endif // INTERFACE_H

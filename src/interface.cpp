@@ -70,7 +70,7 @@ void Interface::createMenus(void)
 	fileMenu = menuBar()->addMenu(tr("&File"));
 
 	loadLogFileAction = new QAction(tr("&Load Log File"), 0);
-	settingsAction = new QAction(tr("&Settings"), 0);
+	settingsAction = new QAction(tr("&Size setting"), 0);
 
 	fileMenu->addAction(loadLogFileAction);
 	fileMenu->addAction(settingsAction);
@@ -1191,11 +1191,20 @@ void Interface::gameStateFontSizeChanged(int value)
 	label_game_state_display->setFont(font);
 }
 
+void Interface::displaySizeChanged(int value)
+{
+	time_display->setMinimumHeight(value);
+	secondary_time_display->setMinimumHeight(value);
+	score_display->setMinimumHeight(value);
+}
+
 void Interface::openSettingWindow(void)
 {
 	statusBar->showMessage(QString("setting"));
 	SettingDialog dialog(this);
+	dialog.setDefaultParameters(48);
 	connect(&dialog, SIGNAL(fontSizeChanged(int)), this, SLOT(gameStateFontSizeChanged(int)));
+	connect(&dialog, SIGNAL(displaySizeChanged(int)), this, SLOT(displaySizeChanged(int)));
 	dialog.show();
 	dialog.exec();
 }
