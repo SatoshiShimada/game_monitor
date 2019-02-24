@@ -74,7 +74,7 @@ void Interface::createMenus(void)
 	viewMenu = menuBar()->addMenu(tr("&View"));
 
 	viewGoalPostAction = new QAction(tr("&View Goal Posts"), 0);
-	viewGoalPostAction->setCheckable(false);
+	viewGoalPostAction->setCheckable(true);
 	viewGoalPostAction->setChecked(false);
 
 	viewMenu->addAction(viewGoalPostAction);
@@ -151,7 +151,7 @@ void Interface::createWindow(void)
 	logLayout = new QHBoxLayout;
 	logSpeedButtonLayout = new QHBoxLayout;
 
-	viewGoalpostCheckBox->setChecked(true);
+	viewGoalpostCheckBox->setChecked(false);
 	viewSelfPosConfCheckBox->setChecked(true);
 	checkLayout->addWidget(label_game_state);
 	checkLayout->addWidget(label_game_state_display);
