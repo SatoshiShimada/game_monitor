@@ -193,7 +193,6 @@ private:
 	QCheckBox *viewGoalpostCheckBox;
 	QCheckBox *viewSelfPosConfCheckBox;
 	QPushButton *log1Button, *log2Button, *log5Button;
-	QPushButton *recordButton;
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
@@ -288,10 +287,6 @@ private slots:
 	void logSpeed5(void);
 	void pausePlayingLog(void);
 	void changeLogPosition(void);
-	void captureButtonSlot(void);
-	void updateCameraDevice(QAction *);
-	void showRecordTime(QString);
-	void setRecordButtonText(QString);
 	void openSettingWindow(void);
 	void gameStateFontSizeChanged(int);
 	void displaySizeChanged(int);

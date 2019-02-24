@@ -145,7 +145,6 @@ void Interface::createWindow(void)
 	log1Button->setEnabled(false);
 	log2Button = new QPushButton("x2");
 	log5Button = new QPushButton("x5");
-	recordButton = new QPushButton("Record video");
 	mainLayout = new QGridLayout;
 	checkLayout = new QVBoxLayout;
 	logLayout = new QHBoxLayout;
@@ -164,7 +163,6 @@ void Interface::createWindow(void)
 	checkLayout->addWidget(reverse);
 	checkLayout->addWidget(viewGoalpostCheckBox);
 	checkLayout->addWidget(viewSelfPosConfCheckBox);
-	checkLayout->addWidget(recordButton);
 
 	logLayout->addWidget(log_step);
 	logLayout->addWidget(log_slider);
@@ -1131,24 +1129,6 @@ void Interface::logSpeed5(void)
 	log1Button->setEnabled(true);
 	log2Button->setEnabled(true);
 	log5Button->setEnabled(false);
-}
-
-void Interface::captureButtonSlot(void)
-{
-}
-
-void Interface::updateCameraDevice(QAction *action)
-{
-}
-
-void Interface::showRecordTime(QString message)
-{
-	statusBar->showMessage(message);
-}
-
-void Interface::setRecordButtonText(QString text)
-{
-	recordButton->setText(text);
 }
 
 void Interface::gameStateFontSizeChanged(int value)
