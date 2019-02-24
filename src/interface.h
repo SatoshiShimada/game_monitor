@@ -188,10 +188,10 @@ private:
 	QAction *loadLogFileAction;
 	QAction *settingsAction;
 	QAction *viewGoalPostAction;
+	QAction *viewRobotInformationAction;
+	QAction *viewSelfPosConfAction;
 	QStatusBar *statusBar;
 	QCheckBox *reverse;
-	QCheckBox *viewGoalpostCheckBox;
-	QCheckBox *viewSelfPosConfCheckBox;
 	QPushButton *log1Button, *log2Button, *log5Button;
 	QSettings *settings;
 	QString filenameDrag;
@@ -224,6 +224,7 @@ private:
 	bool fLogging;
 	bool fReverse;
 	bool fViewGoalpost;
+	bool fViewRobotInformation;
 	bool fPauseLog;
 	bool fRecording;
 	bool fViewSelfPosConf;
@@ -277,9 +278,9 @@ private slots:
 	void setScore1(int);
 	void setScore2(int);
 	void reverseField(int);
-	void viewGoalpost(int);
 	void viewGoalpost(bool);
-	void viewSelfPosConf(int);
+	void viewRobotInformation(bool);
+	void viewSelfPosConf(bool);
 	void loadLogFile(void);
 	void updateLog(void);
 	void logSpeed1(void);

@@ -7,7 +7,6 @@
 #include <cstring>
 #include <ctime>
 #include <QLCDNumber>
-
 #include <QtGui>
 
 #include "pos_types.h"
@@ -20,7 +19,7 @@ static inline int distance(const int x1, const int y1, const int x2, const int y
 	return std::sqrt(x * x + y * y);
 }
 
-Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(false), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), score_team1(0), score_team2(0), max_robot_num(6), log_speed(1), field_param(FieldParameter()), field_space(1040, 740)
+Interface::Interface(): fLogging(true), fReverse(false), fViewGoalpost(false), fViewRobotInformation(true), fPauseLog(false), fRecording(false), fViewSelfPosConf(true), score_team1(0), score_team2(0), max_robot_num(6), log_speed(1), field_param(FieldParameter()), field_space(1040, 740)
 {
 	qRegisterMetaType<comm_info_T>("comm_info_T");
 	setAcceptDrops(true);
@@ -75,12 +74,22 @@ void Interface::createMenus(void)
 
 	viewGoalPostAction = new QAction(tr("&View Goal Posts"), 0);
 	viewGoalPostAction->setCheckable(true);
-	viewGoalPostAction->setChecked(false);
+	viewGoalPostAction->setChecked(fViewGoalpost);
+	viewRobotInformationAction = new QAction(tr("&View Detailed robot information"), 0);
+	viewRobotInformationAction->setCheckable(true);
+	viewRobotInformationAction->setChecked(fViewRobotInformation);
+	viewSelfPosConfAction = new QAction(tr("&View Self Position confidence of the Robot"), 0);
+	viewSelfPosConfAction->setCheckable(true);
+	viewSelfPosConfAction->setChecked(fViewSelfPosConf);
 
 	viewMenu->addAction(viewGoalPostAction);
+	viewMenu->addAction(viewRobotInformationAction);
+	viewMenu->addAction(viewSelfPosConfAction);
 	viewMenu->addSeparator();
 
 	connect(viewGoalPostAction, SIGNAL(toggled(bool)), this, SLOT(viewGoalpost(bool)));
+	connect(viewRobotInformationAction, SIGNAL(toggled(bool)), this, SLOT(viewRobotInformation(bool)));
+	connect(viewSelfPosConfAction, SIGNAL(toggled(bool)), this, SLOT(viewSelfPosConf(bool)));
 }
 
 void Interface::initializeConfig(void)
@@ -116,9 +125,8 @@ void Interface::createWindow(void)
 {
 	window = new QWidget;
 	reverse = new QCheckBox("Reverse field");
-	viewGoalpostCheckBox = new QCheckBox("View Goal post");
-	viewSelfPosConfCheckBox = new QCheckBox("View Self Pos Confidence");
 	image = new AspectRatioPixmapLabel;
+	image->setAlignment(Qt::AlignTop | Qt::AlignRight);
 	log_step = new QLabel;
 	label_remaining_time = new QLabel("Time");
 	label_secondary_time = new QLabel("Secondary time");
@@ -150,8 +158,6 @@ void Interface::createWindow(void)
 	logLayout = new QHBoxLayout;
 	logSpeedButtonLayout = new QHBoxLayout;
 
-	viewGoalpostCheckBox->setChecked(false);
-	viewSelfPosConfCheckBox->setChecked(true);
 	checkLayout->addWidget(label_game_state);
 	checkLayout->addWidget(label_game_state_display);
 	checkLayout->addWidget(label_remaining_time);
@@ -161,8 +167,6 @@ void Interface::createWindow(void)
 	checkLayout->addWidget(label_score);
 	checkLayout->addWidget(score_display);
 	checkLayout->addWidget(reverse);
-	checkLayout->addWidget(viewGoalpostCheckBox);
-	checkLayout->addWidget(viewSelfPosConfCheckBox);
 
 	logLayout->addWidget(log_step);
 	logLayout->addWidget(log_slider);
@@ -261,8 +265,6 @@ void Interface::connection(void)
 	connect(th[4], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData5(struct comm_info_T)));
 	connect(th[5], SIGNAL(receiveData(struct comm_info_T)), this, SLOT(decodeData6(struct comm_info_T)));
 	connect(reverse, SIGNAL(stateChanged(int)), this, SLOT(reverseField(int)));
-	connect(viewGoalpostCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewGoalpost(int)));
-	connect(viewSelfPosConfCheckBox, SIGNAL(stateChanged(int)), this, SLOT(viewSelfPosConf(int)));
 	connect(log1Button, SIGNAL(clicked(void)), this, SLOT(logSpeed1(void)));
 	connect(log2Button, SIGNAL(clicked(void)), this, SLOT(logSpeed2(void)));
 	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
@@ -984,7 +986,8 @@ void Interface::updateMap(void)
 			}
 			const int robot_id = i + 1;
 			const QColor color = getColor(positions[i].color);
-			drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].voltage, positions[i].temperature);
+			if(fViewRobotInformation)
+				drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].voltage, positions[i].temperature);
 			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
 
 			if(positions[i].enable_ball && positions[i].ball_conf > 0) {
@@ -1054,33 +1057,29 @@ void Interface::reverseField(int state)
 	updateMap();
 }
 
-void Interface::viewGoalpost(int state)
-{
-	if(state == Qt::Checked) {
-		fViewGoalpost = true;
-		viewGoalPostAction->setChecked(true);
-	} else {
-		fViewGoalpost = false;
-		viewGoalPostAction->setChecked(false);
-	}
-	updateMap();
-}
-
 void Interface::viewGoalpost(bool checked)
 {
 	if(checked) {
 		fViewGoalpost = true;
-		viewGoalpostCheckBox->setChecked(true);
 	} else {
 		fViewGoalpost = false;
-		viewGoalpostCheckBox->setChecked(false);
 	}
 	updateMap();
 }
 
-void Interface::viewSelfPosConf(int state)
+void Interface::viewRobotInformation(bool checked)
 {
-	if(state == Qt::Checked) {
+	if(checked) {
+		fViewRobotInformation = true;
+	} else {
+		fViewRobotInformation = false;
+	}
+	updateMap();
+}
+
+void Interface::viewSelfPosConf(bool checked)
+{
+	if(checked) {
 		fViewSelfPosConf = true;
 	} else {
 		fViewSelfPosConf = false;
