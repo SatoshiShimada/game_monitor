@@ -291,6 +291,8 @@ private slots:
 	void openSettingWindow(void);
 	void gameStateFontSizeChanged(int);
 	void displaySizeChanged(int);
+	void robotMarkerSizeChanged(int);
+	void robotMarkerLineWidthChanged(int);
 };
 
 #endif // INTERFACE_H

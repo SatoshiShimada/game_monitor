@@ -105,7 +105,7 @@ void Interface::initializeConfig(void)
 	settings->setValue("field_size/y", settings->value("field_size/y", field_param.field_width * 10));
 	settings->setValue("field_size/line_width", settings->value("field_size/line_width", 5));
 	// marker configurations
-	settings->setValue("marker/pen_size", settings->value("marker/pen_size", 3));
+	settings->setValue("marker/pen_size", settings->value("marker/pen_size", 6));
 	settings->setValue("marker/robot_size", settings->value("marker/robot_size", 15));
 	settings->setValue("marker/ball_size", settings->value("marker/ball_size", 6));
 	settings->setValue("marker/goal_pole_size", settings->value("marker/goal_pole_size", 5));
@@ -1151,15 +1151,30 @@ void Interface::displaySizeChanged(int value)
 	settings->setValue("size/display_minimum_height", value);
 }
 
+void Interface::robotMarkerSizeChanged(int value)
+{
+	settings->setValue("marker/robot_size", value);
+	settings->setValue("marker/direction_marker_length", static_cast<int>(value * (4.0 / 3.0)));
+}
+
+void Interface::robotMarkerLineWidthChanged(int value)
+{
+	settings->setValue("marker/pen_size", value);
+}
+
 void Interface::openSettingWindow(void)
 {
 	statusBar->showMessage(QString("setting"));
 	SettingDialog dialog(this);
 	const int font_size = settings->value("size/font_size").toInt();
 	const int display_minimum_height = settings->value("size/display_minimum_height").toInt();
-	dialog.setDefaultParameters(font_size, display_minimum_height);
+	const int robot_marker_size = settings->value("marker/robot_size").toInt();
+	const int robot_marker_line_width = settings->value("marker/pen_size").toInt();
+	dialog.setDefaultParameters(font_size, display_minimum_height, robot_marker_size, robot_marker_line_width);
 	connect(&dialog, SIGNAL(fontSizeChanged(int)), this, SLOT(gameStateFontSizeChanged(int)));
 	connect(&dialog, SIGNAL(displaySizeChanged(int)), this, SLOT(displaySizeChanged(int)));
+	connect(&dialog, SIGNAL(robotMarkerSizeChanged(int)), this, SLOT(robotMarkerSizeChanged(int)));
+	connect(&dialog, SIGNAL(robotMarkerLineWidthChanged(int)), this, SLOT(robotMarkerLineWidthChanged(int)));
 	dialog.show();
 	dialog.exec();
 }
