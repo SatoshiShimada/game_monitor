@@ -608,7 +608,7 @@ void Interface::setParamFromFileV2(std::vector<std::string> lines)
 			LogData ldata;
 			ldata.type = LOG_TYPE_ROBOTINFO;
 			ldata.robot_comm = buf;
-			strcpy(ldata.time_str, list.at(0).toStdString().c_str());
+			strcpy(ldata.time_str, list.at(1).toStdString().c_str());
 			log_data.push_back(ldata);
 		} else if(list[0] == "Score" && size == 4) {
 			LogData ldata;
@@ -660,6 +660,11 @@ int Interface::getInterval(QString before, QString after)
 {
 	QStringList list_before = before.split(QChar(':'));
 	QStringList list_after = after.split(QChar(':'));
+	if(list_before.size() != 3 || list_after.size() != 3) {
+		std::cerr << "Found invalid log data (ignored)" << std::endl;
+		std::cerr << before.toStdString() << ", " << after.toStdString() << std::endl;
+		return 0;
+	}
 	int h = list_after.at(0).toInt() - list_before.at(0).toInt();
 	int m = list_after.at(1).toInt() - list_before.at(1).toInt();
 	int s = list_after.at(2).toInt() - list_before.at(2).toInt();
