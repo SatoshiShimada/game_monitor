@@ -2,20 +2,33 @@
 
 # Game Monitor
 
-![Screen Image](https://github.com/SatoshiShimada/game_monitor/wiki/figures/screen_image.png)
+![Screen Image](https://github.com/SatoshiShimada/game_monitor/wiki/figures/screen_image3.png)
 
 The robot state viewer via robot communication.  
-It is for CIT Brains' robot "Accelite".  
+It is for CIT Brains' robot "Accelite" and "GankenKun".  
 This application supports Linux, Mac OS and Windows.  
 If you find a bug please let me know by opening an issue in this repository.  
 Please check Wiki for more information.  
 
+Functions:
+
+- Display
+    - Game state (from official GameController)
+        - Game time
+        - Secondary time (kick-off, time-out, etc.)
+        - Score
+    - Robot state (from robot communication)
+        - Robot position and reliability
+        - Current strategy
+        - Detected ball position and reliability
+        - Detected goal post positions
+        - Voltage of the motor
+        - Temperature of the motor
+- Logging and play the status of the game.
+
 ## Requirements
 
 * [Qt](https://www.qt.io/) (Version: 5.3 or greater)
-* gcc (only Linux)
-* XCode (only Mac OS)(Version: 9 or greater)
-* Visual Studio (only Windows)
 
 ## How to build
 
@@ -24,6 +37,7 @@ Please check Wiki for more information.
 1. Install libraries.
 
 ```shell
+git checkout ubuntu14.04
 apt install build-essential
 ```
 
@@ -65,7 +79,8 @@ apt install qt5-default qtmultimedia5-dev
 
 ```
 brew update -all
-brew install qt
+brew install qt5
+export PATH="/usr/local/Cellar/qt/5.12.0/bin:$PATH"
 ```
 
 2. Build application.

@@ -1,5 +1,5 @@
-#ifndef _INTERFACE_H_
-#define _INTERFACE_H_
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
 #include <vector>
 #include <string>
@@ -25,16 +25,105 @@
 #include <QGridLayout>
 #include <QProgressBar>
 #include <QFileDialog>
+#include <QPixmap>
+#include <QLCDNumber>
+#include <QStatusBar>
+#include <QAction>
+#include <QMenuBar>
 
 #include "udp_thread.h"
 #include "log_writer.h"
 #include "pos_types.h"
-#include "capture.h"
+#include "aspect_ratio_pixmap_label.h"
+#include "gcreceiver.h"
+#include "field_space_manager.h"
+#include "setting_dialog.h"
+
+static constexpr int STATE_IMPOSSIBLE = -1;
+static constexpr int STATE_INITIAL = 0;
+static constexpr int STATE_READY = 1;
+static constexpr int STATE_SET = 2;
+static constexpr int STATE_PLAYING = 3;
+static constexpr int STATE_FINISHED = 4;
+
+static const int LOG_TYPE_ROBOTINFO = 0;
+static const int LOG_TYPE_SCORE1 = 1;
+static const int LOG_TYPE_SCORE2 = 2;
+static const int LOG_TYPE_REMAININGTIME = 3;
+static const int LOG_TYPE_SECONDARYTIME = 4;
+static const int LOG_TYPE_GAMESTATE = 5;
+
+/*
+ * Field parameters.
+ * See Law 1 of rule book(2018) at http://www.robocuphumanoid.org/wp-content/uploads/RCHL-2018-Rules-Proposal_changesMarked_final.pdf
+ */
+class FieldParameter
+{
+	// unit: meter
+public:
+	FieldParameter() :
+		field_length(9.0),
+		field_width(6.0),
+		goal_depth(0.6),
+		goal_width(2.6),
+		goal_height(1.8),
+		goal_area_length(1.0),
+		goal_area_width(5.0),
+		penalty_mark_distance(2.1),
+		center_circle_diameter(1.5),
+		border_strip_width(0.7)
+	{
+	}
+	~FieldParameter() {};
+	const double field_length;
+	const double field_width;
+	const double goal_depth;
+	const double goal_width;
+	const double goal_height;
+	const double goal_area_length;
+	const double goal_area_width;
+	const double penalty_mark_distance;
+	const double center_circle_diameter;
+	const double border_strip_width;
+};
+
+class FieldParameterInt
+{
+	// unit: centimeter
+public:
+	FieldParameterInt(FieldParameter param) :
+		field_length(static_cast<int>(param.field_length * 100)),
+		field_width(static_cast<int>(param.field_width * 100)),
+		goal_depth(static_cast<int>(param.goal_depth * 100)),
+		goal_width(static_cast<int>(param.goal_width * 100)),
+		goal_height(static_cast<int>(param.goal_height * 100)),
+		goal_area_length(static_cast<int>(param.goal_area_length * 100)),
+		goal_area_width(static_cast<int>(param.goal_area_width * 100)),
+		penalty_mark_distance(static_cast<int>(param.penalty_mark_distance * 100)),
+		center_circle_diameter(static_cast<int>(param.center_circle_diameter * 100)),
+		border_strip_width(static_cast<int>(param.border_strip_width * 100))
+	{
+	}
+	~FieldParameterInt() {};
+	const int field_length;
+	const int field_width;
+	const int goal_depth;
+	const int goal_width;
+	const int goal_height;
+	const int goal_area_length;
+	const int goal_area_width;
+	const int penalty_mark_distance;
+	const int center_circle_diameter;
+	const int border_strip_width;
+};
 
 class PositionMarker {
 public:
-	PositionMarker() : self_conf(0.0), colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
+	PositionMarker() : self_conf(0.0), ball_conf(0.0), voltage(0.0), temperature(0.0), colornum(0), enable_pos(false), enable_ball(false), enable_goal_pole{false, false} { color[0] = '\0'; }
 	double self_conf;
+	double ball_conf;
+	double voltage;
+	double temperature;
 	int colornum;
 	bool enable_pos;
 	bool enable_ball;
@@ -44,26 +133,18 @@ public:
 	Pos pos; /* self position */
 	Pos ball; /* ball position */
 	Pos goal_pole[2]; /* goal pole position */
+	std::string message;
 };
 
-class Robot {
+class LogDataRobotComm {
 public:
-	QLabel *name;
-	QLabel *string;
-	QLabel *cf_own;
-	QLabel *cf_ball;
-	QProgressBar *cf_own_bar;
-	QProgressBar *cf_ball_bar;
-	QProgressBar *time_bar;
-};
-
-class LogData {
-public:
+	LogDataRobotComm() : temperature(0.0) { }
 	char time_str[100];
 	int id;
 	char color_str[100];
 	int fps;
 	double voltage;
+	double temperature;
 	int x;
 	int y;
 	double theta;
@@ -78,18 +159,19 @@ public:
 	char msg[100];
 };
 
-class ClickWidget : public QWidget
+class LogData
 {
-	Q_OBJECT
-private:
-	void mouseReleaseEvent(QMouseEvent *event) override
-	{
-		if(event->button() == Qt::LeftButton) {
-			emit clicked();
-		}
-	}
-signals:
-	void clicked(void);
+public:
+	LogData() : type(0), score1(0), score2(0), remaining_time(0), secondary_time(0), game_state(0) { }
+	~LogData() { }
+	int type;
+	LogDataRobotComm robot_comm;
+	int score1;
+	int score2;
+	int remaining_time;
+	int secondary_time;
+	int game_state;
+	char time_str[100];
 };
 
 class Interface : public QMainWindow
@@ -97,28 +179,38 @@ class Interface : public QMainWindow
 	Q_OBJECT
 
 private:
-	Capture *capture;
 	LogWriter log_writer;
 	std::vector<UdpServer *> th;
+	GCReceiver *gc_thread;
+	QMenu *fileMenu;
+	QMenu *viewMenu;
 	QMenu *videoMenu;
+	QAction *loadLogFileAction;
+	QAction *settingsAction;
+	QAction *viewGoalPostAction;
+	QAction *viewRobotInformationAction;
+	QAction *viewSelfPosConfAction;
 	QStatusBar *statusBar;
 	QCheckBox *reverse;
-	QCheckBox *viewGoalpostCheckBox;
-	QPushButton *loadLogButton;
 	QPushButton *log1Button, *log2Button, *log5Button;
-	QPushButton *recordButton;
 	QSettings *settings;
 	QString filenameDrag;
 	QWidget *window;
-	QLabel *image;
+	AspectRatioPixmapLabel *image;
 	QLabel *log_step;
+	QLabel *label_remaining_time;
+	QLabel *label_secondary_time;
+	QLabel *label_game_state;
+	QLabel *label_game_state_display;
+	QLabel *label_score;
+	QLCDNumber *time_display;
+	QLCDNumber *secondary_time_display;
+	QLCDNumber *score_display;
 	QPixmap map;
 	QPixmap origin_map;
-	QPixmap team_logo_map;
 	QSlider *log_slider;
 	QGridLayout *mainLayout;
-	QHBoxLayout *checkLayout;
-	QGridLayout *labelLayout;
+	QVBoxLayout *checkLayout;
 	QHBoxLayout *logLayout;
 	QHBoxLayout *logSpeedButtonLayout;
 	QPalette pal_state_bgcolor;
@@ -128,23 +220,23 @@ private:
 	QPalette pal_black;
 	QPalette pal_orange;
 	std::vector<PositionMarker> positions;
-	std::vector<Robot> robot;
-	std::vector<QLabel *> idLabel;
-	std::vector<ClickWidget *>robotState;
-	std::vector<QGridLayout *>idLayout;
 	std::vector<LogData> log_data;
 	bool fLogging;
 	bool fReverse;
 	bool fViewGoalpost;
+	bool fViewRobotInformation;
 	bool fPauseLog;
 	bool fRecording;
+	bool fViewSelfPosConf;
 	int updateMapTimerId;
+	int score_team1;
+	int score_team2;
 	unsigned int log_count;
 	const int max_robot_num;
 	int logo_pos_x, logo_pos_y;
 	int log_speed;
-	int select_robot_num;
-	struct tm last_select_time;
+	FieldParameterInt field_param;
+	FieldSpaceManager field_space;
 	void initializeConfig(void);
 	void createWindow(void);
 	void connection(void);
@@ -152,19 +244,25 @@ private:
 	Pos globalPosToImagePos(Pos);
 	void timerEvent(QTimerEvent *);
 	void setParamFromFile(std::vector<std::string>);
+	void setParamFromFileV1(std::vector<std::string>);
+	void setParamFromFileV2(std::vector<std::string>);
 	void setData(LogData);
 	QColor getColor(const char *);
-	void selectRobot(int);
 	void createMenus(void);
+	void drawTeamMarker(QPainter &, const int, const int);
+	void drawRobotMarker(QPainter &, const int, const int, const double, const int, const QColor, const double);
+	void drawRobotInformation(QPainter &, const int, const int, const double, const int, const QColor, const double, const double, const std::string, const double, const double);
+	void drawBallMarker(QPainter &, const int, const int, const int, const int, const int, const int);
+	void drawGoalPostMarker(QPainter &, const int, const int, const int, const int);
+	void drawHighlightCircle(QPainter &, const int, const int);
 
 public:
 	Interface();
 	~Interface();
-	void loadImage(const char *);
-	void loadImage(QString, QString);
+	void drawField(void);
 	void dragEnterEvent(QDragEnterEvent *);
 	void dropEvent(QDropEvent *);
-	void decodeUdp(struct comm_info_T, Robot *, int num);
+	void decodeUdp(struct comm_info_T, int num);
 	void updateMap(void);
 
 private slots:
@@ -174,14 +272,15 @@ private slots:
 	void decodeData4(struct comm_info_T);
 	void decodeData5(struct comm_info_T);
 	void decodeData6(struct comm_info_T);
-	void selectRobot1(void);
-	void selectRobot2(void);
-	void selectRobot3(void);
-	void selectRobot4(void);
-	void selectRobot5(void);
-	void selectRobot6(void);
+	void setGameState(int);
+	void setRemainingTime(int);
+	void setSecondaryTime(int);
+	void setScore1(int);
+	void setScore2(int);
 	void reverseField(int);
-	void viewGoalpost(int);
+	void viewGoalpost(bool);
+	void viewRobotInformation(bool);
+	void viewSelfPosConf(bool);
 	void loadLogFile(void);
 	void updateLog(void);
 	void logSpeed1(void);
@@ -189,11 +288,10 @@ private slots:
 	void logSpeed5(void);
 	void pausePlayingLog(void);
 	void changeLogPosition(void);
-	void captureButtonSlot(void);
-	void updateCameraDevice(QAction *);
-	void showRecordTime(QString);
-	void setRecordButtonText(QString);
+	void openSettingWindow(void);
+	void gameStateFontSizeChanged(int);
+	void displaySizeChanged(int);
 };
 
-#endif // _INTERFACE_H_
+#endif // INTERFACE_H
 
