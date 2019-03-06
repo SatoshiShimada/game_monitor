@@ -352,7 +352,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 		strcpy(positions[num].color, "blue");
 	} else if(strstr((const char *)comm_info.command, "Keeper")) {
 		// Orange
-		strcpy(positions[num].color, "orange");
+		strcpy(positions[num].color, "gray");
 	} else {
 		// Black
 		strcpy(positions[num].color, "black");
@@ -742,7 +742,7 @@ void Interface::setData(LogData log_data)
 			strcpy(positions[num].color, "blue");
 		} else if(strstr((const char *)msg, "Keeper")) {
 			// Orange
-			strcpy(positions[num].color, "orange");
+			strcpy(positions[num].color, "gray");
 		} else {
 			// Black
 			strcpy(positions[num].color, "black");
@@ -1069,8 +1069,8 @@ QColor Interface::getColor(const char *color_name)
 		return QColor(0x8E, 0xFF, 0x8E);
 	} else if(!strcmp(color_name, "blue")) {
 		return QColor(0x8E, 0x8E, 0xFF);
-	} else if(!strcmp(color_name, "orange")) {
-		return QColor(0xFF, 0xA5, 0xA0);
+	} else if(!strcmp(color_name, "gray")) {
+		return QColor(0x9F, 0xA5, 0xA0);
 	} else {
 		return QColor(0x00, 0x00, 0x00);
 	}
