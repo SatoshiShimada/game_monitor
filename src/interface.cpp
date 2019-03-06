@@ -358,11 +358,13 @@ void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 		strcpy(positions[num].color, "black");
 	}
 	positions[num].message = std::string((char *)comm_info.command);
+	positions[num].behavior_name = std::string((char *)comm_info.behavior_name);
 
 	positions[num].enable_pos = false;
 	positions[num].enable_ball = false;
 	positions[num].enable_goal_pole[0] = false;
 	positions[num].enable_goal_pole[1] = false;
+	positions[num].enable_target_pos = false;
 	int goal_pole_index = 0;
 	for(int i = 0; i < MAX_COMM_INFO_OBJ; i++) {
 		Object obj;
@@ -382,6 +384,10 @@ void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 			positions[num].goal_pole[goal_pole_index] = globalPosToImagePos(obj.pos);
 			positions[num].enable_goal_pole[goal_pole_index] = true;
 			goal_pole_index++;
+		}
+		if(obj.type == ENEMY) {
+			positions[num].target_pos = globalPosToImagePos(obj.pos);
+			positions[num].enable_target_pos = true;
 		}
 	}
 	updateMap();
@@ -496,9 +502,9 @@ Pos Interface::globalPosToImagePos(Pos gpos)
 	const int field_size_x = settings->value("field_size/x").toInt();
 	const int field_size_y = settings->value("field_size/y").toInt();
 	ret_pos.x =
-		field_image_width - (int)((double)gpos.x * ((double)field_image_width / (double)field_size_x) + ((double)field_image_width / 2));
+		field_image_width - (int)((double)gpos.x * ((double)field_param.field_length / (double)field_size_x) + ((double)field_param.field_length / 2) + field_param.border_strip_width);
 	ret_pos.y =
-		                    (int)((double)gpos.y * ((double)field_image_height / (double)field_size_y) + ((double)field_image_height / 2));
+		                    (int)((double)gpos.y * ((double)field_param.field_width / (double)field_size_y) + ((double)field_param.field_width / 2) + field_param.border_strip_width);
 	ret_pos.th = -gpos.th + M_PI;
 	return ret_pos;
 }
@@ -742,6 +748,7 @@ void Interface::setData(LogData log_data)
 			strcpy(positions[num].color, "black");
 		}
 		positions[num].message = std::string(msg);
+		//positions[num].behavior_name = std::string(msg); // TODO
 
 		time_t timer;
 		timer = time(NULL);
@@ -832,10 +839,10 @@ void Interface::drawRobotMarker(QPainter &painter, const int self_x, const int s
 	}
 }
 
-void Interface::drawRobotInformation(QPainter &painter, const int self_x, const int self_y, const double theta, const int robot_id, const QColor marker_color, const double self_conf, const double ball_conf, const std::string msg, const double voltage, const double temperature)
+void Interface::drawRobotInformation(QPainter &painter, const int self_x, const int self_y, const double theta, const int robot_id, const QColor marker_color, const double self_conf, const double ball_conf, const std::string msg, const std::string behavior_name, const double voltage, const double temperature)
 {
-	constexpr int frame_width = 200;
-	constexpr int frame_height = 80;
+	constexpr int frame_width = 330;
+	constexpr int frame_height = 120;
 	int frame_x, frame_y;
 	bool success = field_space.getEmptySpace(frame_x, frame_y, frame_width, frame_height, self_x, self_y);
 	if(!success) {
@@ -861,13 +868,16 @@ void Interface::drawRobotInformation(QPainter &painter, const int self_x, const 
 	font.setPointSize(font_size);
 	painter.setFont(font);
 	constexpr int font_offset_x = 12;
-	constexpr int font_offset_y = 20 + font_size / 2;
+	constexpr int font_offset_1y = 20 + font_size / 2 + (font_size + 15) * 0;
 	std::string s(msg); // message without role name
 	s.erase(s.begin(), s.begin() + s.find(" "));
-	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_y, QString(s.c_str()));
+	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_1y, QString(s.c_str()));
+	QString behavior_str(behavior_name.c_str());
+	constexpr int font_offset_2y = 20 + font_size / 2 + (font_size + 15) * 1;
+	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_2y, behavior_str);
 	QString voltage_str = QString::number(voltage) + "[V] / " + QString::number(temperature) + "[C]";
-	constexpr int font_offset_2y = 20 + font_size / 2 + font_size + 15;
-	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_2y, voltage_str);
+	constexpr int font_offset_3y = 20 + font_size / 2 + (font_size + 15) * 2;
+	painter.drawText(frame_left + font_offset_x, frame_top + font_offset_3y, voltage_str);
 
 	constexpr int bar_width = 8;
 	constexpr int bar_height = frame_height - 4;
@@ -880,6 +890,16 @@ void Interface::drawRobotInformation(QPainter &painter, const int self_x, const 
 	const int bar_fill_top = frame_top + 2 + (bar_height - bar_fill_height);
 	path_bar.addRect(bar_left, bar_fill_top, bar_width, bar_fill_height);
 	painter.fillPath(path_bar, bar_color);
+}
+
+void Interface::drawTargetPosMarker(QPainter &painter, const int target_x, const int target_y, const int self_x, const int self_y)
+{
+	constexpr int marker_radius = 10;
+	const QColor green(0x00, 0xFF, 0x00);
+	constexpr int pen_size = 2;
+	painter.setPen(QPen(green, pen_size));
+	painter.drawEllipse(target_x - marker_radius, target_y - marker_radius, marker_radius * 2, marker_radius * 2);
+	painter.drawLine(self_x, self_y, target_x, target_y);
 }
 
 void Interface::drawBallMarker(QPainter &painter, const int ball_x, const int ball_y, const int owner_id, const int distance_ball_and_robot, const int self_x, const int self_y)
@@ -957,14 +977,19 @@ void Interface::updateMap(void)
 			int self_y = positions[i].pos.y;
 			int ball_x = positions[i].ball.x;
 			int ball_y = positions[i].ball.y;
+			int target_x = positions[i].target_pos.x;
+			int target_y = positions[i].target_pos.y;
 			if(flag_reverse) {
 				self_x = field_w - self_x;
 				self_y = field_h - self_y;
 				ball_x = field_w - ball_x;
 				ball_y = field_h - ball_y;
+				target_x = field_w - target_x;
+				target_y = field_h - target_y;
 			}
 			field_space.setObjectPos(self_x, self_y, 200, 200);
 			field_space.setObjectPos(ball_x, ball_y, 50, 50);
+			field_space.setObjectPos(target_x, target_y, 50, 50);
 			const int time_limit = settings->value("marker/time_up_limit").toInt();
 			const int elapsed = (local_time->tm_min - positions[i].lastReceiveTime.tm_min) * 60 + (local_time->tm_sec - positions[i].lastReceiveTime.tm_sec);
 			if(elapsed > time_limit) {
@@ -992,7 +1017,7 @@ void Interface::updateMap(void)
 			const int robot_id = i + 1;
 			const QColor color = getColor(positions[i].color);
 			if(fViewRobotInformation)
-				drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].voltage, positions[i].temperature);
+				drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].behavior_name, positions[i].voltage, positions[i].temperature);
 			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
 
 			if(positions[i].enable_ball && positions[i].ball_conf > 0) {
@@ -1006,13 +1031,21 @@ void Interface::updateMap(void)
 				const int owner_id = i + 1;
 				drawBallMarker(paint, ball_x, ball_y, owner_id, distance_ball_and_robot, self_x, self_y);
 			}
+			if(positions[i].enable_target_pos) {
+				int target_x = positions[i].target_pos.x;
+				int target_y = positions[i].target_pos.y;
+				if(flag_reverse) {
+					target_x = field_w - target_x;
+					target_y = field_h - target_y;
+				}
+				drawTargetPosMarker(paint, target_x, target_y, self_x, self_y);
+			}
 			// draw goal posts
 			if(fViewGoalpost) {
 				for(int j = 0; j < 2; j++) {
 					if(positions[i].enable_goal_pole[j]) {
 						int goal_pole_x = positions[i].goal_pole[j].x;
 						int goal_pole_y = positions[i].goal_pole[j].y;
-						bool flag_reverse = false;
 						if(flag_reverse) {
 							goal_pole_x = field_w - goal_pole_x;
 							goal_pole_y = field_h - goal_pole_y;
