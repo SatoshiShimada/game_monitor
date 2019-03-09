@@ -1018,8 +1018,6 @@ void Interface::updateMap(void)
 			const QColor color = getColor(positions[i].color);
 			if(fViewRobotInformation)
 				drawRobotInformation(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf, positions[i].ball_conf, positions[i].message, positions[i].behavior_name, positions[i].voltage, positions[i].temperature);
-			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
-
 			if(positions[i].enable_ball && positions[i].ball_conf > 0) {
 				int ball_x = positions[i].ball.x;
 				int ball_y = positions[i].ball.y;
@@ -1054,6 +1052,7 @@ void Interface::updateMap(void)
 					}
 				}
 			}
+			drawRobotMarker(paint, self_x, self_y, theta, robot_id, color, positions[i].self_conf);
 		}
 	}
 	image->setPixmap(map);
