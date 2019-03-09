@@ -395,7 +395,6 @@ void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 	const double voltage = (comm_info.voltage << 3) / 100.0;
 	positions[num].voltage = voltage;
 	positions[num].temperature = comm_info.temperature;
-	log_writer.setEnable(false);
 	log_writer.write(num + 1, color_str.toStdString().c_str(), (int)comm_info.fps, (double)voltage,
 		(int)positions[num].pos.x, (int)positions[num].pos.y, (float)positions[num].pos.th,
 		(int)positions[num].ball.x, (int)positions[num].ball.y,
