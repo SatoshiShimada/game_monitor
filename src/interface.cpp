@@ -270,6 +270,7 @@ void Interface::connection(void)
 	connect(log5Button, SIGNAL(clicked(void)), this, SLOT(logSpeed5(void)));
 	connect(log_slider, SIGNAL(sliderPressed(void)), this, SLOT(pausePlayingLog(void)));
 	connect(log_slider, SIGNAL(sliderReleased(void)), this, SLOT(changeLogPosition(void)));
+	connect(gc_thread, SIGNAL(gameStateChanged(int)), this, SLOT(setGameState(int)));
 	connect(gc_thread, SIGNAL(remainingTimeChanged(int)), this, SLOT(setRemainingTime(int)));
 	connect(gc_thread, SIGNAL(secondaryTimeChanged(int)), this, SLOT(setSecondaryTime(int)));
 	connect(gc_thread, SIGNAL(scoreChanged1(int)), this, SLOT(setScore1(int)));
