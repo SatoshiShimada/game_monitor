@@ -3,8 +3,8 @@
 SettingDialog::SettingDialog(QWidget *parent) : QDialog(parent)
 {
 	buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-	connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+	connect(buttonBox, SIGNAL(QDialogButtonBox::accepted), this, SLOT(QDialog::accept));
+	connect(buttonBox, SIGNAL(QDialogButtonBox::rejected), this, SLOT(QDialog::reject));
 
 	button = new QPushButton("Apply");
 	font_size_label = new QLabel("font size of game state: ");
