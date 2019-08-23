@@ -401,7 +401,7 @@ void Interface::decodeUdp(struct comm_info_T comm_info, int num)
 		(int)positions[num].ball.x, (int)positions[num].ball.y,
 		(int)positions[num].goal_pole[0].x, (int)positions[num].goal_pole[0].y,
 		(int)positions[num].goal_pole[1].x, (int)positions[num].goal_pole[1].y,
-		(const char *)comm_info.command, (int)comm_info.cf_own, (int)comm_info.cf_ball);
+		(const char *)comm_info.command, (const char *)comm_info.behavior_name, (int)comm_info.cf_own, (int)comm_info.cf_ball);
 }
 
 void Interface::setGameState(int game_state)
@@ -748,7 +748,7 @@ void Interface::setData(LogData log_data)
 			strcpy(positions[num].color, "black");
 		}
 		positions[num].message = std::string(msg);
-		//positions[num].behavior_name = std::string(msg); // TODO
+		positions[num].behavior_name = std::string(msg); // TODO
 
 		time_t timer;
 		timer = time(NULL);
